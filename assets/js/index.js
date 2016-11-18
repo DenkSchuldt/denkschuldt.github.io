@@ -1,58 +1,55 @@
-/******/ (function(modules) { // webpackBootstrap
-/******/ 	// The module cache
-/******/ 	var installedModules = {};
-
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-
-/******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId])
-/******/ 			return installedModules[moduleId].exports;
-
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = installedModules[moduleId] = {
-/******/ 			exports: {},
-/******/ 			id: moduleId,
-/******/ 			loaded: false
-/******/ 		};
-
-/******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-
-/******/ 		// Flag the module as loaded
-/******/ 		module.loaded = true;
-
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
+import '../css/main.scss';
+import $ from 'jquery';
 
 
-/******/ 	// expose the modules object (__webpack_modules__)
-/******/ 	__webpack_require__.m = modules;
+$(document).ready(()=>{
 
-/******/ 	// expose the module cache
-/******/ 	__webpack_require__.c = installedModules;
+  updateContent("Hello World!");
+  updateHeight();
+  $(".background").css("backgroundColor", "white");
+  $(".content").fadeIn(
+    ()=>setTimeout(()=>$(".content").fadeOut(), 1000)
+  );
 
-/******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "/assets/";
+  setTimeout(()=> {
+    updateContent("I'm Denny.");
+    updateHeight();
+    $(".content").fadeIn(() => {
+      setTimeout(() => {
+        appendContent("<p>A Computer Science Engineer.</p");
+        $("p").fadeIn();
+        updateHeight();
+        setTimeout(() => {
+          appendContent('<a href="https://github.com/DenkSchuldt" target="_blank" class="icon github"><i class="fa fa-github" aria-hidden="true"></i></a>');
+          appendContent('<a href="https://twitter.com/DenkSchuldt" target="_blank" class="icon twitter"><i class="fa fa-twitter" aria-hidden="true"></i></a>');
+          appendContent('<a href="https://www.instagram.com/denkschuldt/" target="_blank" class="icon instagram"><i class="fa fa-instagram" aria-hidden="true"></i></a>');
+          setTimeout(() => {
+            $(".icon").fadeIn();
+          }, 250)
+        }, 500)
+      }, 500)
+    });
+  }, 1800)
 
-/******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(0);
-/******/ })
-/************************************************************************/
-/******/ ([
-/* 0 */
-/***/ function(module, exports, __webpack_require__) {
+})
 
-	'use strict';
+/**
+ *
+ */
+const updateHeight = () => (
+  $(".content").css("marginTop", -$(".content").height()/2)
+)
 
-	__webpack_require__(1);
+/**
+ *
+ */
+const updateContent = (str) => (
+  $(".content").html("<h1>"+str+"</h1>")
+)
 
-/***/ },
-/* 1 */
-/***/ function(module, exports) {
-
-	// removed by extract-text-webpack-plugin
-
-/***/ }
-/******/ ]);
+/**
+ *
+ */
+const appendContent = (str) => (
+  $(".content").append(str)
+)
