@@ -13,7 +13,20 @@ body {
   margin: 0;
 }
 
-.hello-world {
+.background {
+  width: 100%;
+  height: 100%;
+  -webkit-transition: background 1s;
+  -moz-transition: background 1s;
+  -o-transition: background 1s;
+  transition: background 1s;
+  background-color: black;
+}
+.content {
+  display: none;
   font-size: 3em;
   text-align: center;
+  position: absolute;
+  top: 50%;
+  width: 100%;
 }
