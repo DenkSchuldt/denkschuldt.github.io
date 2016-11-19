@@ -14,7 +14,13 @@ $(document).ready(()=>{
   setTimeout(()=> {
     updateContent("I'm Denny.");
     updateHeight();
-    $(".content").fadeIn();
+    $(".content").fadeIn(() => {
+      setTimeout(() => {
+        appendContent("A Computer Science Engineer.");
+        $("p").fadeIn();
+        updateHeight();
+      }, 500)
+    });
   }, 1800)
 
 })
@@ -31,4 +37,11 @@ const updateHeight = () => (
  */
 const updateContent = (str) => (
   $(".content").html("<h1>"+str+"</h1>")
+)
+
+/**
+ *
+ */
+const appendContent = (str) => (
+  $(".content").append("<p>"+str+"</p>")
 )

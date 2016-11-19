@@ -68,7 +68,13 @@
 	  setTimeout(function () {
 	    updateContent("I'm Denny.");
 	    updateHeight();
-	    (0, _jquery2.default)(".content").fadeIn();
+	    (0, _jquery2.default)(".content").fadeIn(function () {
+	      setTimeout(function () {
+	        appendContent("A Computer Science Engineer.");
+	        (0, _jquery2.default)("p").fadeIn();
+	        updateHeight();
+	      }, 500);
+	    });
 	  }, 1800);
 	});
 
@@ -84,6 +90,13 @@
 	 */
 	var updateContent = function updateContent(str) {
 	  return (0, _jquery2.default)(".content").html("<h1>" + str + "</h1>");
+	};
+
+	/**
+	 *
+	 */
+	var appendContent = function appendContent(str) {
+	  return (0, _jquery2.default)(".content").append("<p>" + str + "</p>");
 	};
 
 /***/ },

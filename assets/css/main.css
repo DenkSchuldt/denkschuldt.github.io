@@ -11,6 +11,9 @@ body {
   padding: 0;
   margin: 0; }
 
+h1, p {
+  margin: 0; }
+
 .background {
   width: 100%;
   height: 100%;
@@ -26,4 +29,11 @@ body {
   text-align: center;
   position: absolute;
   top: 50%;
-  width: 100%; }
+  width: 100%;
+  -moz-transition: margin-top 0.3s ease-out;
+  -o-transition: margin-top 0.3s ease-out;
+  -webkit-transition: margin-top 0.3s ease-out;
+  -ms-transition: margin-top 0.3s ease-out;
+  transition: margin-top 0.3s ease-out; }
+  .content p {
+    display: none; }
