@@ -3,7 +3,7 @@ const path = require("path");
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 const PATHS = {
-  app: path.join(__dirname, "app"),
+  app: path.join(__dirname, "assets"),
   build: path.join(__dirname, "assets")
 }
 
@@ -13,7 +13,7 @@ module.exports = {
   output: {
       path: PATHS.build,
       publicPath: "/assets/",
-      filename: "js/index.js"
+      filename: "js/bundle.js"
   },
   module: {
     loaders: [

@@ -40,5 +40,19 @@ h1, p {
   transition: margin-top 0.3s ease-out;
   p {
     display: none;
+    margin-bottom: 40px;
+  }
+  .icon {
+    margin: 10px;
+    display: none;
+    &.github {
+      color: #333;
+    }
+    &.twitter {
+      color: #1da1f2;
+    }
+    &.instagram {
+      color: #fcaf45;
+    }
   }
 }
