@@ -56,3 +56,35 @@ h1, p {
     }
   }
 }
+
+#geopanos {
+
+  padding: 50px 0;
+  background-color: #F5F5F5;
+  background-image: url(../images/background.png);
+  background-attachment: fixed;
+  background-position: bottom;
+  background-repeat: repeat-x;
+
+  .geopano-block {
+    width: 70%;
+    display: inherit;
+    margin: auto;
+    border-radius: 2px;
+    margin-bottom: 50px;
+    background-color: #fff;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+    .geopano-block-header {
+      padding: 15px;
+      h1, h5 {
+        margin: 0;
+      }
+    }
+    .geopano-block-content {
+      .geopano {
+        width: 100%;
+        height: 400px;
+      }
+    }
+  }
+}
