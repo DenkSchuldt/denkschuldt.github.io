@@ -17,28 +17,35 @@ import * as types from '../constants/action-types';
 /************ PLAIN ACTIONS ************/
 /***************************************/
 
-export function loadGeoPanosStarted() {
+export function requestGeoPanosStarted() {
   return {
-    type: types.LOAD_GEOPANOS_STARTED
+    type: types.REQUEST_GEOPANOS_STARTED
   }
 }
 
-export function loadGeoPanosFinished() {
+export function requestGeoPanosFinished() {
   return {
-    type: types.LOAD_GEOPANOS_FINISHED
+    type: types.REQUEST_GEOPANOS_FINISHED
   }
 }
 
-export function loadGeoPanosSucceed(payload) {
+export function requestGeoPanosSucceed(payload) {
   return {
-    type: types.LOAD_GEOPANOS_SUCCEED,
+    type: types.REQUEST_GEOPANOS_SUCCEED,
     payload
   }
 }
 
-export function loadGeoPanosFailed(payload) {
+export function requestGeoPanosFailed(payload) {
   return {
-    type: types.LOAD_GEOPANOS_FAILED
+    type: types.REQUEST_GEOPANOS_FAILED,
+    payload
+  }
+}
+
+export function loadGeoPanos() {
+  return {
+    type: types.LOAD_GEOPANOS
   }
 }
 
@@ -47,19 +54,19 @@ export function loadGeoPanosFailed(payload) {
 /************ ASYNC ACTIONS ************/
 /***************************************/
 
-export function loadGeoPanos() {
+export function requestGeoPanos() {
   return (dispatch, getState) => {
-    dispatch(loadGeoPanosStarted());
+    dispatch(requestGeoPanosStarted());
     return $.ajax({
       method: "GET",
       url: 'assets/json/geopanos.json',
       dataType: "json"
     }).done((data) => {
-      dispatch(loadGeoPanosSucceed(data));
+      dispatch(requestGeoPanosSucceed(data));
     }).fail((err) => {
-      dispatch(loadGeoPanosFailed(err));
+      dispatch(requestGeoPanosFailed(err));
     }).always(() => {
-      dispatch(loadGeoPanosFinished());
+      dispatch(requestGeoPanosFinished());
     });
   }
 }

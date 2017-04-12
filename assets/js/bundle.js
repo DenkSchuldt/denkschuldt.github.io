@@ -62,11 +62,11 @@
 
 	__webpack_require__(219);
 
-	var _home = __webpack_require__(224);
+	var _home = __webpack_require__(223);
 
 	var _home2 = _interopRequireDefault(_home);
 
-	var _geopanos = __webpack_require__(225);
+	var _geopanos = __webpack_require__(224);
 
 	var _geopanos2 = _interopRequireDefault(_geopanos);
 
@@ -103,6 +103,15 @@
 
 	(0, _jquery2.default)(document).ready(function () {
 	  _reactDom2.default.render(_react2.default.createElement(Index, null), document.getElementById('index'));
+	});
+
+	document.addEventListener('scroll', function (evt) {
+	  var scrollTop = (0, _jquery2.default)("body").scrollTop();
+	  if (scrollTop > 160) {
+	    (0, _jquery2.default)('.header').fadeIn('fast');
+	  } else {
+	    (0, _jquery2.default)('.header').fadeOut('fast');
+	  }
 	});
 
 /***/ },
@@ -35292,8 +35301,7 @@
 /* 220 */,
 /* 221 */,
 /* 222 */,
-/* 223 */,
-/* 224 */
+/* 223 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -35348,6 +35356,7 @@
 	            appendContent('<a href="https://github.com/DenkSchuldt" target="_blank" class="icon github"><i class="fa fa-github" aria-hidden="true"></i></a>');
 	            appendContent('<a href="https://twitter.com/DenkSchuldt" target="_blank" class="icon twitter"><i class="fa fa-twitter" aria-hidden="true"></i></a>');
 	            appendContent('<a href="https://www.instagram.com/denkschuldt/" target="_blank" class="icon instagram"><i class="fa fa-instagram" aria-hidden="true"></i></a>');
+	            appendContent('<a href="#/360" class="icon"><strong>360º</strong></a>');
 	            setTimeout(function () {
 	              (0, _jquery2.default)(".icon").fadeIn();
 	            }, 250);
@@ -35390,7 +35399,7 @@
 	exports.default = Home;
 
 /***/ },
-/* 225 */
+/* 224 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -35407,23 +35416,23 @@
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _reactRedux = __webpack_require__(226);
+	var _reactRedux = __webpack_require__(225);
 
-	var _redux = __webpack_require__(236);
+	var _redux = __webpack_require__(235);
 
-	var _reduxThunk = __webpack_require__(263);
+	var _reduxThunk = __webpack_require__(262);
 
 	var _reduxThunk2 = _interopRequireDefault(_reduxThunk);
 
-	var _actions = __webpack_require__(264);
+	var _actions = __webpack_require__(263);
 
 	var actions = _interopRequireWildcard(_actions);
 
-	var _reducers = __webpack_require__(266);
+	var _reducers = __webpack_require__(265);
 
 	var _reducers2 = _interopRequireDefault(_reducers);
 
-	var _app = __webpack_require__(268);
+	var _app = __webpack_require__(267);
 
 	var _app2 = _interopRequireDefault(_app);
 
@@ -35447,7 +35456,7 @@
 	 *
 	 */
 	var Main = function Main() {
-	  store.dispatch(actions.loadGeoPanos());
+	  store.dispatch(actions.requestGeoPanos());
 	  return _react2.default.createElement(
 	    _reactRedux.Provider,
 	    { store: store },
@@ -35458,7 +35467,7 @@
 	exports.default = Main;
 
 /***/ },
-/* 226 */
+/* 225 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -35466,15 +35475,15 @@
 	exports.__esModule = true;
 	exports.connect = exports.connectAdvanced = exports.Provider = undefined;
 
-	var _Provider = __webpack_require__(227);
+	var _Provider = __webpack_require__(226);
 
 	var _Provider2 = _interopRequireDefault(_Provider);
 
-	var _connectAdvanced = __webpack_require__(230);
+	var _connectAdvanced = __webpack_require__(229);
 
 	var _connectAdvanced2 = _interopRequireDefault(_connectAdvanced);
 
-	var _connect = __webpack_require__(233);
+	var _connect = __webpack_require__(232);
 
 	var _connect2 = _interopRequireDefault(_connect);
 
@@ -35485,7 +35494,7 @@
 	exports.connect = _connect2.default;
 
 /***/ },
-/* 227 */
+/* 226 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -35495,9 +35504,9 @@
 
 	var _react = __webpack_require__(1);
 
-	var _PropTypes = __webpack_require__(228);
+	var _PropTypes = __webpack_require__(227);
 
-	var _warning = __webpack_require__(229);
+	var _warning = __webpack_require__(228);
 
 	var _warning2 = _interopRequireDefault(_warning);
 
@@ -35569,7 +35578,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ },
-/* 228 */
+/* 227 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -35593,7 +35602,7 @@
 	});
 
 /***/ },
-/* 229 */
+/* 228 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -35623,7 +35632,7 @@
 	}
 
 /***/ },
-/* 230 */
+/* 229 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -35634,7 +35643,7 @@
 
 	exports.default = connectAdvanced;
 
-	var _hoistNonReactStatics = __webpack_require__(231);
+	var _hoistNonReactStatics = __webpack_require__(230);
 
 	var _hoistNonReactStatics2 = _interopRequireDefault(_hoistNonReactStatics);
 
@@ -35644,11 +35653,11 @@
 
 	var _react = __webpack_require__(1);
 
-	var _Subscription = __webpack_require__(232);
+	var _Subscription = __webpack_require__(231);
 
 	var _Subscription2 = _interopRequireDefault(_Subscription);
 
-	var _PropTypes = __webpack_require__(228);
+	var _PropTypes = __webpack_require__(227);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -35918,7 +35927,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ },
-/* 231 */
+/* 230 */
 /***/ function(module, exports) {
 
 	/**
@@ -35974,7 +35983,7 @@
 
 
 /***/ },
-/* 232 */
+/* 231 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -36072,7 +36081,7 @@
 	exports.default = Subscription;
 
 /***/ },
-/* 233 */
+/* 232 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -36083,27 +36092,27 @@
 
 	exports.createConnect = createConnect;
 
-	var _connectAdvanced = __webpack_require__(230);
+	var _connectAdvanced = __webpack_require__(229);
 
 	var _connectAdvanced2 = _interopRequireDefault(_connectAdvanced);
 
-	var _shallowEqual = __webpack_require__(234);
+	var _shallowEqual = __webpack_require__(233);
 
 	var _shallowEqual2 = _interopRequireDefault(_shallowEqual);
 
-	var _mapDispatchToProps = __webpack_require__(235);
+	var _mapDispatchToProps = __webpack_require__(234);
 
 	var _mapDispatchToProps2 = _interopRequireDefault(_mapDispatchToProps);
 
-	var _mapStateToProps = __webpack_require__(259);
+	var _mapStateToProps = __webpack_require__(258);
 
 	var _mapStateToProps2 = _interopRequireDefault(_mapStateToProps);
 
-	var _mergeProps = __webpack_require__(260);
+	var _mergeProps = __webpack_require__(259);
 
 	var _mergeProps2 = _interopRequireDefault(_mergeProps);
 
-	var _selectorFactory = __webpack_require__(261);
+	var _selectorFactory = __webpack_require__(260);
 
 	var _selectorFactory2 = _interopRequireDefault(_selectorFactory);
 
@@ -36205,7 +36214,7 @@
 	exports.default = createConnect();
 
 /***/ },
-/* 234 */
+/* 233 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -36244,7 +36253,7 @@
 	}
 
 /***/ },
-/* 235 */
+/* 234 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -36254,9 +36263,9 @@
 	exports.whenMapDispatchToPropsIsMissing = whenMapDispatchToPropsIsMissing;
 	exports.whenMapDispatchToPropsIsObject = whenMapDispatchToPropsIsObject;
 
-	var _redux = __webpack_require__(236);
+	var _redux = __webpack_require__(235);
 
-	var _wrapMapToProps = __webpack_require__(257);
+	var _wrapMapToProps = __webpack_require__(256);
 
 	function whenMapDispatchToPropsIsFunction(mapDispatchToProps) {
 	  return typeof mapDispatchToProps === 'function' ? (0, _wrapMapToProps.wrapMapToPropsFunc)(mapDispatchToProps, 'mapDispatchToProps') : undefined;
@@ -36277,7 +36286,7 @@
 	exports.default = [whenMapDispatchToPropsIsFunction, whenMapDispatchToPropsIsMissing, whenMapDispatchToPropsIsObject];
 
 /***/ },
-/* 236 */
+/* 235 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -36285,27 +36294,27 @@
 	exports.__esModule = true;
 	exports.compose = exports.applyMiddleware = exports.bindActionCreators = exports.combineReducers = exports.createStore = undefined;
 
-	var _createStore = __webpack_require__(237);
+	var _createStore = __webpack_require__(236);
 
 	var _createStore2 = _interopRequireDefault(_createStore);
 
-	var _combineReducers = __webpack_require__(252);
+	var _combineReducers = __webpack_require__(251);
 
 	var _combineReducers2 = _interopRequireDefault(_combineReducers);
 
-	var _bindActionCreators = __webpack_require__(254);
+	var _bindActionCreators = __webpack_require__(253);
 
 	var _bindActionCreators2 = _interopRequireDefault(_bindActionCreators);
 
-	var _applyMiddleware = __webpack_require__(255);
+	var _applyMiddleware = __webpack_require__(254);
 
 	var _applyMiddleware2 = _interopRequireDefault(_applyMiddleware);
 
-	var _compose = __webpack_require__(256);
+	var _compose = __webpack_require__(255);
 
 	var _compose2 = _interopRequireDefault(_compose);
 
-	var _warning = __webpack_require__(253);
+	var _warning = __webpack_require__(252);
 
 	var _warning2 = _interopRequireDefault(_warning);
 
@@ -36329,7 +36338,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ },
-/* 237 */
+/* 236 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -36338,11 +36347,11 @@
 	exports.ActionTypes = undefined;
 	exports['default'] = createStore;
 
-	var _isPlainObject = __webpack_require__(238);
+	var _isPlainObject = __webpack_require__(237);
 
 	var _isPlainObject2 = _interopRequireDefault(_isPlainObject);
 
-	var _symbolObservable = __webpack_require__(248);
+	var _symbolObservable = __webpack_require__(247);
 
 	var _symbolObservable2 = _interopRequireDefault(_symbolObservable);
 
@@ -36595,12 +36604,12 @@
 	}
 
 /***/ },
-/* 238 */
+/* 237 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var baseGetTag = __webpack_require__(239),
-	    getPrototype = __webpack_require__(245),
-	    isObjectLike = __webpack_require__(247);
+	var baseGetTag = __webpack_require__(238),
+	    getPrototype = __webpack_require__(244),
+	    isObjectLike = __webpack_require__(246);
 
 	/** `Object#toString` result references. */
 	var objectTag = '[object Object]';
@@ -36663,12 +36672,12 @@
 
 
 /***/ },
-/* 239 */
+/* 238 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Symbol = __webpack_require__(240),
-	    getRawTag = __webpack_require__(243),
-	    objectToString = __webpack_require__(244);
+	var Symbol = __webpack_require__(239),
+	    getRawTag = __webpack_require__(242),
+	    objectToString = __webpack_require__(243);
 
 	/** `Object#toString` result references. */
 	var nullTag = '[object Null]',
@@ -36698,10 +36707,10 @@
 
 
 /***/ },
-/* 240 */
+/* 239 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var root = __webpack_require__(241);
+	var root = __webpack_require__(240);
 
 	/** Built-in value references. */
 	var Symbol = root.Symbol;
@@ -36710,10 +36719,10 @@
 
 
 /***/ },
-/* 241 */
+/* 240 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var freeGlobal = __webpack_require__(242);
+	var freeGlobal = __webpack_require__(241);
 
 	/** Detect free variable `self`. */
 	var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
@@ -36725,7 +36734,7 @@
 
 
 /***/ },
-/* 242 */
+/* 241 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/** Detect free variable `global` from Node.js. */
@@ -36736,10 +36745,10 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 243 */
+/* 242 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Symbol = __webpack_require__(240);
+	var Symbol = __webpack_require__(239);
 
 	/** Used for built-in method references. */
 	var objectProto = Object.prototype;
@@ -36788,7 +36797,7 @@
 
 
 /***/ },
-/* 244 */
+/* 243 */
 /***/ function(module, exports) {
 
 	/** Used for built-in method references. */
@@ -36816,10 +36825,10 @@
 
 
 /***/ },
-/* 245 */
+/* 244 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var overArg = __webpack_require__(246);
+	var overArg = __webpack_require__(245);
 
 	/** Built-in value references. */
 	var getPrototype = overArg(Object.getPrototypeOf, Object);
@@ -36828,7 +36837,7 @@
 
 
 /***/ },
-/* 246 */
+/* 245 */
 /***/ function(module, exports) {
 
 	/**
@@ -36849,7 +36858,7 @@
 
 
 /***/ },
-/* 247 */
+/* 246 */
 /***/ function(module, exports) {
 
 	/**
@@ -36884,14 +36893,14 @@
 
 
 /***/ },
-/* 248 */
+/* 247 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(249);
+	module.exports = __webpack_require__(248);
 
 
 /***/ },
-/* 249 */
+/* 248 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, module) {'use strict';
@@ -36900,7 +36909,7 @@
 	  value: true
 	});
 
-	var _ponyfill = __webpack_require__(251);
+	var _ponyfill = __webpack_require__(250);
 
 	var _ponyfill2 = _interopRequireDefault(_ponyfill);
 
@@ -36923,10 +36932,10 @@
 
 	var result = (0, _ponyfill2['default'])(root);
 	exports['default'] = result;
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(250)(module)))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(249)(module)))
 
 /***/ },
-/* 250 */
+/* 249 */
 /***/ function(module, exports) {
 
 	module.exports = function(module) {
@@ -36942,7 +36951,7 @@
 
 
 /***/ },
-/* 251 */
+/* 250 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -36970,7 +36979,7 @@
 	};
 
 /***/ },
-/* 252 */
+/* 251 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -36978,13 +36987,13 @@
 	exports.__esModule = true;
 	exports['default'] = combineReducers;
 
-	var _createStore = __webpack_require__(237);
+	var _createStore = __webpack_require__(236);
 
-	var _isPlainObject = __webpack_require__(238);
+	var _isPlainObject = __webpack_require__(237);
 
 	var _isPlainObject2 = _interopRequireDefault(_isPlainObject);
 
-	var _warning = __webpack_require__(253);
+	var _warning = __webpack_require__(252);
 
 	var _warning2 = _interopRequireDefault(_warning);
 
@@ -37118,7 +37127,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ },
-/* 253 */
+/* 252 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -37148,7 +37157,7 @@
 	}
 
 /***/ },
-/* 254 */
+/* 253 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -37204,7 +37213,7 @@
 	}
 
 /***/ },
-/* 255 */
+/* 254 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -37215,7 +37224,7 @@
 
 	exports['default'] = applyMiddleware;
 
-	var _compose = __webpack_require__(256);
+	var _compose = __webpack_require__(255);
 
 	var _compose2 = _interopRequireDefault(_compose);
 
@@ -37267,7 +37276,7 @@
 	}
 
 /***/ },
-/* 256 */
+/* 255 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -37310,7 +37319,7 @@
 	}
 
 /***/ },
-/* 257 */
+/* 256 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -37320,7 +37329,7 @@
 	exports.getDependsOnOwnProps = getDependsOnOwnProps;
 	exports.wrapMapToPropsFunc = wrapMapToPropsFunc;
 
-	var _verifyPlainObject = __webpack_require__(258);
+	var _verifyPlainObject = __webpack_require__(257);
 
 	var _verifyPlainObject2 = _interopRequireDefault(_verifyPlainObject);
 
@@ -37394,7 +37403,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ },
-/* 258 */
+/* 257 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -37402,11 +37411,11 @@
 	exports.__esModule = true;
 	exports.default = verifyPlainObject;
 
-	var _isPlainObject = __webpack_require__(238);
+	var _isPlainObject = __webpack_require__(237);
 
 	var _isPlainObject2 = _interopRequireDefault(_isPlainObject);
 
-	var _warning = __webpack_require__(229);
+	var _warning = __webpack_require__(228);
 
 	var _warning2 = _interopRequireDefault(_warning);
 
@@ -37419,7 +37428,7 @@
 	}
 
 /***/ },
-/* 259 */
+/* 258 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -37428,7 +37437,7 @@
 	exports.whenMapStateToPropsIsFunction = whenMapStateToPropsIsFunction;
 	exports.whenMapStateToPropsIsMissing = whenMapStateToPropsIsMissing;
 
-	var _wrapMapToProps = __webpack_require__(257);
+	var _wrapMapToProps = __webpack_require__(256);
 
 	function whenMapStateToPropsIsFunction(mapStateToProps) {
 	  return typeof mapStateToProps === 'function' ? (0, _wrapMapToProps.wrapMapToPropsFunc)(mapStateToProps, 'mapStateToProps') : undefined;
@@ -37443,7 +37452,7 @@
 	exports.default = [whenMapStateToPropsIsFunction, whenMapStateToPropsIsMissing];
 
 /***/ },
-/* 260 */
+/* 259 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -37457,7 +37466,7 @@
 	exports.whenMergePropsIsFunction = whenMergePropsIsFunction;
 	exports.whenMergePropsIsOmitted = whenMergePropsIsOmitted;
 
-	var _verifyPlainObject = __webpack_require__(258);
+	var _verifyPlainObject = __webpack_require__(257);
 
 	var _verifyPlainObject2 = _interopRequireDefault(_verifyPlainObject);
 
@@ -37507,7 +37516,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ },
-/* 261 */
+/* 260 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
@@ -37517,7 +37526,7 @@
 	exports.pureFinalPropsSelectorFactory = pureFinalPropsSelectorFactory;
 	exports.default = finalPropsSelectorFactory;
 
-	var _verifySubselectors = __webpack_require__(262);
+	var _verifySubselectors = __webpack_require__(261);
 
 	var _verifySubselectors2 = _interopRequireDefault(_verifySubselectors);
 
@@ -37626,7 +37635,7 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ },
-/* 262 */
+/* 261 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -37634,7 +37643,7 @@
 	exports.__esModule = true;
 	exports.default = verifySubselectors;
 
-	var _warning = __webpack_require__(229);
+	var _warning = __webpack_require__(228);
 
 	var _warning2 = _interopRequireDefault(_warning);
 
@@ -37657,7 +37666,7 @@
 	}
 
 /***/ },
-/* 263 */
+/* 262 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -37685,7 +37694,7 @@
 	exports['default'] = thunk;
 
 /***/ },
-/* 264 */
+/* 263 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -37693,17 +37702,18 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports.loadGeoPanosStarted = loadGeoPanosStarted;
-	exports.loadGeoPanosFinished = loadGeoPanosFinished;
-	exports.loadGeoPanosSucceed = loadGeoPanosSucceed;
-	exports.loadGeoPanosFailed = loadGeoPanosFailed;
+	exports.requestGeoPanosStarted = requestGeoPanosStarted;
+	exports.requestGeoPanosFinished = requestGeoPanosFinished;
+	exports.requestGeoPanosSucceed = requestGeoPanosSucceed;
+	exports.requestGeoPanosFailed = requestGeoPanosFailed;
 	exports.loadGeoPanos = loadGeoPanos;
+	exports.requestGeoPanos = requestGeoPanos;
 
 	var _jquery = __webpack_require__(181);
 
 	var _jquery2 = _interopRequireDefault(_jquery);
 
-	var _actionTypes = __webpack_require__(265);
+	var _actionTypes = __webpack_require__(264);
 
 	var types = _interopRequireWildcard(_actionTypes);
 
@@ -37724,28 +37734,35 @@
 	 *
 	 */
 
-	function loadGeoPanosStarted() {
+	function requestGeoPanosStarted() {
 	  return {
-	    type: types.LOAD_GEOPANOS_STARTED
+	    type: types.REQUEST_GEOPANOS_STARTED
 	  };
 	}
 
-	function loadGeoPanosFinished() {
+	function requestGeoPanosFinished() {
 	  return {
-	    type: types.LOAD_GEOPANOS_FINISHED
+	    type: types.REQUEST_GEOPANOS_FINISHED
 	  };
 	}
 
-	function loadGeoPanosSucceed(payload) {
+	function requestGeoPanosSucceed(payload) {
 	  return {
-	    type: types.LOAD_GEOPANOS_SUCCEED,
+	    type: types.REQUEST_GEOPANOS_SUCCEED,
 	    payload: payload
 	  };
 	}
 
-	function loadGeoPanosFailed(payload) {
+	function requestGeoPanosFailed(payload) {
 	  return {
-	    type: types.LOAD_GEOPANOS_FAILED
+	    type: types.REQUEST_GEOPANOS_FAILED,
+	    payload: payload
+	  };
+	}
+
+	function loadGeoPanos() {
+	  return {
+	    type: types.LOAD_GEOPANOS
 	  };
 	}
 
@@ -37753,25 +37770,25 @@
 	/************ ASYNC ACTIONS ************/
 	/***************************************/
 
-	function loadGeoPanos() {
+	function requestGeoPanos() {
 	  return function (dispatch, getState) {
-	    dispatch(loadGeoPanosStarted());
+	    dispatch(requestGeoPanosStarted());
 	    return _jquery2.default.ajax({
 	      method: "GET",
 	      url: 'assets/json/geopanos.json',
 	      dataType: "json"
 	    }).done(function (data) {
-	      dispatch(loadGeoPanosSucceed(data));
+	      dispatch(requestGeoPanosSucceed(data));
 	    }).fail(function (err) {
-	      dispatch(loadGeoPanosFailed(err));
+	      dispatch(requestGeoPanosFailed(err));
 	    }).always(function () {
-	      dispatch(loadGeoPanosFinished());
+	      dispatch(requestGeoPanosFinished());
 	    });
 	  };
 	}
 
 /***/ },
-/* 265 */
+/* 264 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -37789,13 +37806,15 @@
 	 *
 	 */
 
-	var LOAD_GEOPANOS_STARTED = exports.LOAD_GEOPANOS_STARTED = "LOAD_GEOPANOS_STARTED";
-	var LOAD_GEOPANOS_FINISHED = exports.LOAD_GEOPANOS_FINISHED = "LOAD_GEOPANOS_FINISHED";
-	var LOAD_GEOPANOS_SUCCEED = exports.LOAD_GEOPANOS_SUCCEED = "LOAD_GEOPANOS_SUCCEED";
-	var LOAD_GEOPANOS_FAILED = exports.LOAD_GEOPANOS_FAILED = "LOAD_GEOPANOS_FAILED";
+	var REQUEST_GEOPANOS_STARTED = exports.REQUEST_GEOPANOS_STARTED = "REQUEST_GEOPANOS_STARTED";
+	var REQUEST_GEOPANOS_FINISHED = exports.REQUEST_GEOPANOS_FINISHED = "REQUEST_GEOPANOS_FINISHED";
+	var REQUEST_GEOPANOS_SUCCEED = exports.REQUEST_GEOPANOS_SUCCEED = "REQUEST_GEOPANOS_SUCCEED";
+	var REQUEST_GEOPANOS_FAILED = exports.REQUEST_GEOPANOS_FAILED = "REQUEST_GEOPANOS_FAILED";
+
+	var LOAD_GEOPANOS = exports.LOAD_GEOPANOS = "LOAD_GEOPANOS";
 
 /***/ },
-/* 266 */
+/* 265 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -37804,9 +37823,9 @@
 	  value: true
 	});
 
-	var _immutable = __webpack_require__(267);
+	var _immutable = __webpack_require__(266);
 
-	var _actionTypes = __webpack_require__(265);
+	var _actionTypes = __webpack_require__(264);
 
 	var types = _interopRequireWildcard(_actionTypes);
 
@@ -37823,24 +37842,37 @@
 
 	var initialState = new _immutable.Map({
 	  loading: false,
-	  blocks: (0, _immutable.List)()
+	  index: 0,
+	  data: (0, _immutable.List)(),
+	  list: (0, _immutable.List)()
 	});
 
-	var loadGeoPanosStarted = function loadGeoPanosStarted(state) {
+	var requestGeoPanosStarted = function requestGeoPanosStarted(state) {
 	  return state.set('loading', true);
 	};
 
-	var loadGeoPanosFinished = function loadGeoPanosFinished(state) {
+	var requestGeoPanosFinished = function requestGeoPanosFinished(state) {
 	  return state.set('loading', false);
 	};
 
-	var loadGeoPanosSucceed = function loadGeoPanosSucceed(state, action) {
-	  return state.set('blocks', (0, _immutable.List)(action.payload));
+	var requestGeoPanosSucceed = function requestGeoPanosSucceed(state, action) {
+	  return state.set('data', (0, _immutable.List)(action.payload));
 	};
 
-	var loadGeoPanosFailed = function loadGeoPanosFailed(state, action) {
-	  console.log(action);
+	var requestGeoPanosFailed = function requestGeoPanosFailed(state, action) {
 	  return state;
+	};
+
+	var loadGeoPanos = function loadGeoPanos(state, action) {
+	  var controller = 0;
+	  var newList = state.get('list');
+	  state.get('data').map(function (geopano, idx) {
+	    if (idx >= newList.size && controller < 4) {
+	      newList = newList.push(geopano);
+	      controller += 1;
+	    }
+	  });
+	  return state.set('list', newList);
 	};
 
 	exports.default = function () {
@@ -37848,21 +37880,23 @@
 	  var action = arguments[1];
 
 	  switch (action.type) {
-	    case types.LOAD_GEOPANOS_STARTED:
-	      return loadGeoPanosStarted(state);
-	    case types.LOAD_GEOPANOS_FINISHED:
-	      return loadGeoPanosFinished(state);
-	    case types.LOAD_GEOPANOS_SUCCEED:
-	      return loadGeoPanosSucceed(state, action);
-	    case types.LOAD_GEOPANOS_FAILED:
-	      return loadGeoPanosFailed(state, action);
+	    case types.REQUEST_GEOPANOS_STARTED:
+	      return requestGeoPanosStarted(state);
+	    case types.REQUEST_GEOPANOS_FINISHED:
+	      return requestGeoPanosFinished(state);
+	    case types.REQUEST_GEOPANOS_SUCCEED:
+	      return requestGeoPanosSucceed(state, action);
+	    case types.REQUEST_GEOPANOS_FAILED:
+	      return requestGeoPanosFailed(state, action);
+	    case types.LOAD_GEOPANOS:
+	      return loadGeoPanos(state);
 	    default:
 	      return state;
 	  }
 	};
 
 /***/ },
-/* 267 */
+/* 266 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/**
@@ -42846,7 +42880,7 @@
 	}));
 
 /***/ },
-/* 268 */
+/* 267 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -42861,15 +42895,23 @@
 
 	var _react2 = _interopRequireDefault(_react);
 
-	var _reactRedux = __webpack_require__(226);
+	var _reactRedux = __webpack_require__(225);
 
-	var _actions = __webpack_require__(264);
+	var _reduxInfiniteScroll = __webpack_require__(268);
+
+	var _reduxInfiniteScroll2 = _interopRequireDefault(_reduxInfiniteScroll);
+
+	var _actions = __webpack_require__(263);
 
 	var actions = _interopRequireWildcard(_actions);
 
-	var _geopanoBlock = __webpack_require__(269);
+	var _header = __webpack_require__(270);
 
-	var _geopanoBlock2 = _interopRequireDefault(_geopanoBlock);
+	var _header2 = _interopRequireDefault(_header);
+
+	var _geopano = __webpack_require__(271);
+
+	var _geopano2 = _interopRequireDefault(_geopano);
 
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -42899,18 +42941,46 @@
 	  }
 
 	  _createClass(App, [{
+	    key: 'renderGeoPanos',
+	    value: function renderGeoPanos() {
+	      var state = this.props.state;
+	      return state.get('list').map(function (geopano, idx) {
+	        return _react2.default.createElement(_geopano2.default, {
+	          key: idx,
+	          data: geopano });
+	      }).toArray();
+	    }
+	  }, {
 	    key: 'render',
 	    value: function render() {
-	      var state = this.props.state;
-	      var blocks = state.get('blocks').map(function (block, idx) {
-	        return _react2.default.createElement(_geopanoBlock2.default, {
-	          key: idx,
-	          data: block });
-	      });
+	      var _this2 = this;
+
+	      var loadGeoPanos = function loadGeoPanos() {
+	        _this2.props.loadGeoPanos();
+	      };
 	      return _react2.default.createElement(
 	        'div',
 	        { id: 'geopanos' },
-	        blocks
+	        _react2.default.createElement(_header2.default, null),
+	        _react2.default.createElement(
+	          'div',
+	          { className: 'geopanos-header' },
+	          _react2.default.createElement(
+	            'h1',
+	            null,
+	            '360\xBA'
+	          ),
+	          _react2.default.createElement(
+	            'p',
+	            null,
+	            'Una foto a la vez.'
+	          )
+	        ),
+	        _react2.default.createElement(_reduxInfiniteScroll2.default, {
+	          items: this.renderGeoPanos(),
+	          loadMore: loadGeoPanos,
+	          elementIsScrollable: false,
+	          threshold: 100 })
 	      );
 	    }
 	  }]);
@@ -42925,13 +42995,234 @@
 	};
 
 	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
-	  return {};
+	  return {
+	    loadGeoPanos: function loadGeoPanos() {
+	      dispatch(actions.loadGeoPanos());
+	    }
+	  };
 	};
 
 	exports.default = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(App);
 
 /***/ },
+/* 268 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _react = __webpack_require__(1);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _reactDom = __webpack_require__(35);
+
+	var _reactDom2 = _interopRequireDefault(_reactDom);
+
+	var _DOMPositionUtils = __webpack_require__(269);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	//import ImmutablePropTypes from 'react-immutable-proptypes';
+
+	var ReduxInfiniteScroll = function (_React$Component) {
+	  _inherits(ReduxInfiniteScroll, _React$Component);
+
+	  function ReduxInfiniteScroll(props) {
+	    _classCallCheck(this, ReduxInfiniteScroll);
+
+	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(ReduxInfiniteScroll).call(this, props));
+
+	    _this.scrollFunction = _this.scrollListener.bind(_this);
+	    return _this;
+	  }
+
+	  _createClass(ReduxInfiniteScroll, [{
+	    key: 'componentDidMount',
+	    value: function componentDidMount() {
+	      this.attachScrollListener();
+	    }
+	  }, {
+	    key: 'componentDidUpdate',
+	    value: function componentDidUpdate() {
+	      this.attachScrollListener();
+	    }
+	  }, {
+	    key: '_findElement',
+	    value: function _findElement() {
+	      return this.props.elementIsScrollable ? _reactDom2.default.findDOMNode(this) : window;
+	    }
+	  }, {
+	    key: 'attachScrollListener',
+	    value: function attachScrollListener() {
+	      if (!this.props.hasMore || this.props.loadingMore) return;
+	      var el = this._findElement();
+	      el.addEventListener('scroll', this.scrollFunction, true);
+	      el.addEventListener('resize', this.scrollFunction, true);
+	      this.scrollListener();
+	    }
+	  }, {
+	    key: '_elScrollListener',
+	    value: function _elScrollListener() {
+	      var el = _reactDom2.default.findDOMNode(this);
+	      var topScrollPos = el.scrollTop;
+	      var totalContainerHeight = el.scrollHeight;
+	      var containerFixedHeight = el.offsetHeight;
+	      var bottomScrollPos = topScrollPos + containerFixedHeight;
+
+	      return totalContainerHeight - bottomScrollPos;
+	    }
+	  }, {
+	    key: '_windowScrollListener',
+	    value: function _windowScrollListener() {
+	      var el = _reactDom2.default.findDOMNode(this);
+	      var windowScrollTop = window.pageYOffset !== undefined ? window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
+	      var elTotalHeight = (0, _DOMPositionUtils.topPosition)(el) + el.offsetHeight;
+	      var currentBottomPosition = elTotalHeight - windowScrollTop - window.innerHeight;
+
+	      return currentBottomPosition;
+	    }
+	  }, {
+	    key: 'scrollListener',
+	    value: function scrollListener() {
+	      // This is to prevent the upcoming logic from toggling a load more before
+	      // any data has been passed to the component
+	      if (this._totalItemsSize() <= 0) return;
+
+	      var bottomPosition = this.props.elementIsScrollable ? this._elScrollListener() : this._windowScrollListener();
+
+	      if (bottomPosition < Number(this.props.threshold)) {
+	        this.detachScrollListener();
+	        this.props.loadMore();
+	      }
+	    }
+	  }, {
+	    key: 'detachScrollListener',
+	    value: function detachScrollListener() {
+	      var el = this._findElement();
+	      el.removeEventListener('scroll', this.scrollFunction, true);
+	      el.removeEventListener('resize', this.scrollFunction, true);
+	    }
+	  }, {
+	    key: '_renderOptions',
+	    value: function _renderOptions() {
+	      var allItems = this.props.children.concat(this.props.items);
+
+	      return allItems;
+	    }
+	  }, {
+	    key: '_totalItemsSize',
+	    value: function _totalItemsSize() {
+	      var totalSize = void 0;
+	      totalSize += this.props.children.size ? this.props.children.size : this.props.children.length;
+	      totalSize += this.props.items.size ? this.props.items.size : this.props.items.length;
+	      return totalSize;
+	    }
+	  }, {
+	    key: 'componentWillUnmount',
+	    value: function componentWillUnmount() {
+	      this.detachScrollListener();
+	    }
+	  }, {
+	    key: 'renderLoader',
+	    value: function renderLoader() {
+	      return this.props.loadingMore && this.props.showLoader ? this.props.loader : undefined;
+	    }
+	  }, {
+	    key: '_assignHolderClass',
+	    value: function _assignHolderClass() {
+	      var additionalClass = void 0;
+	      additionalClass = typeof this.props.className === 'function' ? this.props.className() : this.props.className;
+
+	      return 'redux-infinite-scroll ' + additionalClass;
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      var Holder = this.props.holderType;
+
+	      return _react2.default.createElement(
+	        Holder,
+	        { className: this._assignHolderClass(), style: { height: this.props.containerHeight } },
+	        this._renderOptions(),
+	        this.renderLoader()
+	      );
+	    }
+	  }]);
+
+	  return ReduxInfiniteScroll;
+	}(_react2.default.Component);
+
+	exports.default = ReduxInfiniteScroll;
+
+
+	ReduxInfiniteScroll.propTypes = {
+	  elementIsScrollable: _react2.default.PropTypes.bool,
+	  containerHeight: _react2.default.PropTypes.oneOfType([_react2.default.PropTypes.number, _react2.default.PropTypes.string]),
+	  threshold: _react2.default.PropTypes.number,
+	  hasMore: _react2.default.PropTypes.bool,
+	  loadingMore: _react2.default.PropTypes.bool,
+	  loader: _react2.default.PropTypes.any,
+	  showLoader: _react2.default.PropTypes.bool,
+	  loadMore: _react2.default.PropTypes.func.isRequired,
+	  items: _react2.default.PropTypes.oneOfType([
+	  //ImmutablePropTypes.list,
+	  _react2.default.PropTypes.array]),
+	  children: _react2.default.PropTypes.oneOfType([
+	  //ImmutablePropTypes.list,
+	  _react2.default.PropTypes.array]),
+	  holderType: _react2.default.PropTypes.string,
+	  className: _react2.default.PropTypes.oneOfType([_react2.default.PropTypes.string, _react2.default.PropTypes.func])
+	};
+
+	ReduxInfiniteScroll.defaultProps = {
+	  className: '',
+	  elementIsScrollable: true,
+	  containerHeight: '100%',
+	  threshold: 100,
+	  hasMore: true,
+	  loadingMore: false,
+	  loader: _react2.default.createElement(
+	    'div',
+	    { style: { textAlign: 'center' } },
+	    'Loading...'
+	  ),
+	  showLoader: true,
+	  holderType: 'div',
+	  children: [],
+	  items: []
+	};
+
+/***/ },
 /* 269 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.topPosition = topPosition;
+	function topPosition(domElt) {
+	  if (!domElt) {
+	    return 0;
+	  }
+	  return domElt.offsetTop + topPosition(domElt.offsetParent);
+	}
+
+/***/ },
+/* 270 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -42949,50 +43240,88 @@
 	/**
 	 *
 	 */
-	var GeoPanoBlock = function GeoPanoBlock(props) {
-	  var data = props.data;
-	  var geopanos = data.geopanos.map(function (url, idx) {
-	    return _react2.default.createElement("iframe", {
-	      key: idx,
-	      className: "geopano",
-	      src: url,
-	      frameBorder: "0",
-	      allowFullScreen: true });
-	  });
+	var Header = function Header() {
 	  return _react2.default.createElement(
 	    "div",
-	    { className: "geopano-block" },
+	    { className: "header" },
 	    _react2.default.createElement(
-	      "div",
-	      { className: "geopano-block-header" },
-	      _react2.default.createElement(
-	        "h1",
-	        null,
-	        data.title
-	      ),
-	      _react2.default.createElement(
-	        "h5",
-	        null,
-	        data.location
-	      )
-	    ),
-	    _react2.default.createElement(
-	      "div",
-	      { className: "geopano-block-content" },
-	      geopanos
+	      "h2",
+	      null,
+	      "360\xBA"
 	    )
 	  );
 	};
 	/**
-	 * geopano-block.js
-	 * GeoPano block component
+	 * header.js
+	 * Header component
 	 *
 	 * @version 1.0
 	 * @author  Denny K. Schuldt
 	 *
 	 */
 
-	exports.default = GeoPanoBlock;
+	exports.default = Header;
+
+/***/ },
+/* 271 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _react = __webpack_require__(1);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	/**
+	 *
+	 */
+	var GeoPano = function GeoPano(props) {
+	  var data = props.data;
+	  console.log(data);
+	  return _react2.default.createElement(
+	    "div",
+	    { className: "geopano" },
+	    _react2.default.createElement(
+	      "div",
+	      { className: "geopano-header" },
+	      _react2.default.createElement(
+	        "h3",
+	        null,
+	        data.title
+	      ),
+	      _react2.default.createElement(
+	        "p",
+	        null,
+	        data.location
+	      )
+	    ),
+	    _react2.default.createElement(
+	      "div",
+	      { className: "geopano-content" },
+	      _react2.default.createElement("iframe", {
+	        src: data.url,
+	        className: "geopano",
+	        frameBorder: "0",
+	        allowFullScreen: true })
+	    )
+	  );
+	};
+	/**
+	 * geopano.js
+	 * GeoPano component
+	 *
+	 * @version 1.0
+	 * @author  Denny K. Schuldt
+	 *
+	 */
+
+	exports.default = GeoPano;
 
 /***/ }
 /******/ ]);

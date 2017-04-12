@@ -41,3 +41,12 @@ const Index = () => {
 $(document).ready(()=>{
   ReactDOM.render(<Index/>, document.getElementById('index'));
 });
+
+document.addEventListener('scroll', function(evt) {
+  let scrollTop = $("body").scrollTop();
+  if (scrollTop > 160) {
+    $('.header').fadeIn('fast');
+  } else {
+    $('.header').fadeOut('fast');
+  }
+})

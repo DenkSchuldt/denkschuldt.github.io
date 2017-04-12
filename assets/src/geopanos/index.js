@@ -29,7 +29,7 @@ const store = createStore(
  *
  */
 const Main = () => {
-  store.dispatch(actions.loadGeoPanos());
+  store.dispatch(actions.requestGeoPanos());
   return (
     <Provider store={store}>
       <App/>
