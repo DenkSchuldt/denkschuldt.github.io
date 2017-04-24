@@ -43,16 +43,30 @@ h1, h2, h3, h4, h5, p {
     margin-bottom: 40px;
   }
   .icon {
-    margin: 10px;
+    margin: 10px 20px;
     display: none;
+    color: #1565C0;
+    text-decoration: none;
+    &:hover {
+      color: #0D47A1;
+    }
     &.github {
       color: #333;
+      &:hover{
+        opacity: 0.8;
+      }
     }
     &.twitter {
       color: #1da1f2;
+      &:hover{
+        opacity: 0.8;
+      }
     }
     &.instagram {
       color: #fcaf45;
+      &:hover{
+        opacity: 0.8;
+      }
     }
   }
 }

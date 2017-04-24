@@ -39,14 +39,24 @@ h1, h2, h3, h4, h5, p {
     display: none;
     margin-bottom: 40px; }
   .content .icon {
-    margin: 10px;
-    display: none; }
+    margin: 10px 20px;
+    display: none;
+    color: #1565C0;
+    text-decoration: none; }
+    .content .icon:hover {
+      color: #0D47A1; }
     .content .icon.github {
       color: #333; }
+      .content .icon.github:hover {
+        opacity: 0.8; }
     .content .icon.twitter {
       color: #1da1f2; }
+      .content .icon.twitter:hover {
+        opacity: 0.8; }
     .content .icon.instagram {
       color: #fcaf45; }
+      .content .icon.instagram:hover {
+        opacity: 0.8; }
 
 .header {
   position: fixed;

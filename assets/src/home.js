@@ -34,6 +34,7 @@ const Home = React.createClass({
             appendContent('<a href="https://github.com/DenkSchuldt" target="_blank" class="icon github"><i class="fa fa-github" aria-hidden="true"></i></a>');
             appendContent('<a href="https://twitter.com/DenkSchuldt" target="_blank" class="icon twitter"><i class="fa fa-twitter" aria-hidden="true"></i></a>');
             appendContent('<a href="https://www.instagram.com/denkschuldt/" target="_blank" class="icon instagram"><i class="fa fa-instagram" aria-hidden="true"></i></a>');
+            appendContent('<a href="#/360" class="icon"><strong>360º</strong></a>');
             setTimeout(() => {
               $(".icon").fadeIn();
             }, 250)
