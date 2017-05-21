@@ -20,6 +20,7 @@ import {
 import '../css/main.scss';
 import Home from './home.js';
 import GeoPanos from './geopanos';
+import GeoPanosHandy from './geopanos-handy';
 
 /**
  *
@@ -29,11 +30,18 @@ const Index = () => {
     <Router>
       <Switch>
         <Route exact path="/" component={Home} />
-        <Route path="/360" component={GeoPanos} />
+        <Route path="/360" component={GeoPanosResponsive} />
       </Switch>
     </Router>
   )
 };
+
+const GeoPanosResponsive = () => {
+  if ($(window).width() > 500) {
+    return <GeoPanos/>;
+  }
+  return <GeoPanosHandy/>;
+}
 
 /**
  *

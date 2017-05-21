@@ -1,11 +1,9 @@
 html {
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  margin: 0;
   font-family: 'Lato', sans-serif; }
 
-body {
+html,
+body,
+#index {
   width: 100%;
   height: 100%;
   padding: 0;
@@ -13,6 +11,9 @@ body {
 
 h1, h2, h3, h4, h5, p {
   margin: 0; }
+
+.hidden {
+  visibility: hidden; }
 
 .background {
   width: 100%;
@@ -87,10 +88,67 @@ h1, h2, h3, h4, h5, p {
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23); }
     #geopanos .geopano .geopano-header {
       padding: 15px; }
-      #geopanos .geopano .geopano-header h3, #geopanos .geopano .geopano-header p {
+      #geopanos .geopano .geopano-header h3, #geopanos .geopano .geopano-header p, #geopanos .geopano .geopano-header span {
         margin: 0; }
       #geopanos .geopano .geopano-header p {
         font-size: 0.8em; }
+      #geopanos .geopano .geopano-header label {
+        font-size: 0.5em; }
     #geopanos .geopano .geopano-content .geopano {
       width: 100%;
       height: 400px; }
+
+#geopanos-handy {
+  width: 100%;
+  height: 100%; }
+  #geopanos-handy .geopano {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    border-radius: 0; }
+    #geopanos-handy .geopano .geopano-header {
+      color: #fff;
+      position: fixed;
+      width: calc(100% - 40px);
+      background-color: #00695C;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+      padding: 15px 20px;
+      overflow: hidden; }
+      #geopanos-handy .geopano .geopano-header .geopano-header-content {
+        display: inline-block;
+        width: 80%;
+        float: left; }
+      #geopanos-handy .geopano .geopano-header .geopano-header-title {
+        display: inline-block;
+        width: 20%;
+        float: left;
+        text-align: right; }
+      #geopanos-handy .geopano .geopano-header h3, #geopanos-handy .geopano .geopano-header p {
+        margin: 0; }
+      #geopanos-handy .geopano .geopano-header p {
+        font-size: 0.8em; }
+    #geopanos-handy .geopano .geopano-content {
+      display: inline-block;
+      width: 100%;
+      height: 100%; }
+      #geopanos-handy .geopano .geopano-content .geopano {
+        display: inline-block;
+        width: 100%;
+        height: 100%; }
+  #geopanos-handy .navigator .navigator-arrow {
+    top: 50%;
+    color: #fff;
+    width: 60px;
+    height: 60px;
+    position: fixed;
+    font-size: 1.5em;
+    text-align: center;
+    line-height: 60px;
+    border-radius: 30px;
+    background-color: #00695C;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23); }
+  #geopanos-handy .navigator .navigator-arrow-left {
+    float: left; }
+  #geopanos-handy .navigator .navigator-arrow-right {
+    float: right;
+    right: 0; }

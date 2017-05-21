@@ -66,27 +66,15 @@
 
 	var _home2 = _interopRequireDefault(_home);
 
-	var _geopanos = __webpack_require__(224);
+	var _geopanos = __webpack_require__(272);
 
 	var _geopanos2 = _interopRequireDefault(_geopanos);
 
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	var _geopanosHandy = __webpack_require__(224);
 
-	/**
-	 *
-	 */
-	var Index = function Index() {
-	  return _react2.default.createElement(
-	    _reactRouterDom.HashRouter,
-	    null,
-	    _react2.default.createElement(
-	      _reactRouterDom.Switch,
-	      null,
-	      _react2.default.createElement(_reactRouterDom.Route, { exact: true, path: '/', component: _home2.default }),
-	      _react2.default.createElement(_reactRouterDom.Route, { path: '/360', component: _geopanos2.default })
-	    )
-	  );
-	};
+	var _geopanosHandy2 = _interopRequireDefault(_geopanosHandy);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	/**
 	 *
@@ -101,6 +89,29 @@
 	 *
 	 */
 
+	var Index = function Index() {
+	  return _react2.default.createElement(
+	    _reactRouterDom.HashRouter,
+	    null,
+	    _react2.default.createElement(
+	      _reactRouterDom.Switch,
+	      null,
+	      _react2.default.createElement(_reactRouterDom.Route, { exact: true, path: '/', component: _home2.default }),
+	      _react2.default.createElement(_reactRouterDom.Route, { path: '/360', component: GeoPanosResponsive })
+	    )
+	  );
+	};
+
+	var GeoPanosResponsive = function GeoPanosResponsive() {
+	  if ((0, _jquery2.default)(window).width() > 500) {
+	    return _react2.default.createElement(_geopanos2.default, null);
+	  }
+	  return _react2.default.createElement(_geopanosHandy2.default, null);
+	};
+
+	/**
+	 *
+	 */
 	(0, _jquery2.default)(document).ready(function () {
 	  _reactDom2.default.render(_react2.default.createElement(Index, null), document.getElementById('index'));
 	});
@@ -35442,9 +35453,9 @@
 
 	/**
 	 * index.js
-	 * Geopanos module
+	 * Geopanos Handy module
 	 *
-	 * @version 1.0
+	 * @version 1.1
 	 * @author  Denny K. Schuldt
 	 *
 	 */
@@ -37706,7 +37717,8 @@
 	exports.requestGeoPanosFinished = requestGeoPanosFinished;
 	exports.requestGeoPanosSucceed = requestGeoPanosSucceed;
 	exports.requestGeoPanosFailed = requestGeoPanosFailed;
-	exports.loadGeoPanos = loadGeoPanos;
+	exports.previousGeoPano = previousGeoPano;
+	exports.nextGeoPano = nextGeoPano;
 	exports.requestGeoPanos = requestGeoPanos;
 
 	var _jquery = __webpack_require__(181);
@@ -37721,15 +37733,11 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	/***************************************/
-	/************ PLAIN ACTIONS ************/
-	/***************************************/
-
 	/**
 	 * index.js
-	 * Geopanos actions
+	 * Geopanos handy actions
 	 *
-	 * @version 1.0
+	 * @version 1.1
 	 * @author  Denny K. Schuldt
 	 *
 	 */
@@ -37760,9 +37768,15 @@
 	  };
 	}
 
-	function loadGeoPanos() {
+	function previousGeoPano() {
 	  return {
-	    type: types.LOAD_GEOPANOS
+	    type: types.PREVIOUS_GEOPANO
+	  };
+	}
+
+	function nextGeoPano() {
+	  return {
+	    type: types.NEXT_GEOPANO
 	  };
 	}
 
@@ -37807,11 +37821,12 @@
 	 */
 
 	var REQUEST_GEOPANOS_STARTED = exports.REQUEST_GEOPANOS_STARTED = "REQUEST_GEOPANOS_STARTED";
-	var REQUEST_GEOPANOS_FINISHED = exports.REQUEST_GEOPANOS_FINISHED = "REQUEST_GEOPANOS_FINISHED";
 	var REQUEST_GEOPANOS_SUCCEED = exports.REQUEST_GEOPANOS_SUCCEED = "REQUEST_GEOPANOS_SUCCEED";
 	var REQUEST_GEOPANOS_FAILED = exports.REQUEST_GEOPANOS_FAILED = "REQUEST_GEOPANOS_FAILED";
+	var REQUEST_GEOPANOS_FINISHED = exports.REQUEST_GEOPANOS_FINISHED = "REQUEST_GEOPANOS_FINISHED";
 
-	var LOAD_GEOPANOS = exports.LOAD_GEOPANOS = "LOAD_GEOPANOS";
+	var PREVIOUS_GEOPANO = exports.PREVIOUS_GEOPANO = "PREVIOUS_GEOPANO";
+	var NEXT_GEOPANO = exports.NEXT_GEOPANO = "NEXT_GEOPANO";
 
 /***/ },
 /* 265 */
@@ -37833,9 +37848,9 @@
 
 	/**
 	 * index.js
-	 * Geopanos reducer
+	 * Geopanos handy reducer
 	 *
-	 * @version 1.0
+	 * @version 1.1
 	 * @author  Denny K. Schuldt
 	 *
 	 */
@@ -37843,16 +37858,11 @@
 	var initialState = new _immutable.Map({
 	  loading: false,
 	  index: 0,
-	  data: (0, _immutable.List)(),
-	  list: (0, _immutable.List)()
+	  data: (0, _immutable.List)()
 	});
 
 	var requestGeoPanosStarted = function requestGeoPanosStarted(state) {
-	  return state.set('loading', true);
-	};
-
-	var requestGeoPanosFinished = function requestGeoPanosFinished(state) {
-	  return state.set('loading', false);
+	  return state;
 	};
 
 	var requestGeoPanosSucceed = function requestGeoPanosSucceed(state, action) {
@@ -37863,16 +37873,24 @@
 	  return state;
 	};
 
-	var loadGeoPanos = function loadGeoPanos(state, action) {
-	  var controller = 0;
-	  var newList = state.get('list');
-	  state.get('data').map(function (geopano, idx) {
-	    if (idx >= newList.size && controller < 4) {
-	      newList = newList.push(geopano);
-	      controller += 1;
-	    }
-	  });
-	  return state.set('list', newList);
+	var requestGeoPanosFinished = function requestGeoPanosFinished(state) {
+	  return state;
+	};
+
+	var previousGeoPano = function previousGeoPano(state) {
+	  var index = state.get('index');
+	  if (index > 0) {
+	    return state.set('index', index - 1);
+	  }
+	  return state;
+	};
+
+	var nextGeoPano = function nextGeoPano(state) {
+	  var index = state.get('index');
+	  if (index < state.get('data').size - 1) {
+	    return state.set('index', index + 1);
+	  }
+	  return state;
 	};
 
 	exports.default = function () {
@@ -37882,14 +37900,16 @@
 	  switch (action.type) {
 	    case types.REQUEST_GEOPANOS_STARTED:
 	      return requestGeoPanosStarted(state);
-	    case types.REQUEST_GEOPANOS_FINISHED:
-	      return requestGeoPanosFinished(state);
 	    case types.REQUEST_GEOPANOS_SUCCEED:
 	      return requestGeoPanosSucceed(state, action);
 	    case types.REQUEST_GEOPANOS_FAILED:
 	      return requestGeoPanosFailed(state, action);
-	    case types.LOAD_GEOPANOS:
-	      return loadGeoPanos(state);
+	    case types.REQUEST_GEOPANOS_FINISHED:
+	      return requestGeoPanosFinished(state);
+	    case types.PREVIOUS_GEOPANO:
+	      return previousGeoPano(state);
+	    case types.NEXT_GEOPANO:
+	      return nextGeoPano(state);
 	    default:
 	      return state;
 	  }
@@ -42895,21 +42915,597 @@
 
 	var _react2 = _interopRequireDefault(_react);
 
+	var _geopanoContainer = __webpack_require__(268);
+
+	var _geopanoContainer2 = _interopRequireDefault(_geopanoContainer);
+
+	var _navigatorContainer = __webpack_require__(270);
+
+	var _navigatorContainer2 = _interopRequireDefault(_navigatorContainer);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	/**
+	 * app.js
+	 * Geopanos app container
+	 *
+	 * @version 1.0
+	 * @author  Denny K. Schuldt
+	 *
+	 */
+
+	var App = function (_Component) {
+	  _inherits(App, _Component);
+
+	  function App() {
+	    _classCallCheck(this, App);
+
+	    return _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).apply(this, arguments));
+	  }
+
+	  _createClass(App, [{
+	    key: 'render',
+	    value: function render() {
+	      return _react2.default.createElement(
+	        'div',
+	        { id: 'geopanos-handy' },
+	        _react2.default.createElement(_geopanoContainer2.default, null),
+	        _react2.default.createElement(_navigatorContainer2.default, null)
+	      );
+	    }
+	  }]);
+
+	  return App;
+	}(_react.Component);
+
+	exports.default = App;
+
+/***/ },
+/* 268 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _react = __webpack_require__(1);
+
+	var _react2 = _interopRequireDefault(_react);
+
 	var _reactRedux = __webpack_require__(225);
-
-	var _reduxInfiniteScroll = __webpack_require__(268);
-
-	var _reduxInfiniteScroll2 = _interopRequireDefault(_reduxInfiniteScroll);
 
 	var _actions = __webpack_require__(263);
 
 	var actions = _interopRequireWildcard(_actions);
 
-	var _header = __webpack_require__(270);
+	var _geopano = __webpack_require__(269);
+
+	var _geopano2 = _interopRequireDefault(_geopano);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var GeoPanoContainer = function GeoPanoContainer(props) {
+	  return _react2.default.createElement(_geopano2.default, props);
+	};
+
+	var mapStateToProps = function mapStateToProps(state) {
+	  return {
+	    state: state
+	  };
+	};
+
+	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
+	  return {};
+	};
+
+	exports.default = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(GeoPanoContainer);
+
+/***/ },
+/* 269 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _react = __webpack_require__(1);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _jquery = __webpack_require__(181);
+
+	var _jquery2 = _interopRequireDefault(_jquery);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	/**
+	 *
+	 */
+
+	/**
+	 * geopano.js
+	 * GeoPano component
+	 *
+	 * @version 1.1
+	 * @author  Denny K. Schuldt
+	 *
+	 */
+
+	var GeoPano = function GeoPano(props) {
+
+	  var data = {};
+
+	  if (props.state.get('data').size) {
+	    var index = props.state.get('index');
+	    data = props.state.get('data').get(index);
+	  }
+
+	  return _react2.default.createElement(
+	    'div',
+	    { className: 'geopano' },
+	    _react2.default.createElement(
+	      'div',
+	      { className: 'geopano-header' },
+	      _react2.default.createElement(
+	        'div',
+	        { className: 'geopano-header-content' },
+	        _react2.default.createElement(
+	          'h3',
+	          null,
+	          data.title
+	        ),
+	        _react2.default.createElement(
+	          'p',
+	          null,
+	          data.location
+	        ),
+	        _react2.default.createElement(
+	          'label',
+	          null,
+	          props.state.get('index') + 1 + "/" + props.state.get('data').size
+	        )
+	      ),
+	      _react2.default.createElement(
+	        'div',
+	        { className: 'geopano-header-title' },
+	        _react2.default.createElement(
+	          'h3',
+	          null,
+	          '360\xBA'
+	        )
+	      )
+	    ),
+	    _react2.default.createElement(
+	      'div',
+	      { className: 'geopano-content' },
+	      _react2.default.createElement('iframe', {
+	        src: data.url,
+	        className: 'geopano',
+	        frameBorder: '0',
+	        allowFullScreen: true })
+	    )
+	  );
+	};
+
+	exports.default = GeoPano;
+
+/***/ },
+/* 270 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _react = __webpack_require__(1);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _reactRedux = __webpack_require__(225);
+
+	var _jquery = __webpack_require__(181);
+
+	var _jquery2 = _interopRequireDefault(_jquery);
+
+	var _actions = __webpack_require__(263);
+
+	var actions = _interopRequireWildcard(_actions);
+
+	var _navigator = __webpack_require__(271);
+
+	var _navigator2 = _interopRequireDefault(_navigator);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var NavigatorContainer = function NavigatorContainer(props) {
+	  return _react2.default.createElement(_navigator2.default, props);
+	};
+
+	var mapStateToProps = function mapStateToProps(state) {
+	  return {
+	    state: state
+	  };
+	};
+
+	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
+	  return {
+	    onPreviousGeoPano: function onPreviousGeoPano() {
+	      dispatch(actions.previousGeoPano());
+	    },
+	    onNextGeoPano: function onNextGeoPano() {
+	      dispatch(actions.nextGeoPano());
+	    }
+	  };
+	};
+
+	exports.default = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(NavigatorContainer);
+
+/***/ },
+/* 271 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _react = __webpack_require__(1);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	/**
+	 *
+	 */
+	var Navigator = function Navigator(props) {
+	  return _react2.default.createElement(
+	    'div',
+	    { className: 'navigator' },
+	    _react2.default.createElement(
+	      'div',
+	      {
+	        onClick: props.onPreviousGeoPano,
+	        className: props.state.get('index') == 0 ? "navigator-arrow navigator-arrow-left hidden" : "navigator-arrow navigator-arrow-left" },
+	      _react2.default.createElement('i', { className: 'fa fa-arrow-left', 'aria-hidden': 'true' })
+	    ),
+	    _react2.default.createElement(
+	      'div',
+	      {
+	        onClick: props.onNextGeoPano,
+	        className: props.state.get('index') == props.state.get('data').size - 1 ? "navigator-arrow navigator-arrow-right hidden" : "navigator-arrow navigator-arrow-right" },
+	      _react2.default.createElement('i', { className: 'fa fa-arrow-right', 'aria-hidden': 'true' })
+	    )
+	  );
+	};
+	/**
+	 * footer.js
+	 * Footer component
+	 *
+	 * @version 1.1
+	 * @author  Denny K. Schuldt
+	 *
+	 */
+
+	exports.default = Navigator;
+
+/***/ },
+/* 272 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _jquery = __webpack_require__(181);
+
+	var _jquery2 = _interopRequireDefault(_jquery);
+
+	var _react = __webpack_require__(1);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _reactRedux = __webpack_require__(225);
+
+	var _redux = __webpack_require__(235);
+
+	var _reduxThunk = __webpack_require__(262);
+
+	var _reduxThunk2 = _interopRequireDefault(_reduxThunk);
+
+	var _actions = __webpack_require__(273);
+
+	var actions = _interopRequireWildcard(_actions);
+
+	var _reducers = __webpack_require__(275);
+
+	var _reducers2 = _interopRequireDefault(_reducers);
+
+	var _app = __webpack_require__(276);
+
+	var _app2 = _interopRequireDefault(_app);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	/**
+	 * index.js
+	 * Geopanos module
+	 *
+	 * @version 1.0
+	 * @author  Denny K. Schuldt
+	 *
+	 */
+
+	var middleware = [_reduxThunk2.default];
+	var store = (0, _redux.createStore)(_reducers2.default, _redux.applyMiddleware.apply(undefined, middleware));
+
+	/**
+	 *
+	 */
+	var Main = function Main() {
+	  store.dispatch(actions.requestGeoPanos());
+	  return _react2.default.createElement(
+	    _reactRedux.Provider,
+	    { store: store },
+	    _react2.default.createElement(_app2.default, null)
+	  );
+	};
+
+	exports.default = Main;
+
+/***/ },
+/* 273 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.requestGeoPanosStarted = requestGeoPanosStarted;
+	exports.requestGeoPanosFinished = requestGeoPanosFinished;
+	exports.requestGeoPanosSucceed = requestGeoPanosSucceed;
+	exports.requestGeoPanosFailed = requestGeoPanosFailed;
+	exports.loadGeoPanos = loadGeoPanos;
+	exports.requestGeoPanos = requestGeoPanos;
+
+	var _jquery = __webpack_require__(181);
+
+	var _jquery2 = _interopRequireDefault(_jquery);
+
+	var _actionTypes = __webpack_require__(274);
+
+	var types = _interopRequireWildcard(_actionTypes);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	/***************************************/
+	/************ PLAIN ACTIONS ************/
+	/***************************************/
+
+	/**
+	 * index.js
+	 * Geopanos actions
+	 *
+	 * @version 1.0
+	 * @author  Denny K. Schuldt
+	 *
+	 */
+
+	function requestGeoPanosStarted() {
+	  return {
+	    type: types.REQUEST_GEOPANOS_STARTED
+	  };
+	}
+
+	function requestGeoPanosFinished() {
+	  return {
+	    type: types.REQUEST_GEOPANOS_FINISHED
+	  };
+	}
+
+	function requestGeoPanosSucceed(payload) {
+	  return {
+	    type: types.REQUEST_GEOPANOS_SUCCEED,
+	    payload: payload
+	  };
+	}
+
+	function requestGeoPanosFailed(payload) {
+	  return {
+	    type: types.REQUEST_GEOPANOS_FAILED,
+	    payload: payload
+	  };
+	}
+
+	function loadGeoPanos() {
+	  return {
+	    type: types.LOAD_GEOPANOS
+	  };
+	}
+
+	/***************************************/
+	/************ ASYNC ACTIONS ************/
+	/***************************************/
+
+	function requestGeoPanos() {
+	  return function (dispatch, getState) {
+	    dispatch(requestGeoPanosStarted());
+	    return _jquery2.default.ajax({
+	      method: "GET",
+	      url: 'assets/json/geopanos.json',
+	      dataType: "json"
+	    }).done(function (data) {
+	      dispatch(requestGeoPanosSucceed(data));
+	    }).fail(function (err) {
+	      dispatch(requestGeoPanosFailed(err));
+	    }).always(function () {
+	      dispatch(requestGeoPanosFinished());
+	    });
+	  };
+	}
+
+/***/ },
+/* 274 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	/**
+	 * action-types.js
+	 * Geopanos action types
+	 *
+	 * @version 1.0
+	 * @author  Denny K. Schuldt
+	 *
+	 */
+
+	var REQUEST_GEOPANOS_STARTED = exports.REQUEST_GEOPANOS_STARTED = "REQUEST_GEOPANOS_STARTED";
+	var REQUEST_GEOPANOS_FINISHED = exports.REQUEST_GEOPANOS_FINISHED = "REQUEST_GEOPANOS_FINISHED";
+	var REQUEST_GEOPANOS_SUCCEED = exports.REQUEST_GEOPANOS_SUCCEED = "REQUEST_GEOPANOS_SUCCEED";
+	var REQUEST_GEOPANOS_FAILED = exports.REQUEST_GEOPANOS_FAILED = "REQUEST_GEOPANOS_FAILED";
+
+	var LOAD_GEOPANOS = exports.LOAD_GEOPANOS = "LOAD_GEOPANOS";
+
+/***/ },
+/* 275 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _immutable = __webpack_require__(266);
+
+	var _actionTypes = __webpack_require__(274);
+
+	var types = _interopRequireWildcard(_actionTypes);
+
+	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+	/**
+	 * index.js
+	 * Geopanos reducer
+	 *
+	 * @version 1.0
+	 * @author  Denny K. Schuldt
+	 *
+	 */
+
+	var initialState = new _immutable.Map({
+	  loading: false,
+	  index: 0,
+	  data: (0, _immutable.List)(),
+	  list: (0, _immutable.List)()
+	});
+
+	var requestGeoPanosStarted = function requestGeoPanosStarted(state) {
+	  return state.set('loading', true);
+	};
+
+	var requestGeoPanosFinished = function requestGeoPanosFinished(state) {
+	  return state.set('loading', false);
+	};
+
+	var requestGeoPanosSucceed = function requestGeoPanosSucceed(state, action) {
+	  return state.set('data', (0, _immutable.List)(action.payload));
+	};
+
+	var requestGeoPanosFailed = function requestGeoPanosFailed(state, action) {
+	  return state;
+	};
+
+	var loadGeoPanos = function loadGeoPanos(state, action) {
+	  var controller = 0;
+	  var newList = state.get('list');
+	  state.get('data').map(function (geopano, idx) {
+	    if (idx >= newList.size && controller < 4) {
+	      newList = newList.push(geopano);
+	      controller += 1;
+	    }
+	  });
+	  return state.set('list', newList);
+	};
+
+	exports.default = function () {
+	  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : initialState;
+	  var action = arguments[1];
+
+	  switch (action.type) {
+	    case types.REQUEST_GEOPANOS_STARTED:
+	      return requestGeoPanosStarted(state);
+	    case types.REQUEST_GEOPANOS_FINISHED:
+	      return requestGeoPanosFinished(state);
+	    case types.REQUEST_GEOPANOS_SUCCEED:
+	      return requestGeoPanosSucceed(state, action);
+	    case types.REQUEST_GEOPANOS_FAILED:
+	      return requestGeoPanosFailed(state, action);
+	    case types.LOAD_GEOPANOS:
+	      return loadGeoPanos(state);
+	    default:
+	      return state;
+	  }
+	};
+
+/***/ },
+/* 276 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	var _react = __webpack_require__(1);
+
+	var _react2 = _interopRequireDefault(_react);
+
+	var _reactRedux = __webpack_require__(225);
+
+	var _reduxInfiniteScroll = __webpack_require__(277);
+
+	var _reduxInfiniteScroll2 = _interopRequireDefault(_reduxInfiniteScroll);
+
+	var _actions = __webpack_require__(273);
+
+	var actions = _interopRequireWildcard(_actions);
+
+	var _header = __webpack_require__(279);
 
 	var _header2 = _interopRequireDefault(_header);
 
-	var _geopano = __webpack_require__(271);
+	var _geopano = __webpack_require__(280);
 
 	var _geopano2 = _interopRequireDefault(_geopano);
 
@@ -43005,7 +43601,7 @@
 	exports.default = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(App);
 
 /***/ },
-/* 268 */
+/* 277 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -43024,7 +43620,7 @@
 
 	var _reactDom2 = _interopRequireDefault(_reactDom);
 
-	var _DOMPositionUtils = __webpack_require__(269);
+	var _DOMPositionUtils = __webpack_require__(278);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -43205,7 +43801,7 @@
 	};
 
 /***/ },
-/* 269 */
+/* 278 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -43222,7 +43818,7 @@
 	}
 
 /***/ },
-/* 270 */
+/* 279 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -43263,7 +43859,7 @@
 	exports.default = Header;
 
 /***/ },
-/* 271 */
+/* 280 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
