@@ -36,9 +36,27 @@ h1, h2, h3, h4, h5, p {
   -webkit-transition: margin-top 0.3s ease-out;
   -ms-transition: margin-top 0.3s ease-out;
   transition: margin-top 0.3s ease-out; }
+  .content a {
+    font-size: 20px;
+    vertical-align: middle;
+    text-decoration: none;
+    color: #1565C0;
+    display: inline-block !important; }
+    .content a img {
+      width: 100px; }
+    .content a:hover {
+      opacity: 0.8; }
   .content p {
-    display: none;
-    margin-bottom: 40px; }
+    display: none; }
+  .content hr {
+    display: inline-block;
+    width: 0%;
+    margin: auto;
+    -moz-transition: width 1s ease-out;
+    -o-transition: width 1s ease-out;
+    -webkit-transition: width 1s ease-out;
+    -ms-transition: width 1s ease-out;
+    transition: width 1s ease-out; }
   .content .icon {
     margin: 10px 20px;
     display: none;
@@ -58,6 +76,8 @@ h1, h2, h3, h4, h5, p {
       color: #fcaf45; }
       .content .icon.instagram:hover {
         opacity: 0.8; }
+  .content .icon-sm {
+    font-size: 0.6em; }
 
 .header {
   position: fixed;

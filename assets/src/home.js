@@ -31,12 +31,18 @@ const Home = React.createClass({
           $("p").fadeIn();
           updateHeight();
           setTimeout(() => {
-            appendContent('<a href="https://github.com/DenkSchuldt" target="_blank" class="icon github"><i class="fa fa-github" aria-hidden="true"></i></a>');
-            appendContent('<a href="https://twitter.com/DenkSchuldt" target="_blank" class="icon twitter"><i class="fa fa-twitter" aria-hidden="true"></i></a>');
-            appendContent('<a href="https://www.instagram.com/denkschuldt/" target="_blank" class="icon instagram"><i class="fa fa-instagram" aria-hidden="true"></i></a>');
-            appendContent('<a href="#/360" class="icon"><strong>360º</strong></a>');
+            appendContent('<a href="https://github.com/DenkSchuldt?tab=repositories" target="_blank" class="icon icon-sm github"><i class="fa fa-github" aria-hidden="true"></i></a>');
+            appendContent('<div><hr/></div>');
             setTimeout(() => {
-              $(".icon").fadeIn();
+              updateHrWidth();
+              updateHeight();
+              $(".icon").fadeIn(() => {
+                appendContent('<a href="https://play.google.com/store/apps/details?id=com.dennyschuldt.babahoyo.vr" target="_blank"><div class="icon"><img src="/assets/images/babahoyovr.png"/></div><span>Babahoyo VR</span></a>');
+                appendContent('<a href="https://play.google.com/store/apps/details?id=com.dennyschuldt.colors" target="_blank"><div class="icon"><img src="/assets/images/colors.png"/></div><span>Colors</span></a>');
+                appendContent('<a href="#/360" class="icon"><strong>360º</strong></a>');
+                updateHeight();
+                $(".icon").fadeIn();
+              });
             }, 250)
           }, 500)
         }, 500)
@@ -58,6 +64,13 @@ const Home = React.createClass({
  */
 const updateHeight = () => (
   $(".content").css("marginTop", -$(".content").height()/2)
+)
+
+/**
+ *
+ */
+const updateHrWidth = () => (
+  $("hr").css("width", "70%")
 )
 
 /**

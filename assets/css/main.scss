@@ -12,7 +12,6 @@ body,
   height: 100%;
   padding: 0;
   margin: 0;
-
 }
 
 
@@ -46,9 +45,31 @@ h1, h2, h3, h4, h5, p {
   -webkit-transition: margin-top 0.3s ease-out;
   -ms-transition: margin-top 0.3s ease-out;
   transition: margin-top 0.3s ease-out;
+  a {
+    font-size: 20px;
+    vertical-align: middle;
+    text-decoration: none;
+    color: #1565C0;
+    display: inline-block !important;
+    img {
+      width: 100px;
+    }
+    &:hover {
+      opacity: 0.8;
+    }
+  }
   p {
     display: none;
-    margin-bottom: 40px;
+  }
+  hr {
+    display: inline-block;
+    width: 0%;
+    margin: auto;
+    -moz-transition: width 1s ease-out;
+    -o-transition: width 1s ease-out;
+    -webkit-transition: width 1s ease-out;
+    -ms-transition: width 1s ease-out;
+    transition: width 1s ease-out;
   }
   .icon {
     margin: 10px 20px;
@@ -76,6 +97,9 @@ h1, h2, h3, h4, h5, p {
         opacity: 0.8;
       }
     }
+  }
+  .icon-sm {
+    font-size: 0.6em;
   }
 }
 
