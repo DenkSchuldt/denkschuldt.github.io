@@ -8,8 +8,6 @@
  *
  */
 
-import $ from 'jquery';
-
 import * as types from '../constants/action-types';
 
 
@@ -17,56 +15,27 @@ import * as types from '../constants/action-types';
 /************ PLAIN ACTIONS ************/
 /***************************************/
 
-export function requestGeoPanosStarted() {
+export const updateGeoPanosData = (payload) => {
   return {
-    type: types.REQUEST_GEOPANOS_STARTED
-  }
-}
-
-export function requestGeoPanosFinished() {
-  return {
-    type: types.REQUEST_GEOPANOS_FINISHED
-  }
-}
-
-export function requestGeoPanosSucceed(payload) {
-  return {
-    type: types.REQUEST_GEOPANOS_SUCCEED,
+    type: types.UPDATE_GEOPANOS_DATA,
     payload
   }
 }
 
-export function requestGeoPanosFailed(payload) {
-  return {
-    type: types.REQUEST_GEOPANOS_FAILED,
-    payload
-  }
-}
-
-export function loadGeoPanos() {
+export const loadGeoPanos = () => {
   return {
     type: types.LOAD_GEOPANOS
   }
 }
 
+export const previousGeoPano = () => {
+  return {
+    type: types.PREVIOUS_GEOPANO
+  }
+}
 
-/***************************************/
-/************ ASYNC ACTIONS ************/
-/***************************************/
-
-export function requestGeoPanos() {
-  return (dispatch, getState) => {
-    dispatch(requestGeoPanosStarted());
-    return $.ajax({
-      method: "GET",
-      url: 'assets/json/geopanos.json',
-      dataType: "json"
-    }).done((data) => {
-      dispatch(requestGeoPanosSucceed(data));
-    }).fail((err) => {
-      dispatch(requestGeoPanosFailed(err));
-    }).always(() => {
-      dispatch(requestGeoPanosFinished());
-    });
+export const nextGeoPano = () => {
+  return {
+    type: types.NEXT_GEOPANO
   }
 }

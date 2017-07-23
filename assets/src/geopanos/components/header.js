@@ -8,7 +8,7 @@
  *
  */
 
-import React from 'react';
+import { h } from 'preact';
 
 /**
  *
@@ -16,7 +16,15 @@ import React from 'react';
 const Header = () => {
   return (
     <div className="header">
-      <h2>360º</h2>
+      <h1>360º</h1>
+      <p>
+        Un proyecto de&nbsp;
+        <a href="https://twitter.com/DenkSchuldt" target="_blank">Denny</a>&nbsp;
+        <a href="https://github.com/DenkSchuldt" target="_blank">K.</a>&nbsp;
+        <a href="https://www.instagram.com/denkschuldt/" target="_blank">Schuldt</a></p>
+      <div className="header-scrolled">
+        <h2>360º</h2>
+      </div>
     </div>
   )
 }

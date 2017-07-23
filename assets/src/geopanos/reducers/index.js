@@ -20,22 +20,16 @@ const initialState = new Map({
 })
 
 
-const requestGeoPanosStarted = (state) => {
-  return state.set('loading', true);
+/**
+ *
+ */
+const updateGeoPanosData = (state, action) => {
+  return state.set('data', List(action.payload.data));
 }
 
-const requestGeoPanosFinished = (state) => {
-  return state.set('loading', false);
-}
-
-const requestGeoPanosSucceed = (state, action) => {
-  return state.set('data', List(action.payload));
-}
-
-const requestGeoPanosFailed = (state, action) => {
-  return state;
-}
-
+/**
+ *
+ */
 const loadGeoPanos = (state, action) => {
   let controller = 0;
   let newList = state.get('list');
@@ -48,18 +42,44 @@ const loadGeoPanos = (state, action) => {
   return state.set('list', newList);
 }
 
+/**
+ *
+ */
+const previousGeoPano = (state) => {
+  const index = state.get('index');
+  if (index > 0) {
+    return state.set('index', index - 1);
+  }
+  return state;
+}
+
+/**
+ *
+ */
+const nextGeoPano = (state) => {
+  const index = state.get('index');
+  if (index < state.get('data').size - 1) {
+    return state.set('index', index + 1);
+  }
+  return state;
+}
+
+
+/**********************************************/
+/**********************************************/
+/**********************************************/
+
+
 export default (state = initialState, action) => {
   switch (action.type) {
-    case types.REQUEST_GEOPANOS_STARTED:
-      return requestGeoPanosStarted(state);
-    case types.REQUEST_GEOPANOS_FINISHED:
-      return requestGeoPanosFinished(state);
-    case types.REQUEST_GEOPANOS_SUCCEED:
-      return requestGeoPanosSucceed(state, action);
-    case types.REQUEST_GEOPANOS_FAILED:
-      return requestGeoPanosFailed(state, action);
+    case types.UPDATE_GEOPANOS_DATA:
+      return updateGeoPanosData(state, action);
     case types.LOAD_GEOPANOS:
       return loadGeoPanos(state);
+    case types.PREVIOUS_GEOPANO:
+      return previousGeoPano(state);
+    case types.NEXT_GEOPANO:
+      return nextGeoPano(state);
     default:
       return state;
   }

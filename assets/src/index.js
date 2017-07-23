@@ -8,53 +8,27 @@
  *
  */
 
-import React from 'react';
-import ReactDOM from 'react-dom';
+import { h, render } from 'preact';
+import Router from 'preact-router';
 import $ from 'jquery';
-import {
-  HashRouter as Router,
-  Switch,
-  Route
-} from 'react-router-dom';
 
-import '../css/main.scss';
-import Home from './home.js';
+import '../styles/main.scss';
 import GeoPanos from './geopanos';
-import GeoPanosHandy from './geopanos-handy';
 
-/**
- *
- */
-const Index = () => {
-  return (
-    <Router>
-      <Switch>
-        <Route exact path="/" component={Home} />
-        <Route path="/360" component={GeoPanosResponsive} />
-      </Switch>
-    </Router>
-  )
-};
 
-const GeoPanosResponsive = () => {
-  if ($(window).width() > 500) {
-    return <GeoPanos/>;
-  }
-  return <GeoPanosHandy/>;
-}
+render(
+  <Router>
+    <GeoPanos path="/"/>
+  </Router>,
+  document.getElementById('index')
+);
 
-/**
- *
- */
-$(document).ready(()=>{
-  ReactDOM.render(<Index/>, document.getElementById('index'));
-});
 
 document.addEventListener('scroll', function(evt) {
   let scrollTop = $("body").scrollTop();
   if (scrollTop > 160) {
-    $('.header').fadeIn('fast');
+    $('.header-scrolled').fadeIn('fast');
   } else {
-    $('.header').fadeOut('fast');
+    $('.header-scrolled').fadeOut('fast');
   }
 })
