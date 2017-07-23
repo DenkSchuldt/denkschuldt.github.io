@@ -8,28 +8,23 @@
  *
  */
 
-import $ from 'jquery';
-import React from 'react';
-import { Provider } from 'react-redux';
+import { h } from 'preact';
+import { Provider, connect } from 'preact-redux';
 import { createStore, applyMiddleware } from 'redux';
-import thunk from 'redux-thunk';
 
 import * as actions from './actions';
 import reducer from './reducers';
 import App from './containers/app.js';
 
+import data from '../../json/geopanos.v1.json';
 
-const middleware = [thunk];
-const store = createStore(
-  reducer,
-  applyMiddleware(...middleware)
-);
+const store = createStore(reducer);
 
 /**
  *
  */
 const Main = () => {
-  store.dispatch(actions.requestGeoPanos());
+  store.dispatch(actions.updateGeoPanosData({ data }));
   return (
     <Provider store={store}>
       <App/>

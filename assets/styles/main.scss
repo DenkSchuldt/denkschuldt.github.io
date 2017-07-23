@@ -1,0 +1,184 @@
+
+$custom-break:        320px;
+$tiny-break:          480px;
+$extra-small-break:   560px;
+$small-break:         768px;
+$medium-break:        992px;
+$large-break:         1200px;
+
+html {
+  font-family: 'Lato', sans-serif;
+}
+
+html,
+body,
+#index {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  @media screen and (max-width: $tiny-break) {
+    overflow: hidden;
+  }
+}
+
+h1, h2, h3, h4, h5, p {
+  margin: 0;
+}
+
+.hidden {
+  visibility: hidden;
+}
+
+
+/******************************************/
+/*************** 360 STYLES ***************/
+/******************************************/
+
+.header {
+  text-align: center;
+  padding: 70px 0;
+  h1 {
+    font-size: 5em;
+  }
+  a {
+    text-decoration: none;
+    color: #607D8B;
+    font-weight: bold;
+  }
+}
+
+.header-scrolled {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  padding: 20px 0;
+  color: white;
+  display: none;
+  background-color: #607D8B;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+  @media screen and (max-width: $tiny-break) {
+    display: none;
+  }
+}
+
+.geopanos {
+  width: 860px;
+  margin: auto;
+
+  @media screen and (max-width: $medium-break) {
+    width: 700px;
+  }
+  @media screen and (max-width: $small-break) {
+    width: 500px;
+  }
+  @media screen and (max-width: $extra-small-break) {
+    width: 400px;
+  }
+  @media screen and (max-width: $tiny-break) {
+    width: 100px;
+  }
+  .redux-infinite-scroll {
+    @media screen and (max-width: $tiny-break) {
+      visibility: hidden;
+    }
+  }
+  .geopano {
+    width: 100%;
+    display: inherit;
+    margin: auto;
+    border-radius: 10px;
+    margin-bottom: 50px;
+    background-color: #fff;
+    box-shadow: 0 19px 58px rgba(0,0,0,0.10), 0 5px 12px rgba(0,0,0,0.22);
+    .geopano-header {
+      padding: 15px;
+      color: #424242;
+    }
+    .geopano-body {
+      overflow: hidden;
+      border-bottom-left-radius: 10px;
+      border-bottom-right-radius: 10px;
+      iframe {
+        width: 100%;
+        height: 333px;
+        margin-bottom: -3px;
+      }
+    }
+  }
+  .geopano-mobile {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    background-color: white;
+    @media screen and (max-width: $tiny-break) {
+      display: inline-block;
+    }
+    .geopano-mobile-header {
+      width: 100%;
+      position: fixed;
+      color: #fff;
+      display: inline-block;
+      background-color: #607D8B;
+      padding: 10px 0;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+      .geopano-header-left {
+        width: calc(70% - 10px);
+        padding-left: 10px;
+        vertical-align: top;
+        display: inline-block;
+        label {
+          display: block;
+          font-size: 0.9em;
+        }
+      }
+      .geopano-header-right {
+        display: inline-block;
+        width: calc(30% - 10px);
+        vertical-align: top;
+        text-align: right;
+      }
+    }
+    .geopano-mobile-body {
+      width: 100%;
+      height: 100%;
+      display: inline-block;
+      iframe {
+        width: 100%;
+        height: 100%;
+        display: inline-block;
+      }
+    }
+    .geopano-mobile-footer {
+      top: 50%;
+      width: 100%;
+      position: fixed;
+      margin-top: -25px;
+      overflow: hidden;
+      img {
+        width: 50px;
+        height: 50px;
+        padding: 3px;
+        cursor: pointer;
+        border-radius: 50%;
+        background-color: #607D8B;
+        &:hover {
+          opacity: 0.9;
+        }
+      }
+      img:first-child {
+        margin-left: 3px;
+      }
+      img:last-child {
+        float: right;
+        margin-right: 3px;
+      }
+    }
+  }
+}

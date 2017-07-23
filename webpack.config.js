@@ -1,10 +1,12 @@
 
 const path = require("path");
+const webpack = require("webpack");
+const $VERSION = require("./assets/version");
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 const PATHS = {
   app: path.join(__dirname, "assets"),
-  build: path.join(__dirname, "assets")
+  build: path.join(__dirname, "dist")
 }
 
 module.exports = {
@@ -12,33 +14,60 @@ module.exports = {
   entry: path.join(PATHS.app, "src/index.js"),
   output: {
       path: PATHS.build,
-      publicPath: "/assets/",
-      filename: "js/bundle.js"
+      filename: `js/bundle.v${$VERSION}.js`
   },
   module: {
     loaders: [
       {
         test: /\.js$/,
-        loader: 'babel',
-        exclude: /node_modules/,
-        query: {
-          presets: ['es2015', 'react']
-        }
+        exclude: /(node_modules)/,
+        use: [
+          { loader: 'babel-loader',
+            options: {
+              presets: ['env', 'react', 'preact']
+            }
+          }
+        ]
       },
       {
         test: /\.scss$/,
-        loader: ExtractTextPlugin.extract('style', 'css!sass')
+        use: [
+          { loader: "style-loader" },
+          { loader: "css-loader" },
+          { loader: "sass-loader" }
+        ]
       },
       {
-        test: /\.(jpg|png|svg)$/,
-        loader: 'url-loader',
-        options: {
-          limit: 25000,
-        },
+        test: /\.(gif|png|jpe?g|svg)$/i,
+        use: [
+          { loader: "file-loader" },
+          { loader: 'image-webpack-loader',
+            query: {
+              progressive: true,
+              optimizationLevel: 7,
+              interlaced: false
+            }
+          }
+        ]
       },
+      {
+       test: /\.json$/,
+       use: [
+         { loader: 'json-loader' }
+       ]
+      }
     ]
   },
   plugins: [
-    new ExtractTextPlugin(path.join("css/[name].css"))
-  ]
+    new webpack.optimize.UglifyJsPlugin()
+  ],
+  stats: {
+    warnings: false
+  },
+  resolve: {
+    alias: {
+      'react': 'preact-compat',
+      'react-dom': 'preact-compat'
+    }
+  }
 };
