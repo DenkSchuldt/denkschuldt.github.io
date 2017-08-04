@@ -18,7 +18,7 @@ const Header = () => {
     <div className="header">
       <h1>360º</h1>
       <p>
-        Un proyecto de&nbsp;
+        Una galería de&nbsp;
         <a href="https://twitter.com/DenkSchuldt" target="_blank">Denny</a>&nbsp;
         <a href="https://github.com/DenkSchuldt" target="_blank">K.</a>&nbsp;
         <a href="https://www.instagram.com/denkschuldt/" target="_blank">Schuldt</a></p>
