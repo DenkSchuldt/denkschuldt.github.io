@@ -9,6 +9,8 @@
  */
 
 import { h } from 'preact';
+import Loading from './loading.js'
+
 
 /**
  *
@@ -22,6 +24,7 @@ const GeoPano = (props) => {
         <p>{ data.location }</p>
       </div>
       <div className="geopano-body">
+        <Loading/>
         <iframe
           src={data.url}
           frameBorder="0"

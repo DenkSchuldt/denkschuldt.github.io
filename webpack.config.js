@@ -1,7 +1,6 @@
 
 const path = require("path");
 const webpack = require("webpack");
-const $VERSION = require("./assets/version");
 const ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 const PATHS = {
@@ -14,7 +13,7 @@ module.exports = {
   entry: path.join(PATHS.app, "src/index.js"),
   output: {
       path: PATHS.build,
-      filename: `js/bundle.v${$VERSION}.js`
+      filename: `js/bundle.v1.2.1.js`
   },
   module: {
     loaders: [
