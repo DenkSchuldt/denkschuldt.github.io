@@ -1,0 +1,87 @@
+.loading {
+	display: flex;
+	width: 100%;
+	height: 100%;
+	justify-content: center;
+	align-items: center;
+}
+
+.ring {
+	position: absolute;
+	width: 58px;
+	height: 58px;
+	border: 5px solid #000;
+	border-radius: 58px;
+	-o-border-radius: 58px;
+	-ms-border-radius: 58px;
+	-webkit-border-radius: 58px;
+	-moz-border-radius: 58px;
+}
+
+.ball {
+	position: absolute;
+	width: 16px;
+	height: 58px;
+	left: 21px;
+	top: 0px;
+	animation-name: orbit;
+	-o-animation-name: orbit;
+	-ms-animation-name: orbit;
+	-webkit-animation-name: orbit;
+	-moz-animation-name: orbit;
+	animation-duration: 1s;
+	-o-animation-duration: 1s;
+	-ms-animation-duration: 1s;
+	-webkit-animation-duration: 1s;
+	-moz-animation-duration: 1s;
+	animation-iteration-count: infinite;
+	-o-animation-iteration-count: infinite;
+	-ms-animation-iteration-count: infinite;
+	-webkit-animation-iteration-count: infinite;
+	-moz-animation-iteration-count: infinite;
+	animation-timing-function: linear;
+	-o-animation-timing-function: linear;
+	-ms-animation-timing-function: linear;
+	-webkit-animation-timing-function: linear;
+	-moz-animation-timing-function: linear;
+}
+
+.ballG {
+	position: absolute;
+	left: 0px;
+	top: -14px;
+	width: 23px;
+	height: 23px;
+	background: #000;
+	border-radius: 19px;
+	-o-border-radius: 19px;
+	-ms-border-radius: 19px;
+	-webkit-border-radius: 19px;
+	-moz-border-radius: 19px;
+}
+
+
+@keyframes orbit {
+	0% { transform: rotate(0deg) }
+	100% { transform: rotate(360deg) }
+}
+
+@-o-keyframes orbit {
+	0% { -o-transform: rotate(0deg) }
+	100% { -o-transform: rotate(360deg) }
+}
+
+@-ms-keyframes orbit {
+	0% { -ms-transform: rotate(0deg) }
+	100% { -ms-transform: rotate(360deg) }
+}
+
+@-webkit-keyframes orbit {
+	0% { -webkit-transform: rotate(0deg) }
+	100% { -webkit-transform: rotate(360deg) }
+}
+
+@-moz-keyframes orbit {
+	0% { -moz-transform: rotate(0deg) }
+	100% { -moz-transform: rotate(360deg) }
+}

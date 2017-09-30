@@ -24,8 +24,8 @@ render(
 );
 
 
-document.addEventListener('scroll', function(evt) {
-  let scrollTop = $("body").scrollTop();
+$(window).on('scroll', function(evt) {
+  let scrollTop = $("html").scrollTop();
   if (scrollTop > 160) {
     $('.header-scrolled').fadeIn('fast');
   } else {

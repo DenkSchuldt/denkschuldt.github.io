@@ -1,6 +1,8 @@
 
+@import './loading.scss';
+
 $custom-break:        320px;
-$tiny-break:          480px;
+$tiny-break:          500px;
 $extra-small-break:   560px;
 $small-break:         768px;
 $medium-break:        992px;
@@ -13,9 +15,6 @@ html {
 html,
 body,
 #index {
-  width: 100%;
-  height: 100%;
-  padding: 0;
   margin: 0;
 }
 
@@ -58,6 +57,7 @@ h1, h2, h3, h4, h5, p {
   padding: 20px 0;
   color: white;
   display: none;
+  z-index: 999;
   background-color: #607D8B;
   box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
   @media screen and (max-width: $tiny-break) {
@@ -66,21 +66,22 @@ h1, h2, h3, h4, h5, p {
 }
 
 .geopanos {
-  width: 860px;
+  width: 70%;
+  max-width: 860px;
   margin: auto;
 
-  @media screen and (max-width: $medium-break) {
-    width: 700px;
+  /*@media screen and (max-width: $medium-break) {
+    width: 650px;
   }
   @media screen and (max-width: $small-break) {
-    width: 500px;
+    width: 450px;
   }
   @media screen and (max-width: $extra-small-break) {
-    width: 400px;
+    width: 350px;
   }
   @media screen and (max-width: $tiny-break) {
-    width: 100px;
-  }
+    width: 80px;
+  }*/
   .redux-infinite-scroll {
     @media screen and (max-width: $tiny-break) {
       visibility: hidden;
@@ -88,8 +89,10 @@ h1, h2, h3, h4, h5, p {
   }
   .geopano {
     width: 100%;
-    display: inherit;
+    height: 400px;
     margin: auto;
+    display: flex;
+    flex-direction: column;
     border-radius: 10px;
     margin-bottom: 50px;
     background-color: #fff;
@@ -99,13 +102,16 @@ h1, h2, h3, h4, h5, p {
       color: #424242;
     }
     .geopano-body {
+      height: 100%;
       overflow: hidden;
       border-bottom-left-radius: 10px;
       border-bottom-right-radius: 10px;
       iframe {
         width: 100%;
         height: 333px;
-        margin-bottom: -3px;
+        display: flex;
+        margin-top: -333px;
+        position: relative;
       }
     }
   }
