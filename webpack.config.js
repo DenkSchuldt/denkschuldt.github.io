@@ -13,7 +13,7 @@ module.exports = {
   entry: path.join(PATHS.app, "src/index.js"),
   output: {
       path: PATHS.build,
-      filename: `js/bundle.v1.2.1.js`
+      filename: `js/bundle.v1.2.2.js`
   },
   module: {
     loaders: [
