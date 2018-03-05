@@ -32,6 +32,9 @@ h1, h2, h3, h4, h5, p {
   visibility: hidden;
 }
 
+.pull-right {
+  float: right;
+}
 
 /******************************************/
 /*************** 360 STYLES ***************/
@@ -164,9 +167,11 @@ h1, h2, h3, h4, h5, p {
     .geopano-mobile-footer {
       top: 50%;
       width: 100%;
+      justify-content: space-between;
+      align-items: center;
       position: fixed;
-      margin-top: -25px;
-      overflow: hidden;
+      padding: 10px;
+      box-sizing: border-box;
       img {
         width: 50px;
         height: 50px;
@@ -174,16 +179,10 @@ h1, h2, h3, h4, h5, p {
         cursor: pointer;
         border-radius: 50%;
         background-color: #607D8B;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
         &:hover {
           opacity: 0.9;
         }
-      }
-      img:first-child {
-        margin-left: 3px;
-      }
-      img:last-child {
-        float: right;
-        margin-right: 3px;
       }
     }
   }

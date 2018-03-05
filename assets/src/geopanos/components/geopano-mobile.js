@@ -16,6 +16,7 @@ import ArrowRight from '../../../images/arrow-right.svg';
  *
  */
 const GeoPanoMobile = (props) => {
+  console.log(props.index,props.totalPictures);
   const data = props.data;
   return (
     <div className="geopano-mobile">
@@ -38,14 +39,21 @@ const GeoPanoMobile = (props) => {
           allowFullScreen/>
       </div>
       <div className="geopano-mobile-footer">
-        <img
-          src={"dist/"+ArrowLeft}
-          alt="previous"
-          onClick={props.onPreviousGeoPano}/>
-        <img
-          src={"dist/"+ArrowRight}
-          alt="next"
-          onClick={props.onNextGeoPano}/>
+        {
+          (props.index > 0) &&
+          <img
+            src={"dist/"+ArrowLeft}
+            alt="previous"
+            onClick={props.onPreviousGeoPano}/>
+        }
+        {
+          ((props.index+1) < props.totalPictures) &&
+          <img
+            src={"dist/"+ArrowRight}
+            alt="next"
+            className="pull-right"
+            onClick={props.onNextGeoPano}/>
+        }
       </div>
     </div>
   )
