@@ -3,22 +3,23 @@
  * loading.js
  * Loading component
  *
- * @version 1.0
  * @author  Denny K. Schuldt
  *
  */
 
-import { h } from 'preact';
+import React from 'react';
+
+import './loading.css'
 
 
 const Loading = () => (
-    <div className="loading">
-      <div className="ring">
-		    <div className="ball">
-			    <div className="ballG"></div>
-		    </div>
+  <div className="loading">
+    <div className="ring">
+	    <div className="ball">
+		    <div className="ballG"></div>
 	    </div>
     </div>
+  </div>
 )
 
 

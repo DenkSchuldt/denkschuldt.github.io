@@ -8,15 +8,14 @@
  *
  */
 
-import { h } from 'preact';
-import ArrowLeft from '../../../images/arrow-left.svg';
-import ArrowRight from '../../../images/arrow-right.svg';
+import React from 'react';
+import ArrowLeft from '../../../../images/arrow-left.svg';
+import ArrowRight from '../../../../images/arrow-right.svg';
 
 /**
  *
  */
 const GeoPanoMobile = (props) => {
-  console.log(props.index,props.totalPictures);
   const data = props.data;
   return (
     <div className="geopano-mobile">

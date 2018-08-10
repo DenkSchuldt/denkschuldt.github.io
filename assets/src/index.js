@@ -8,18 +8,15 @@
  *
  */
 
-import { h, render } from 'preact';
-import Router from 'preact-router';
 import $ from 'jquery';
+import React from 'react';
+import { render } from 'react-dom';
 
-import '../styles/main.scss';
 import GeoPanos from './geopanos';
 
 
 render(
-  <Router>
-    <GeoPanos path="/"/>
-  </Router>,
+  <GeoPanos/>,
   document.getElementById('index')
 );
 
