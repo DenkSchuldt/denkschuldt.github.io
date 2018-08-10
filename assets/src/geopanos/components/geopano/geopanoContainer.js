@@ -1,15 +1,20 @@
 
-import { h, Component } from 'preact';
-import { connect } from 'preact-redux';
-import ReduxInfiniteScroll from 'redux-infinite-scroll';
 import $ from 'jquery';
+import React from 'react';
+import { connect } from 'react-redux';
+import ReduxInfiniteScroll from 'redux-infinite-scroll';
 
-import * as actions from '../actions';
-import GeoPano from '../components/geopano';
-import GeoPanoMobile from '../components/geopano-mobile';
+import GeoPano from './geopano';
+import GeoPanoMobile from './geopanoMobile';
+import { actions } from '../../actions/geopano';
+
+import './geopano.css'
 
 
-class GeoPanoContainer extends Component {
+/**
+ *
+ */
+class GeoPanoContainer extends React.Component {
   renderGeoPanos() {
     const state = this.props.state;
     return state.get('list').map((geopano, idx) => {
@@ -29,8 +34,8 @@ class GeoPanoContainer extends Component {
         <ReduxInfiniteScroll
           items={this.renderGeoPanos()}
           loadMore={loadGeoPanos}
-          elementIsScrollable={false}
-          threshold={100}/>
+          threshold={100}
+          elementIsScrollable={false}/>
         <GeoPanoMobile
           data={data}
           index={index}

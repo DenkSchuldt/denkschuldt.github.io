@@ -3,12 +3,11 @@
  * header.js
  * Header component
  *
- * @version 1.0
  * @author  Denny K. Schuldt
  *
  */
 
-import { h } from 'preact';
+import React from 'react';
 
 /**
  *

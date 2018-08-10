@@ -8,15 +8,17 @@
  *
  */
 
-import { h } from 'preact';
-import { Provider, connect } from 'preact-redux';
+import React from 'react';
+import { Provider } from 'react-redux';
 import { createStore, applyMiddleware } from 'redux';
 
-import * as actions from './actions';
 import reducer from './reducers';
-import App from './containers/app.js';
+import { actions } from './actions/geopano';
+import Header from './components/header.js';
+import GeoPanoContainer from './components/geopano/geopanoContainer.js';
 
-import data from '../../json/geopanos.v1.2.2.json';
+import data from '../../json/geopanos.1.2.4.json';
+
 
 const store = createStore(reducer);
 
@@ -27,7 +29,10 @@ const Main = () => {
   store.dispatch(actions.updateGeoPanosData({ data }));
   return (
     <Provider store={store}>
-      <App/>
+      <div>
+        <Header/>
+        <GeoPanoContainer/>
+      </div>
     </Provider>
   )
 }

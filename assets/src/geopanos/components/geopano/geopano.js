@@ -3,13 +3,12 @@
  * geopano.js
  * GeoPano component
  *
- * @version 1.0
  * @author  Denny K. Schuldt
  *
  */
 
-import { h } from 'preact';
-import Loading from './loading.js'
+import React from 'react';
+import Loading from './../loading.js'
 
 
 /**

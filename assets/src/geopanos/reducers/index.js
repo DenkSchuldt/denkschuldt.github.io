@@ -9,7 +9,7 @@
 
 import { List, Map } from 'immutable';
 
-import * as types from '../constants/action-types';
+import { types } from '../actions/geopano';
 
 
 const initialState = new Map({
