@@ -9,8 +9,8 @@
  */
 
 import React from 'react';
-import ArrowLeft from '../../../../images/arrow-left.svg';
-import ArrowRight from '../../../../images/arrow-right.svg';
+import ArrowLeft from './../../../../images/arrow-left.svg';
+import ArrowRight from './../../../../images/arrow-right.svg';
 
 /**
  *
@@ -41,14 +41,14 @@ const GeoPanoMobile = (props) => {
         {
           (props.index > 0) &&
           <img
-            src={"dist/"+ArrowLeft}
+            src={ArrowLeft}
             alt="previous"
             onClick={props.onPreviousGeoPano}/>
         }
         {
           ((props.index+1) < props.totalPictures) &&
           <img
-            src={"dist/"+ArrowRight}
+            src={ArrowRight}
             alt="next"
             className="pull-right"
             onClick={props.onNextGeoPano}/>
