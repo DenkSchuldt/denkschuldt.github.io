@@ -16,6 +16,8 @@ module.exports = {
     path: PATHS.build,
     filename: `denk.${VERSION}.js`
   },
+  mode: 'development',
+  devtool: 'inline-source-map', // Source map
   module: {
     rules: [
       {
@@ -24,7 +26,7 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['env', 'react', 'es2015'],
+            presets: ['env', 'react'],
             plugins: [
               'babel-plugin-transform-class-properties',
               'babel-plugin-transform-object-rest-spread'
@@ -33,7 +35,7 @@ module.exports = {
         }
       },
       {
-        test: /\.css$/,
+        test: /\.css$/, // -> Permite usar import './style.css'
         exclude: /node_modules/,
         use: [
           MiniCssExtractPlugin.loader,
@@ -51,10 +53,7 @@ module.exports = {
         exclude: /node_modules/,
         use: [
           {
-            loader: "file-loader",
-            options: {
-                name: "[name].[ext]"
-            }
+            loader: "url-loader" // Permite usar DataURL
           }
         ]
       }
@@ -63,9 +62,14 @@ module.exports = {
   plugins: [
     new MiniCssExtractPlugin({
       filename: path.join(`denk.${VERSION}.css`)
-    })
+    }),
+    //new webpack.HotModuleReplacementPlugin()
   ],
   stats: {
     warnings: false
+  },
+  devServer: {
+    publicPath: '/dist/',
+    //hot: true
   }
 };

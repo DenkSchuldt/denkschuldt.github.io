@@ -13,7 +13,8 @@ const PATHS = {
 
 module.exports = {
   context: PATHS.app,
-  bail: true,
+  mode: 'production',
+  devtool: 'source-map',
   entry: path.join(PATHS.app, "src/index.js"),
   output: {
     path: PATHS.build,
@@ -27,7 +28,7 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['env', 'react', 'es2015'],
+            presets: ['env', 'react'],
             plugins: [
               'babel-plugin-transform-object-rest-spread',
               'babel-plugin-transform-class-properties'
@@ -54,10 +55,7 @@ module.exports = {
         exclude: /node_modules/,
         use: [
           {
-            loader: "file-loader",
-            options: {
-                name: "[name].[ext]"
-            }
+            loader: "url-loader"
           }
         ]
       }
@@ -80,11 +78,6 @@ module.exports = {
   plugins: [
     new MiniCssExtractPlugin({
       filename: path.join(`denk.${VERSION}.css`)
-    }),
-    new webpack.DefinePlugin({
-      'process.env': {
-        NODE_ENV: JSON.stringify('production')
-      }
     })
   ],
   node: {
