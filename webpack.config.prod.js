@@ -14,7 +14,6 @@ const PATHS = {
 module.exports = {
   context: PATHS.app,
   mode: 'production',
-  devtool: 'source-map',
   entry: path.join(PATHS.app, "src/index.js"),
   output: {
     path: PATHS.build,
@@ -64,12 +63,6 @@ module.exports = {
   optimization: {
     minimizer: [
       new UglifyJsPlugin({
-        sourceMap: false,
-        uglifyOptions: {
-          ie8: false,
-          compress: true,
-          mangle: false
-        },
         exclude: [/\.min\.js$/gi]
       }),
       new OptimizeCSSAssetsPlugin({})
@@ -80,11 +73,6 @@ module.exports = {
       filename: path.join(`denk.${VERSION}.css`)
     })
   ],
-  node: {
-    fs: 'empty',
-    net: 'empty',
-    tls: 'empty'
-  },
   stats: {
     warnings: false
   }

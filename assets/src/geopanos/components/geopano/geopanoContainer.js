@@ -20,6 +20,7 @@ class GeoPanoContainer extends React.Component {
     return state.get('list').map((geopano, idx) => {
       return <GeoPano
                 key={idx}
+                index={idx+1}
                 data={geopano}/>;
     }).toArray()
   }

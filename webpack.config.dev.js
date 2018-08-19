@@ -17,7 +17,7 @@ module.exports = {
     filename: `denk.${VERSION}.js`
   },
   mode: 'development',
-  devtool: 'inline-source-map', // Source map
+  devtool: 'inline-source-map',
   module: {
     rules: [
       {
@@ -35,7 +35,7 @@ module.exports = {
         }
       },
       {
-        test: /\.css$/, // -> Permite usar import './style.css'
+        test: /\.css$/,
         exclude: /node_modules/,
         use: [
           MiniCssExtractPlugin.loader,
@@ -53,7 +53,7 @@ module.exports = {
         exclude: /node_modules/,
         use: [
           {
-            loader: "url-loader" // Permite usar DataURL
+            loader: "url-loader"
           }
         ]
       }
@@ -63,13 +63,11 @@ module.exports = {
     new MiniCssExtractPlugin({
       filename: path.join(`denk.${VERSION}.css`)
     }),
-    //new webpack.HotModuleReplacementPlugin()
   ],
   stats: {
     warnings: false
   },
   devServer: {
-    publicPath: '/dist/',
-    //hot: true
+    publicPath: '/dist/'
   }
 };

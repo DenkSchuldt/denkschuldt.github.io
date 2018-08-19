@@ -4,9 +4,9 @@
   "description": "Denny's",
   "main": "index.js",
   "scripts": {
-    "denk:server": "webpack-dev-server --config ./webpack.config.dev.js --progress --color --open --hot --mode=development",
-    "denk:dev": "webpack --config ./webpack.config.dev.js --progress --color --watch --mode=development",
-    "denk:prod": "webpack --config ./webpack.config.prod.js --progress --color --watch --mode=production"
+    "denk:server": "webpack-dev-server --config ./webpack.config.dev.js --progress --color --open",
+    "denk:dev": "webpack --config ./webpack.config.dev.js --progress --color --watch",
+    "denk:prod": "webpack --config ./webpack.config.prod.js --progress --color"
   },
   "repository": {
     "type": "git",
@@ -38,6 +38,7 @@
     "react-router-dom": "^4.3.1",
     "redux": "^4.0.0",
     "redux-infinite-scroll": "^1.0.9",
+    "style-loader": "^0.22.1",
     "url-loader": "^1.0.1",
     "webpack": "^4.16.5",
     "webpack-cli": "^3.1.0",
