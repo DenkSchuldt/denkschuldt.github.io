@@ -1,0 +1,44 @@
+
+.about-container {
+    text-align: center;
+    margin-bottom: 200px;
+}
+    .about-container img {
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        margin: auto;
+        border: 5px solid #000;
+        margin-bottom: 30px;
+    }
+.about {
+    width: 70%;
+    margin: auto;
+    font-size: 24px;
+    text-align: center;
+}
+
+.about-social {
+    margin-top: 50px;
+    width: 70%;
+    display: flex;
+    justify-content: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+    .about-social a {
+        margin: 0 20px;
+        text-decoration: none;
+        font-weight: bold;
+        color: #000;
+    }
+
+@media screen and (max-width: 500px) {
+    .about-container img {
+        width: 70%;
+        height: auto;
+    }
+    .about {
+        font-size: 16px;
+    }
+}

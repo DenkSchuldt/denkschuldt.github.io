@@ -11,10 +11,12 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import { createStore, applyMiddleware } from 'redux';
+import { BrowserRouter as Router, Route } from 'react-router-dom';
 
 import reducer from './reducers';
 import { actions } from './actions/geopano';
 import Header from './components/header.js';
+import AboutContainer from './components/about/aboutContainer.js';
 import GeoPanoContainer from './components/geopano/geopanoContainer.js';
 
 import data from '../../json/geopanos.1.2.4.json';
@@ -30,8 +32,13 @@ const Main = () => {
   return (
     <Provider store={store}>
       <div>
-        <Header/>
-        <GeoPanoContainer/>
+        <Router>
+          <div>
+            <Header/>
+            <Route exact path="/" component={GeoPanoContainer}/>
+            <Route path="/about" component={AboutContainer}/>
+          </div>
+        </Router>
       </div>
     </Provider>
   )

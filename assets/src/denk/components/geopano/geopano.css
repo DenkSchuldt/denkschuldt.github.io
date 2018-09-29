@@ -32,21 +32,29 @@ h1, h2, h3, h4, h5, p {
   }
   .header a {
     text-decoration: none;
-    color: #607D8B;
-    font-weight: bold;
+    color: #000000;
+    margin-left: 16px;
   }
 
 .header-scrolled {
   position: fixed;
   top: 0;
   width: 100%;
-  padding: 20px 0;
+  padding: 20px 24px;
   color: white;
   display: none;
   z-index: 999;
+  display: flex;
+  box-sizing: border-box;
+  justify-content: space-between;
+  align-items: center;
   background-color: #607D8B;
   box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
 }
+  .header-scrolled-options {}
+    .header-scrolled-option {
+      color: #fff !important;
+    }
 
 .geopanos {
   width: 70%;

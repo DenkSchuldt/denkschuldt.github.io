@@ -50,7 +50,7 @@ module.exports = {
         ]
       },
       {
-        test: /\.svg$/,
+        test: /\.(svg|jpg)$/,
         exclude: /node_modules/,
         use: [
           {

@@ -12,11 +12,11 @@ import $ from 'jquery';
 import React from 'react';
 import { render } from 'react-dom';
 
-import GeoPanos from './geopanos';
+import Denk from './denk';
 
 
 render(
-  <GeoPanos/>,
+  <Denk/>,
   document.getElementById('index')
 );
 
