@@ -24,8 +24,8 @@ render(
 $(window).on('scroll', function(evt) {
   let scrollTop = $("html").scrollTop();
   if (scrollTop > 160) {
-    $('.header-scrolled').fadeIn('fast');
+    $('.header-scrolled').css('display', 'flex');
   } else {
-    $('.header-scrolled').fadeOut('fast');
+    $('.header-scrolled').css('display', 'none');
   }
 })
