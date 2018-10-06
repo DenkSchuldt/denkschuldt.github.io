@@ -43,9 +43,7 @@ h1, h2, h3, h4, h5, p {
   width: 100%;
   padding: 20px 24px;
   color: white;
-  display: none;
   z-index: 999;
-  display: flex;
   box-sizing: border-box;
   justify-content: space-between;
   align-items: center;
