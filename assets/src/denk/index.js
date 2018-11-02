@@ -15,7 +15,7 @@ import { BrowserRouter as Router, Route } from 'react-router-dom';
 
 import reducer from './reducers';
 import { actions } from './actions/geopano';
-import Header from './components/header.js';
+import Navigation from './components/navigation';
 import AboutContainer from './components/about/aboutContainer.js';
 import GeoPanoContainer from './components/geopano/geopanoContainer.js';
 
@@ -34,7 +34,7 @@ const Main = () => {
       <div>
         <Router>
           <div>
-            <Header/>
+            <Navigation/>
             <Route exact path="/" component={GeoPanoContainer}/>
             <Route path="/about" component={AboutContainer}/>
           </div>
