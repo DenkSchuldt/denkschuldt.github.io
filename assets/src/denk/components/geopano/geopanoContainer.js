@@ -4,6 +4,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import ReduxInfiniteScroll from 'redux-infinite-scroll';
 
+import Header from './header';
 import GeoPano from './geopano';
 import GeoPanoMobile from './geopanoMobile';
 import { actions } from '../../actions/geopano';
@@ -21,7 +22,8 @@ class GeoPanoContainer extends React.Component {
       return <GeoPano
                 key={idx}
                 index={idx+1}
-                data={geopano}/>;
+                data={geopano}
+                totalSize={state.get('list').size}/>;
     }).toArray()
   }
   render() {
@@ -31,18 +33,21 @@ class GeoPanoContainer extends React.Component {
       this.props.loadGeoPanos();
     }
     return (
-      <div className="geopanos">
-        <ReduxInfiniteScroll
-          items={this.renderGeoPanos()}
-          loadMore={loadGeoPanos}
-          threshold={100}
-          elementIsScrollable={false}/>
-        <GeoPanoMobile
-          data={data}
-          index={index}
-          onNextGeoPano={this.props.onNextGeoPano}
-          onPreviousGeoPano={this.props.onPreviousGeoPano}
-          totalPictures={this.props.state.get('data').size}/>
+      <div>
+        <Header/>
+        <div className="geopanos">
+          <ReduxInfiniteScroll
+            items={this.renderGeoPanos()}
+            loadMore={loadGeoPanos}
+            threshold={100}
+            elementIsScrollable={false}/>
+          <GeoPanoMobile
+            data={data}
+            index={index}
+            onNextGeoPano={this.props.onNextGeoPano}
+            onPreviousGeoPano={this.props.onPreviousGeoPano}
+            totalPictures={this.props.state.get('data').size}/>
+        </div>
       </div>
     )
   }
