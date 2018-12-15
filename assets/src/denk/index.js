@@ -19,7 +19,7 @@ import Navigation from './components/navigation';
 import AboutContainer from './components/about/aboutContainer.js';
 import GeoPanoContainer from './components/geopano/geopanoContainer.js';
 
-import data from '../../json/geopanos.1.2.5.json';
+import data from '../../json/geopanos.1.2.6.json';
 
 
 const store = createStore(reducer);
