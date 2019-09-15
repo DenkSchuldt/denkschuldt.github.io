@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import ReduxInfiniteScroll from 'redux-infinite-scroll';
 
 import Header from './header';
+import AboutMe from './aboutMe';
 import GeoPano from './geopano';
 import GeoPanoMobile from './geopanoMobile';
 import { actions } from '../../actions/geopano';
@@ -16,7 +17,10 @@ import './geopano.css'
  *
  */
 class GeoPanoContainer extends React.Component {
-  renderGeoPanos() {
+  state = {
+    isAboutMeVisible: false
+  }
+  renderGeoPanos = () => {
     const state = this.props.state;
     return state.get('list').map((geopano, idx) => {
       return <GeoPano
@@ -34,7 +38,15 @@ class GeoPanoContainer extends React.Component {
     }
     return (
       <div>
-        <Header/>
+        <div className="navigation">
+          <span
+            onClick={() => this.setState({ isAboutMeVisible: true })}
+            className="navigation-option">
+            Sobre mi
+          </span>
+        </div>
+        <Header
+          showAboutMe={() => this.setState({ isAboutMeVisible: true })}/>
         <div className="geopanos">
           <ReduxInfiniteScroll
             items={this.renderGeoPanos()}
@@ -46,8 +58,14 @@ class GeoPanoContainer extends React.Component {
             index={index}
             onNextGeoPano={this.props.onNextGeoPano}
             onPreviousGeoPano={this.props.onPreviousGeoPano}
-            totalPictures={this.props.state.get('data').size}/>
+            totalPictures={this.props.state.get('data').size}
+            showAboutMe={() => this.setState({ isAboutMeVisible: true })}/>
         </div>
+        {
+          this.state.isAboutMeVisible &&
+          <AboutMe
+            onClose={() => this.setState({ isAboutMeVisible: false })}/>
+        }
       </div>
     )
   }

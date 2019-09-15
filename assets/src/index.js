@@ -14,6 +14,14 @@ import { render } from 'react-dom';
 
 import Denk from './denk';
 
+window.toggleHeader = (evt) => {
+  let scrollTop = $("html").scrollTop();
+  if (scrollTop > 160) {
+    $('.header-scrolled').css('opacity', '1');
+  } else {
+    $('.header-scrolled').css('opacity', '0');
+  }
+};
 
 render(
   <Denk/>,
@@ -21,11 +29,4 @@ render(
 );
 
 
-$(window).on('scroll', function(evt) {
-  let scrollTop = $("html").scrollTop();
-  if (scrollTop > 160) {
-    $('.header-scrolled').css('display', 'flex');
-  } else {
-    $('.header-scrolled').css('display', 'none');
-  }
-})
+$(window).on('scroll', window.toggleHeader);

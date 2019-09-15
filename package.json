@@ -28,20 +28,23 @@
     "css-loader": "^0.28.11",
     "file-loader": "^1.1.11",
     "immutable": "^3.8.2",
-    "jquery": "^3.3.1",
-    "mini-css-extract-plugin": "^0.4.1",
-    "optimize-css-assets-webpack-plugin": "^5.0.0",
+    "jquery": "^3.4.1",
+    "mini-css-extract-plugin": "^0.4.5",
+    "optimize-css-assets-webpack-plugin": "^5.0.3",
     "postcss-loader": "^3.0.0",
     "react": "^15.0.0",
     "react-dom": "^15.0.0",
-    "react-redux": "^5.0.7",
+    "react-redux": "^5.1.1",
     "react-router-dom": "^4.3.1",
-    "redux": "^4.0.0",
+    "redux": "^4.0.4",
     "redux-infinite-scroll": "^1.0.9",
     "style-loader": "^0.22.1",
     "url-loader": "^1.0.1",
-    "webpack": "^4.16.5",
-    "webpack-cli": "^3.1.0",
-    "webpack-dev-server": "^3.1.5"
+    "webpack": "^4.40.2",
+    "webpack-cli": "^3.3.8",
+    "webpack-dev-server": "^3.8.0"
+  },
+  "dependencies": {
+    "react-virtualized": "^9.21.1"
   }
 }
