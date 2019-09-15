@@ -9,6 +9,7 @@
  */
 
 import React from 'react';
+import info from './../../../../images/info.svg';
 import ArrowLeft from './../../../../images/arrow-left.svg';
 import ArrowRight from './../../../../images/arrow-right.svg';
 
@@ -16,7 +17,7 @@ import ArrowRight from './../../../../images/arrow-right.svg';
  *
  */
 const GeoPanoMobile = (props) => {
-  const data = props.data;
+  const { data, showAboutMe } = props;
   return (
     <div className="geopano-mobile">
       <div className="geopano-mobile-header">
@@ -54,6 +55,11 @@ const GeoPanoMobile = (props) => {
             onClick={props.onNextGeoPano}/>
         }
       </div>
+      <span
+        className='advt-about-me-mobile'
+        onClick={showAboutMe}>
+        <img src={info}/>
+      </span>
     </div>
   )
 }

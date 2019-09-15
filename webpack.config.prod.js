@@ -1,7 +1,6 @@
 const path = require("path");
 const webpack = require("webpack");
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 
 const VERSION = require('./version');
@@ -39,7 +38,7 @@ module.exports = {
         test: /\.css$/,
         exclude: /node_modules/,
         use: [
-          MiniCssExtractPlugin.loader,
+          'style-loader',
           'css-loader',
           {
             loader: 'postcss-loader',
@@ -68,11 +67,6 @@ module.exports = {
       new OptimizeCSSAssetsPlugin({})
     ]
   },
-  plugins: [
-    new MiniCssExtractPlugin({
-      filename: path.join(`denk.${VERSION}.css`)
-    })
-  ],
   stats: {
     warnings: false
   }
