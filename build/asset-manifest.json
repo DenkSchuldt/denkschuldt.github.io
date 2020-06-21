@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "/DenkSchuldt/denkschuldt.github.io/static/css/main.27a87879.chunk.css",
+    "main.js": "/DenkSchuldt/denkschuldt.github.io/static/js/main.c6cb033a.chunk.js",
+    "main.js.map": "/DenkSchuldt/denkschuldt.github.io/static/js/main.c6cb033a.chunk.js.map",
+    "runtime-main.js": "/DenkSchuldt/denkschuldt.github.io/static/js/runtime-main.2cd32c61.js",
+    "runtime-main.js.map": "/DenkSchuldt/denkschuldt.github.io/static/js/runtime-main.2cd32c61.js.map",
+    "static/js/2.6f5751fd.chunk.js": "/DenkSchuldt/denkschuldt.github.io/static/js/2.6f5751fd.chunk.js",
+    "static/js/2.6f5751fd.chunk.js.map": "/DenkSchuldt/denkschuldt.github.io/static/js/2.6f5751fd.chunk.js.map",
+    "index.html": "/DenkSchuldt/denkschuldt.github.io/index.html",
+    "precache-manifest.ba11028edcbc52469136cb9b17bbb4af.js": "/DenkSchuldt/denkschuldt.github.io/precache-manifest.ba11028edcbc52469136cb9b17bbb4af.js",
+    "service-worker.js": "/DenkSchuldt/denkschuldt.github.io/service-worker.js",
+    "static/css/main.27a87879.chunk.css.map": "/DenkSchuldt/denkschuldt.github.io/static/css/main.27a87879.chunk.css.map",
+    "static/js/2.6f5751fd.chunk.js.LICENSE.txt": "/DenkSchuldt/denkschuldt.github.io/static/js/2.6f5751fd.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.2cd32c61.js",
+    "static/js/2.6f5751fd.chunk.js",
+    "static/css/main.27a87879.chunk.css",
+    "static/js/main.c6cb033a.chunk.js"
+  ]
+}

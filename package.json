@@ -1,50 +1,40 @@
 {
-  "name": "denkschuldt.github.io",
-  "version": "1.0.0",
-  "description": "Denny's",
-  "main": "index.js",
-  "scripts": {
-    "denk:server": "webpack-dev-server --config ./webpack.config.dev.js --progress --color --open",
-    "denk:dev": "webpack --config ./webpack.config.dev.js --progress --color --watch",
-    "denk:prod": "webpack --config ./webpack.config.prod.js --progress --color"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/DenkSchuldt/denkschuldt.github.io.git"
-  },
-  "author": "Denny K. Schuldt",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/DenkSchuldt/denkschuldt.github.io/issues"
-  },
-  "homepage": "https://github.com/DenkSchuldt/denkschuldt.github.io#readme",
-  "devDependencies": {
-    "babel-core": "^6.26.3",
-    "babel-loader": "^7.1.5",
-    "babel-plugin-transform-class-properties": "^6.24.1",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-react": "^6.24.1",
-    "css-loader": "^0.28.11",
-    "file-loader": "^1.1.11",
-    "immutable": "^3.8.2",
-    "jquery": "^3.4.1",
-    "mini-css-extract-plugin": "^0.4.5",
-    "optimize-css-assets-webpack-plugin": "^5.0.3",
-    "postcss-loader": "^3.0.0",
-    "react": "^15.0.0",
-    "react-dom": "^15.0.0",
-    "react-redux": "^5.1.1",
-    "react-router-dom": "^4.3.1",
-    "redux": "^4.0.4",
-    "redux-infinite-scroll": "^1.0.9",
-    "style-loader": "^0.22.1",
-    "url-loader": "^1.0.1",
-    "webpack": "^4.40.2",
-    "webpack-cli": "^3.3.8",
-    "webpack-dev-server": "^3.8.0"
-  },
+  "name": "my-app",
+  "version": "0.1.0",
+  "private": true,
+  "homepage": "https://github.com/DenkSchuldt/denkschuldt.github.io",
   "dependencies": {
-    "react-virtualized": "^9.21.1"
+    "@testing-library/jest-dom": "^4.2.4",
+    "@testing-library/react": "^9.3.2",
+    "@testing-library/user-event": "^7.1.2",
+    "gh-pages": "^3.1.0",
+    "node-sass": "^4.14.1",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-scripts": "3.4.1",
+    "react-window": "^1.8.5"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "predeploy": "yarn build",
+    "deploy": "gh-pages -d build"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

@@ -1,0 +1,101 @@
+
+.my-vwr-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  padding: 48px 0;
+  flex-direction: column;
+  box-sizing: border-box;
+  .my-vwr-header {
+    width: 100%;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    min-height: fit-content;
+    .index {
+      height: 36px;
+      font-size: 24px;
+      min-height: 36px;
+      line-height: 46px;
+      margin-right: 16px;
+      text-align: center;
+      color: var(--black);
+      border-radius: 100%;
+      input {
+        width: 30px;
+        border: none;
+        margin: -4px;
+        padding: 4px;
+        color: inherit;
+        text-align: right;
+        font-size: inherit;
+        font-family: inherit;
+        border-radius: 10px;
+        max-width: fit-content;
+        -webkit-appearance: none;
+        background-color: transparent;
+        outline: none;
+        &:focus {
+          outline: 1px solid var(--primary-color);
+        }
+      }
+      input::-webkit-outer-spin-button,
+      input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+    }
+    .content {
+      strong {
+        font-size: 22px;
+      }
+      div {
+        font-size: 16px;
+      }
+    }
+  }
+  .my-vwr {
+    width: 100%;
+    margin: 16px auto;
+    border-radius: 10px;
+    height: calc(100vh - 244px);
+    box-shadow: 0px 5px 5px -3px rgba(0, 0, 0, 0.2),
+    0px 8px 10px 1px rgba(0, 0, 0, 0.14),
+    0px 3px 14px 2px rgba(0, 0, 0, 0.12);
+    div,
+    canvas {
+      border-radius: 10px;
+    }
+  }
+  .my-vwr-footer {
+    width: 100%;
+    margin: auto;
+    text-align: right;
+    min-height: fit-content;
+    span {
+      cursor: pointer;
+      margin-left: 12px;
+      color: var(--primary-color);
+      transition: color var(--seconds) ease;
+      &:hover {
+        color: var(--black);
+      }
+    }
+  }
+}
+
+@media only screen and (max-width: 650px) {
+  .my-vwr-wrapper {
+    padding: 36px 0;
+    .my-vwr-header {
+      .content {
+        strong {
+          font-size: 18px;
+        }
+        div {
+          font-size: 14px;
+        }
+      }
+    }
+  }
+}
