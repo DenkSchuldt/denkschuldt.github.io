@@ -1,50 +1,53 @@
 {
   "name": "denkschuldt.github.io",
-  "version": "1.0.0",
-  "description": "Denny's",
-  "main": "index.js",
-  "scripts": {
-    "denk:server": "webpack-dev-server --config ./webpack.config.dev.js --progress --color --open",
-    "denk:dev": "webpack --config ./webpack.config.dev.js --progress --color --watch",
-    "denk:prod": "webpack --config ./webpack.config.prod.js --progress --color"
-  },
+  "version": "2.0.0",
+  "private": false,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/DenkSchuldt/denkschuldt.github.io.git"
   },
   "author": "Denny K. Schuldt",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/DenkSchuldt/denkschuldt.github.io/issues"
   },
-  "homepage": "https://github.com/DenkSchuldt/denkschuldt.github.io#readme",
-  "devDependencies": {
-    "babel-core": "^6.26.3",
-    "babel-loader": "^7.1.5",
-    "babel-plugin-transform-class-properties": "^6.24.1",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-react": "^6.24.1",
-    "css-loader": "^0.28.11",
-    "file-loader": "^1.1.11",
-    "immutable": "^3.8.2",
-    "jquery": "^3.5.0",
-    "mini-css-extract-plugin": "^0.4.5",
-    "optimize-css-assets-webpack-plugin": "^5.0.3",
-    "postcss-loader": "^3.0.0",
-    "react": "^15.0.0",
-    "react-dom": "^15.0.0",
-    "react-redux": "^5.1.1",
-    "react-router-dom": "^4.3.1",
-    "redux": "^4.0.4",
-    "redux-infinite-scroll": "^1.0.9",
-    "style-loader": "^0.22.1",
-    "url-loader": "^1.0.1",
-    "webpack": "^4.40.2",
-    "webpack-cli": "^3.3.8",
-    "webpack-dev-server": "^3.8.0"
+  "homepage": "https://denkschuldt.github.io",
+  "scripts": {
+    "serve": "vue-cli-service serve  --host localhost",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "react-virtualized": "^9.21.1"
-  }
+    "core-js": "^3.6.5",
+    "vue": "^2.6.11",
+    "vue-typer": "^1.2.0"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~4.5.0",
+    "@vue/cli-plugin-eslint": "~4.5.0",
+    "@vue/cli-service": "~4.5.0",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^6.7.2",
+    "eslint-plugin-vue": "^6.2.2",
+    "vue-template-compiler": "^2.6.11"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/essential",
+      "eslint:recommended"
+    ],
+    "parserOptions": {
+      "parser": "babel-eslint"
+    },
+    "rules": {}
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
 }
