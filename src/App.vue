@@ -3,7 +3,6 @@
   <div id="app">
     <Description/>
     <footer>
-      <Projects/>
       <Social/>
     </footer>
   </div>
@@ -12,14 +11,12 @@
 <script>
 
   import Social from './components/Social.vue';
-  import Projects from './components/Projects.vue';
   import Description from './components/Description.vue';
 
   export default {
     name: 'App',
     components: {
       Social,
-      Projects,
       Description
     }
   }
@@ -44,6 +41,21 @@
     background: linear-gradient(45deg, rgba(62,99,116,1) 0%, rgba(58,97,115,1) 35%, rgba(40,134,153,1) 100%);
   }
   footer {
-    padding: 40px 0;
+    width: 64%;
+    margin: auto;
+  }
+
+  @media only screen and (max-width: 850px) {
+    footer {
+      width: 80%;
+      max-width: 80%;
+    }
+  }
+
+  @media only screen and (max-width: 700px) {
+    footer {
+      width: 90%;
+      max-width: 90%;
+    }
   }
 </style>
