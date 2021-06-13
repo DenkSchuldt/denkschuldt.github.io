@@ -1,6 +1,6 @@
 
 <template>
-  <div id="app">
+  <div id="app" v-bind:style="{ background: `linear-gradient(${backgrounds[index]}, ${backgrounds[index >= 3 ? 0 : index + 1]})` }">
     <div class='dnk-wrapper'>
       <Nav
         :selectSection='selectSection'
@@ -27,6 +27,13 @@
     },
     data: () => {
       return {
+        index: Number(localStorage.getItem('dnk-index')) || 0,
+        backgrounds: [
+          '#00897b',
+          '#00acc1',
+          '#1e88e5',
+          '#3949ab'
+        ],
         selectedSection: 'about'
       }
     },
@@ -35,7 +42,7 @@
         this.selectedSection = section;
       }
     },
-    mounted: () => {
+    mounted() {
       document
       .querySelector('.dnk-wrapper')
       .addEventListener('scroll', e => {
@@ -46,6 +53,7 @@
           document.querySelector('.dnk-separator').style.opacity = 1;
         }
       });
+      localStorage.setItem('dnk-index', this.index >= 3 ? 0 : this.index + 1)
     }
   }
 </script>
