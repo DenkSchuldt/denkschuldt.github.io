@@ -1,6 +1,6 @@
 
 <template>
-  <div>
+  <footer>
     <div class='dnk-separator'></div>
     <div class='dnk-social'>
       <a
@@ -22,13 +22,13 @@
         <i class="fab fa-instagram"></i>
       </a>
     </div>
-  </div>
+  </footer>
 </template>
 
 <script>
 
   export default {
-    name: 'Social'
+    name: 'Footer'
   };
 
 </script>
@@ -36,8 +36,9 @@
 <style scoped>
 
   .dnk-separator {
-    width: 100%;
+    width: 70%;
     height: 4px;
+    margin: auto;
     border-radius: 100%;
     transition: all 0.3s cubic-bezier(.25,.8,.25,1);
     background-image: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.2));
@@ -65,5 +66,17 @@
     a:hover {
       font-size: 32px;
     }
+
+  @media only screen and (max-width: 850px) {
+    .dnk-separator {
+      width: 80%
+    }
+  }
+
+  @media only screen and (max-width: 700px) {
+    .dnk-separator {
+      width: 90%
+    }
+  }
 
 </style>
