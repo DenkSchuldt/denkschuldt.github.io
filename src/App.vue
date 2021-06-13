@@ -1,23 +1,51 @@
 
 <template>
   <div id="app">
-    <Description/>
-    <footer>
-      <Social/>
-    </footer>
+    <div class='dnk-wrapper'>
+      <Nav
+        :selectSection='selectSection'
+        :selectedSection='selectedSection'/>
+      <Content
+        :selectedSection='selectedSection'/>
+    </div>
+    <Footer/>
   </div>
 </template>
 
 <script>
 
-  import Social from './components/Social.vue';
-  import Description from './components/Description.vue';
+  import Nav from './components/Nav.vue';
+  import Footer from './components/Footer.vue';
+  import Content from './components/Content.vue';
 
   export default {
     name: 'App',
     components: {
-      Social,
-      Description
+      Nav,
+      Content,
+      Footer
+    },
+    data: () => {
+      return {
+        selectedSection: 'about'
+      }
+    },
+    methods: {
+      selectSection(section) {
+        this.selectedSection = section;
+      }
+    },
+    mounted: () => {
+      document
+      .querySelector('.dnk-wrapper')
+      .addEventListener('scroll', e => {
+        const { scrollTop, scrollHeight, offsetHeight } = e.target;
+        if (scrollTop + offsetHeight == scrollHeight) {
+          document.querySelector('.dnk-separator').style.opacity = 0;
+        } else {
+          document.querySelector('.dnk-separator').style.opacity = 1;
+        }
+      });
     }
   }
 </script>
@@ -28,34 +56,38 @@
     padding: 0;
     width: 100%;
     height: 100vh;
-  }
-  #app {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background-color: #34515e;
-    background: rgb(52,81,94);
+    min-height: -webkit-fill-available;
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
     font-family: Avenir, Helvetica, Arial, sans-serif;
     background: linear-gradient(45deg, rgba(62,99,116,1) 0%, rgba(58,97,115,1) 35%, rgba(40,134,153,1) 100%);
   }
-  footer {
-    width: 64%;
+  #app {
+    width: 100%;
+    height: 100%;
     margin: auto;
+    display: flex;
+    color: #F5F5F5;
+    font-size: 18px;
+    text-align: left;
+    flex-direction: column;
   }
-
+  .dnk-wrapper {
+    width: 100%;
+    height: 100%;
+    padding: 0 20%;
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
   @media only screen and (max-width: 850px) {
-    footer {
-      width: 80%;
-      max-width: 80%;
+    .dnk-wrapper {
+      padding: 0 15%;
     }
   }
 
   @media only screen and (max-width: 700px) {
-    footer {
-      width: 90%;
-      max-width: 90%;
+    .dnk-wrapper {
+      padding: 0 10%;
     }
   }
 </style>
