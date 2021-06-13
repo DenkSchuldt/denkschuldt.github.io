@@ -9,10 +9,10 @@
           Denny K. Schuldt is a Knowledge driven developer, with a passion for code quality and user experience. He has a great common sense and a pixel perfect attention to detail.
         </p>
         <p>
-          Over the years Denny has gained professional experience in the Software development field, working with front-end, back-end and mobile technologies. He started in this field as an intern for Blindside Networks, a company based in Canada, and ever since he hasn't stopped learning, working in places like Escuela Superior Politécnica del Litoral, Dátil, Pacificsoft, and currently, Shippify.
+          Over the years Denny has gained professional experience in the Software development field, working with front-end, back-end and mobile technologies. He started in this field as an intern for Blindside Networks, a company based in Canada, and he hasn't stopped learning ever since, working in places like Escuela Superior Politécnica del Litoral, Dátil, Pacificsoft, and currently, Shippify.
         </p>
         <p>
-          He's also participated in software communities like TAWS, a student club for which he was designated as President for two years, or Guayaquil Developers.
+          He's also participated in software communities like TAWS, a student club for which he was designated as President for two years, or Guayaquil Developers giving a short talk about Webpack.
         </p>
         <p>
           His main personal project is "<a href='http://dennyschuldt.com/360' target='_blank' rel='noopener noreferrer'>Aventuras en 360</a>", in which he collects self-taken 360 photographs of touristic places, aiming to share their beauty with the world.
@@ -106,8 +106,10 @@
       background-color: #f5f5f526;
     }
     .dnk-project img {
+      width: 100%;
       margin-bottom: 24px;
       border-radius: 10px;
+      align-self: flex-start;
     }
     .dnk-project h4 {
       margin: 0 0 12px 0;
