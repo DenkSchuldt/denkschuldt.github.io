@@ -64,7 +64,6 @@
     padding: 0;
     width: 100%;
     height: 100vh;
-    min-height: 100vh;
     min-height: -webkit-fill-available;
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
@@ -85,7 +84,7 @@
     width: 100%;
     height: 100%;
     padding: 0 20%;
-    overflow-y: scroll;
+    overflow-y: auto;
     box-sizing: border-box;
     -webkit-overflow-scrolling: touch;
   }
