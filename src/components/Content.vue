@@ -35,7 +35,7 @@
           class='dnk-project'
           rel='noopener noreferrer'
           href='https://www.npmjs.com/package/@denkschuldt/react-dialog'>
-          <img src='./../images/react-dialog.png' alt='@denkschuldt/react-dialog'/>
+          <img src='./../images/react-dialog.gif' alt='@denkschuldt/react-dialog'/>
           <h4>@denkschuldt/react-dialog</h4>
           <div>A simple to use and customizable react dialog implementation.</div>
           <footer>
@@ -47,7 +47,7 @@
           class='dnk-project'
           rel='noopener noreferrer'
           href='http://dennyschuldt.com/360'>
-          <img src='./../images/360.png' alt='360'/>
+          <img src='./../images/360.gif' alt='Aventuras en 360'/>
           <h4>Aventuras en 360</h4>
           <div>
             I created this project to share the beauty of the touristic places I've been with a 360º view. All pictures featured are mine and taken by myself, sometimes with a phone, others with a 360 camera.
@@ -110,6 +110,7 @@
       margin-bottom: 24px;
       border-radius: 10px;
       align-self: flex-start;
+      background-color: #f5f5f526;
     }
     .dnk-project h4 {
       margin: 0 0 12px 0;

@@ -47,7 +47,7 @@
       .querySelector('.dnk-wrapper')
       .addEventListener('scroll', e => {
         const { scrollTop, scrollHeight, offsetHeight } = e.target;
-        if (scrollTop + offsetHeight == scrollHeight) {
+        if (scrollTop + offsetHeight >= scrollHeight) {
           document.querySelector('.dnk-separator').style.opacity = 0;
         } else {
           document.querySelector('.dnk-separator').style.opacity = 1;
@@ -64,6 +64,7 @@
     padding: 0;
     width: 100%;
     height: 100vh;
+    min-height: 100vh;
     min-height: -webkit-fill-available;
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
@@ -84,8 +85,9 @@
     width: 100%;
     height: 100%;
     padding: 0 20%;
-    overflow-y: auto;
+    overflow-y: scroll;
     box-sizing: border-box;
+    -webkit-overflow-scrolling: touch;
   }
   @media only screen and (max-width: 850px) {
     .dnk-wrapper {
