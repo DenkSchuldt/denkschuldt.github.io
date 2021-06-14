@@ -77,6 +77,15 @@
     .dnk-separator {
       width: 90%
     }
+    .dnk-social {
+      padding: 12px 0;
+    }
+    a {
+      font-size: 16px;
+    }
+      a:hover {
+        font-size: 20px;
+      }
   }
 
 </style>
