@@ -5,21 +5,26 @@
       <article
         id='article-about'
         v-if='selectedSection == "about"'>
+        <img
+          :src="getSrc()"
+          alt="">
         <p>
-          Denny K. Schuldt is a Knowledge driven developer, with a passion for code quality and user experience. He has a great common sense and a pixel perfect attention to detail.
+          Hello there! My name is Denny Schuldt and I'm a knowledge driven developer, with a passion for code quality and user experience. Colleagues have told me that I have a great common sense and a pixel perfect attention to detail.
         </p>
         <p>
-          Over the years Denny has gained professional experience in the Software development field, working with front-end, back-end and mobile technologies. He started in this field as an intern for Blindside Networks, a company based in Canada, and he hasn't stopped learning ever since, working in places like Escuela Superior Politécnica del Litoral, Dátil, Pacificsoft, and currently, Shippify.
+          Over the years I've gained professional experience in the Software development field, working with front-end, back-end and mobile technologies. I started in this field as an intern for Blindside Networks, a company based in Canada, and haven't stopped learning ever since, working in places like Escuela Superior Politécnica del Litoral, Dátil, Pacificsoft, and currently, Shippify.
         </p>
         <p>
-          He's also participated in software communities like TAWS, a student club for which he was designated as President for two years, or Guayaquil Developers giving a short talk about Webpack.
+          Extracurricularly, I've participated in software communities like <i>TAWS</i>, a student club for which I was designated as President for two years, or <i>Guayaquil Developers</i> giving a short talk about Webpack.
         </p>
         <p>
-          His main personal project is "<a href='http://dennyschuldt.com/360' target='_blank' rel='noopener noreferrer'>Aventuras en 360</a>", in which he collects self-taken 360 photographs of touristic places, aiming to share their beauty with the world.
+          My main personal project is "<a href='http://dennyschuldt.com/360' target='_blank' rel='noopener noreferrer'>Aventuras en 360</a>", in which I collect self-taken 360 photographs of touristic places, aiming to share their beauty with the world.
         </p>
-        <p>In the past he's also created apps like "Babahoyo VR", the first ever Virtual Reality app for touristic places in Babahoyo, Ecuador, which was available in the Google Play store.</p>
         <p>
-          You can know more about Denny following him on social media, where you can find him as <a href='https://twitter.com/DenkSchuldt' target='_blank' rel='noopener noreferrer'>@DenkSchuldt</a>.
+          In the past I've also created apps like "Babahoyo VR", the first ever Virtual Reality app for touristic places in Babahoyo - Ecuador, which was available in the Google Play store for a couple of years.
+        </p>
+        <p>
+          You can know more about me on social media, where you can find me as <a href='https://twitter.com/DenkSchuldt' target='_blank' rel='noopener noreferrer'>@DenkSchuldt</a>.
         </p>
         <p class="fa-circle-wrapper">
           <i class="fas fa-circle"></i>
@@ -69,24 +74,49 @@
   export default {
     name: 'Content',
     props: {
+      index: {
+        type: Number
+      },
       selectedSection: {
         type: String
       }
     },
+    methods: {
+      getSrc() {
+        const images = require.context('./../images/dnk', false, /\.jpeg$/);
+        return images(`./0${this.$props.index}.jpeg`);
+      }
+    }
   };
 
 </script>
 
 <style scoped>
 
-  #article-about p a {
-    color: #fff;
-    font-weight: bold;
-    will-change: opacity;
-    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+  #article-about {
+    display: flex;
+    flex-direction: column;
   }
-    #article-about p a:hover {
-      opacity: 0.8;
+    #article-about p a {
+      color: #fff;
+      font-weight: bold;
+      will-change: opacity;
+      transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+    }
+      #article-about p a:hover {
+        opacity: 0.8;
+      }
+    #article-about img {
+      width: 200px;
+      height: 200px;
+      border: 10px solid;
+      border-radius: 100%;
+      margin: 32px auto 16px auto;
+      -webkit-box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+      -moz-box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+      -ms-box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+      -o-box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
     }
 
   .dnk-project {

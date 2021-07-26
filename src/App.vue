@@ -6,6 +6,7 @@
         :selectSection='selectSection'
         :selectedSection='selectedSection'/>
       <Content
+        :index='index'
         :selectedSection='selectedSection'/>
     </div>
     <Footer/>
@@ -73,6 +74,7 @@
   #app {
     width: 100%;
     height: 100%;
+    height: 100vh;
     margin: auto;
     display: flex;
     color: #F5F5F5;
@@ -82,7 +84,8 @@
   }
   .dnk-wrapper {
     width: 100%;
-    height: 100%;
+    flex: 1 1 auto;
+    height: 0;
     padding: 0 20%;
     overflow-y: auto;
     box-sizing: border-box;
