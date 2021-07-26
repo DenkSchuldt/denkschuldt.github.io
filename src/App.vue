@@ -84,8 +84,7 @@
   }
   .dnk-wrapper {
     width: 100%;
-    flex: 1 1 auto;
-    height: 0;
+    height: 100%;
     padding: 0 20%;
     overflow-y: auto;
     box-sizing: border-box;
