@@ -35,12 +35,13 @@
           '#1e88e5',
           '#3949ab'
         ],
-        selectedSection: 'about'
+        selectedSection: localStorage.getItem('dnk-section') || 'about'
       }
     },
     methods: {
       selectSection(section) {
         this.selectedSection = section;
+        localStorage.setItem('dnk-section', section);
       }
     },
     mounted() {
