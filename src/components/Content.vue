@@ -9,7 +9,7 @@
           :src="getSrc()"
           alt="">
         <p>
-          Hello there! My name is Denny Schuldt and I'm a knowledge driven developer, with a passion for code quality and user experience. Colleagues have told me that I have a great common sense and a pixel perfect attention to detail.
+          Hello there! My name is Denny Schuldt and I'm a knowledge driven developer, with a passion for code quality and product design. Colleagues have told me that I have a great common sense and a pixel perfect attention to detail.
         </p>
         <p>
           Over the years I've gained professional experience in the Software development field, working with front-end, back-end and mobile technologies. I started in this field as an intern for Blindside Networks, a company based in Canada, and haven't stopped learning ever since, working in places like Escuela Superior Politécnica del Litoral, Dátil, Pacificsoft, and currently, Shippify.
