@@ -51,7 +51,8 @@
           target='_blank'
           class='dnk-project'
           rel='noopener noreferrer'
-          href='http://dennyschuldt.com/360'>
+          href='https://denkschuldt.github.io
+Public/360'>
           <img src='./../images/360.png' alt='Aventuras en 360'/>
           <h4>Aventuras en 360</h4>
           <div>
