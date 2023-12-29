@@ -1,64 +1,35 @@
 
-<template>
-  <div id="app" v-bind:style="{ background: `linear-gradient(${backgrounds[index]}, ${backgrounds[index >= 3 ? 0 : index + 1]})` }">
-    <div class='dnk-wrapper'>
-      <Nav
-        :selectSection='selectSection'
-        :selectedSection='selectedSection'/>
-      <Content
-        :index='index'
-        :selectedSection='selectedSection'/>
-    </div>
-    <Footer/>
-  </div>
-</template>
-
 <script>
-
-  import Nav from './components/Nav.vue';
-  import Footer from './components/Footer.vue';
-  import Content from './components/Content.vue';
+  import DnkImg from './components/DnkImg.vue';
+  import DnkContent from './components/DnkContent.vue';
 
   export default {
     name: 'App',
     components: {
-      Nav,
-      Content,
-      Footer
+      DnkContent,
+      DnkImg
     },
     data: () => {
       return {
-        index: Number(localStorage.getItem('dnk-index')) || 0,
-        backgrounds: [
-          '#00897b',
-          '#00acc1',
-          '#1e88e5',
-          '#3949ab'
-        ],
-        selectedSection: localStorage.getItem('dnk-section') || 'about'
-      }
-    },
-    methods: {
-      selectSection(section) {
-        this.selectedSection = section;
-        localStorage.setItem('dnk-section', section);
+        index: Number(localStorage.getItem('dnk-index')) || 0
       }
     },
     mounted() {
-      document
-      .querySelector('.dnk-wrapper')
-      .addEventListener('scroll', e => {
-        const { scrollTop, scrollHeight, offsetHeight } = e.target;
-        if (scrollTop + offsetHeight >= scrollHeight) {
-          document.querySelector('.dnk-separator').style.opacity = 0;
-        } else {
-          document.querySelector('.dnk-separator').style.opacity = 1;
-        }
-      });
       localStorage.setItem('dnk-index', this.index >= 3 ? 0 : this.index + 1)
     }
   }
 </script>
+
+<template>
+  <div id="app">
+    <div class="dnk-wrapper">
+      <DnkContent />
+      <DnkImg
+        :index="index"
+      />
+    </div>
+  </div>
+</template>
 
 <style>
   html, body {
@@ -76,30 +47,33 @@
     width: 100%;
     height: 100%;
     height: 100vh;
-    margin: auto;
-    display: flex;
-    color: #F5F5F5;
-    font-size: 18px;
+    color: ##303030;
+    font-size: 20px;
     text-align: left;
-    flex-direction: column;
+    overflow-y: auto;
+    background-color: #fafafa;
   }
   .dnk-wrapper {
-    width: 100%;
+    width: 920px;
     height: 100%;
-    padding: 0 20%;
-    overflow-y: auto;
+    margin: auto;
+    display: flex;
+    position: relative;
     box-sizing: border-box;
     -webkit-overflow-scrolling: touch;
   }
-  @media only screen and (max-width: 850px) {
+
+  @media only screen and (max-width: 1000px) {
     .dnk-wrapper {
-      padding: 0 15%;
+      width: 720px;
     }
   }
 
-  @media only screen and (max-width: 700px) {
+  @media only screen and (max-width: 800px) {
     .dnk-wrapper {
-      padding: 0 10%;
+      width: 80%;
+      flex-direction: column;
     }
   }
+
 </style>

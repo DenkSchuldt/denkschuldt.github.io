@@ -11,7 +11,7 @@
   "bugs": {
     "url": "https://github.com/DenkSchuldt/denkschuldt.github.io/issues"
   },
-  "homepage": "https://dennyschuldt.com",
+  "homepage": "https://denkschuldt.github.io",
   "scripts": {
     "serve": "vue-cli-service serve  --host localhost",
     "build": "vue-cli-service build",
@@ -19,19 +19,21 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
-    "core-js": "^3.6.5",
-    "vue": "^2.6.11",
-    "vue-typer": "^1.2.0"
+    "vue": "^3.2.13"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "~4.5.0",
-    "@vue/cli-plugin-eslint": "~4.5.0",
-    "@vue/cli-service": "~4.5.0",
-    "babel-eslint": "^10.1.0",
-    "eslint": "^6.7.2",
-    "eslint-plugin-vue": "^6.2.2",
-    "gh-pages": "^3.2.0",
-    "vue-template-compiler": "^2.6.11"
+    "@babel/core": "^7.23.6",
+    "@babel/eslint-parser": "^7.23.3",
+    "@babel/plugin-transform-optional-chaining": "^7.23.4",
+    "@babel/preset-env": "^7.23.6",
+    "@vue/cli-plugin-babel": "^5.0.8",
+    "@vue/cli-plugin-eslint": "^5.0.8",
+    "@vue/cli-service": "^5.0.8",
+    "eslint": "^8.56.0",
+    "eslint-plugin-babel": "^5.3.1",
+    "eslint-plugin-vue": "^9.19.2",
+    "gh-pages": "^6.1.1",
+    "vue-template-compiler": "^2.7.16"
   },
   "eslintConfig": {
     "root": true,
@@ -39,11 +41,11 @@
       "node": true
     },
     "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
+      "eslint:recommended",
+      "plugin:vue/vue3-recommended"
     ],
     "parserOptions": {
-      "parser": "babel-eslint"
+      "parser": "@babel/eslint-parser"
     },
     "rules": {}
   },
