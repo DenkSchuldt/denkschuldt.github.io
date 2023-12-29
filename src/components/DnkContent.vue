@@ -1,0 +1,364 @@
+
+<script>
+
+  export default {
+    name: 'DnkContent',
+    data() {
+      return {
+        areAllCertificatesVisible: false,
+        certificates: [
+          {
+            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/309f9f8f-5977-4f10-a3c9-405ca32af763",
+            img: require("./../images/certificates/course-certificate-journey-mapping.jpg"),
+            title: "Journey Mapping",
+            expeditionDate: "December 2023"
+          },
+          {
+            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/1dc1d6bb-f2f3-453f-a50b-6207feb12c82",
+            img: require("./../images/certificates/course-certificate-accessibility-how-to-design-for-all.jpg"),
+            title: "Accessibility: How to Design for All",
+            expeditionDate: "October 2021"
+          },
+          {
+            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/53376127-fcaa-4ae4-8b76-6e5073a48b67",
+            img: require("./../images/certificates/course-certificate-information-visualization-getting-dashboards-right.jpg"),
+            title: "Information Visualization: Getting Dashboards Right",
+            expeditionDate: "October 2021"
+          },
+          {
+            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/4d50e6f2-10d5-4212-8f3b-371475323472",
+            img: require("./../images/certificates/course-certificate-data-driven-design-quantitative-research-for-ux.jpg"),
+            title: "Data-Driven Design: Quantitative Research for UX",
+            expeditionDate: "September 2021"
+          }
+        ]
+      }
+    },
+    methods: {      
+      toggleFullCertificatesVisible() {
+        this.areAllCertificatesVisible = true;
+      }
+    }
+  };
+
+</script>
+
+<template>
+  <section>
+    <article>
+      <h1>About me</h1>
+      <p class="dnk-about">
+        My name is Denny Schuldt, and I'm a knowledge-driven developer with a passion for code quality and product design. Colleagues have told me that I have great common sense and pixel-perfect attention to detail.
+        <br><br>
+        I have +8 years of experience working as a software developer. I’ve done frontend, backend, and also designed projects from scratch using low and high fidelity prototypes to bring them to life. I am currently the VP of Product at Shippify, where I help the team design and implement effective solutions to help our users with their daily operations, and lead the backoffice team (true web development rockstars) as the Product Manager.
+        <br><br>
+        My working stack involves React, Firestore/MySQL, maps (Google/Mapbox), Jest, NodeJs + Express, and Figma.In the past, I've also worked in mobile apps for Android with Java or React Native.
+        <br><br>
+        You can check my working style with my <a
+          target="_blank"
+          rel="noopener noreferrer"
+          href="https://www.npmjs.com/package/@denkschuldt/react-dialog"
+        >public react library</a> or my hobby project <a
+          target="_blank"
+          rel="noopener noreferrer"
+          href="https://denkschuldt.github.io/360"
+        >Aventuras en 360</a>, in which I collect self-taken 360 photographs of touristic places I've been in, aiming to share their beauty with the world.
+        <br><br>
+        I speak native Spanish, fluent English e tenho um bom nível de Português Brasileiro. You can know more about me on social media, where you can find me as @DenkSchuldt (Github, Threads, X, etc).
+      </p>
+    </article>
+    <article>
+      <h1>Projects</h1>
+      <div class="dnk-projects">
+        <a
+          target="_blank" 
+          rel="noopener noreferrer" 
+          href="https://www.npmjs.com/package/@denkschuldt/react-dialog" 
+          class="dnk-project"
+        >
+          <img 
+            src="./../images/projects/react-dialog.png" 
+            alt="@denkschuldt/react-dialog"
+          >
+          <div class="dnk-project-content">
+            <h4>
+              @denkschuldt/react-dialog
+            </h4>
+            <div>
+              A simple to use and customizable react dialog implementation.
+            </div>
+            <footer>
+              2021 - Present
+            </footer>
+          </div>
+        </a>
+        <a
+          target="_blank" 
+          rel="noopener noreferrer" 
+          href="https://denkschuldt.github.io/360" 
+          class="dnk-project"
+        >
+          <img 
+            src="./../images/projects/360.png" 
+            alt="@denkschuldt/react-dialog"
+          >
+          <div class="dnk-project-content">
+            <h4>
+              Aventuras en 360
+            </h4>
+            <div>
+              I created this project to share the beauty of the touristic places I've been with a 360º view. All pictures featured are mine and taken by myself, sometimes with a phone, others with a 360 camera.
+            </div>
+            <footer>
+              2016 - Present
+            </footer>
+          </div>
+        </a>
+      </div>
+    </article>
+    <article>
+      <h1>Certificates</h1>
+      <ul class="dnk-certificates">
+        <li
+          v-for="(certificate, index) of certificates"
+          :key="index"
+        >
+          <a
+            v-if="index > 1 ? areAllCertificatesVisible : true"
+            target="_blank" 
+            rel="noopener noreferrer" 
+            :href="certificate.url" 
+            class="dnk-certificate"
+          >
+            <img 
+              :src="certificate.img"
+              :alt="certificate.title"
+            >
+            <div class="dnk-certificate-content">
+              <h4>
+                {{ certificate.title }}
+              </h4>
+              <footer>
+                {{ certificate.expeditionDate }}
+              </footer>
+            </div>
+          </a>
+        </li>
+      </ul>
+      <div
+        v-if="!areAllCertificatesVisible"
+        class="dnk-show-more"
+      >
+        <button 
+          @click="toggleFullCertificatesVisible"
+        >
+          Show more
+          <i class="fa-solid fa-plus"></i>
+        </button>
+      </div>
+    </article>
+    <article>
+      <h1>Social networks</h1>
+      <div class="dnk-social">
+        <a
+          target="_blank"
+          rel="noopener noreferrer"
+          href="https://www.linkedin.com/in/denny-schuldt/"
+        >
+          <i class="fa-brands fa-linkedin"></i>
+          Denny Schuldt
+        </a>
+        <a
+          target="_blank"
+          rel="noopener noreferrer"
+          href="https://github.com/DenkSchuldt"
+        >
+          <i class="fab fa-github" />
+          DenkSchuldt
+        </a>
+        <a
+          target="_blank"
+          rel="noopener noreferrer"
+          href="https://www.instagram.com/denkschuldt/"
+        >
+          <i class="fab fa-instagram" />
+          DenkSchuldt
+        </a>
+        <a
+          target="_blank"
+          rel="noopener noreferrer"
+          href="https://www.threads.net/@denkschuldt"
+        >
+          <i class="fa-brands fa-threads" />
+          DenkSchuldt
+        </a>
+        <a
+          target="_blank"
+          rel="noopener noreferrer"
+          href="https://twitter.com/DenkSchuldt"
+        >
+          <i class="fa-brands fa-x-twitter" />
+          DenkSchuldt
+        </a>
+      </div>
+    </article>
+  </section>
+</template>
+
+<style scoped>
+
+  section {
+    margin-right: 48px;
+    width: calc(100% - 414px);
+  }
+    section article {
+      margin-bottom: 64px;
+    }
+    section article:first-of-type {
+      margin-top: 100px;
+    }
+      section article h1 {
+        margin: 0;
+        font-size: 32px;
+        margin-bottom: 16px;
+      }
+
+  .dnk-about a {
+    color: #607D8B;
+    font-weight: bold;
+    text-decoration: none;
+  }
+    .dnk-about a:hover {
+      color: #0D47A1;
+    }
+
+  .dnk-projects {
+    display: flex;
+    flex-direction: column;
+  }
+    .dnk-projects .dnk-project {
+      padding: 16px;
+      color: #303030;
+      margin-bottom: 16px;
+      border-radius: 20px;
+      text-decoration: none;
+      border: 1px solid #BDBDBD;
+    }
+    .dnk-projects .dnk-project:hover {
+      background-color: #E0E0E0;
+    }
+    .dnk-projects .dnk-project:last-of-type {
+      margin-bottom: 0px;
+    }
+      .dnk-projects .dnk-project img {
+        width: 100%;
+        margin-bottom: 8px;
+        border-radius: 16px;
+      }
+      .dnk-projects .dnk-project .dnk-project-content {
+        display: grid;
+        gap: 8px;
+      }
+        .dnk-projects .dnk-project .dnk-project-content h4 {
+          margin: 0;
+          font-size: 22px;
+        }
+        .dnk-projects .dnk-project .dnk-project-content footer {
+          width: 100%;
+          text-align: right;
+        }
+
+  .dnk-certificates {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    list-style-type: none;
+    flex-direction: column;
+  }
+    .dnk-certificates li {
+      display: flex;
+    }
+    .dnk-certificates li:last-of-type {
+      margin-bottom: 0px;
+    }
+    .dnk-certificates .dnk-certificate {
+      width: 100%;
+      height: 100%;
+      padding: 16px;
+      color: #303030;
+      margin-bottom: 16px;
+      border-radius: 20px;
+      text-decoration: none;
+      box-sizing: border-box;
+      border: 1px solid #BDBDBD;
+    }
+    .dnk-certificates .dnk-certificate:hover {
+      background-color: #E0E0E0;
+    }
+      .dnk-certificates .dnk-certificate img {
+        width: 100%;
+        margin-bottom: 8px;
+        border-radius: 16px;
+      }
+      .dnk-certificates .dnk-certificate .dnk-certificate-content {
+        display: grid;
+        gap: 8px;
+      }
+        .dnk-certificates .dnk-certificate .dnk-certificate-content h4 {
+          margin: 0;
+          font-size: 22px;
+        }
+    .dnk-show-more {
+      width: 100%;
+      display: flex;
+      margin-top: 16px;
+      justify-content: center;
+    }
+    button {
+      cursor: pointer;
+      padding: 8px 16px;
+      border-radius: 50px;
+      display: flex;
+      align-items: center;
+      font-size: 20px;
+      color: #303030;
+      border: 1px solid #BDBDBD;
+    }
+      button i {
+        margin-left: 16px;
+      }
+
+  .dnk-social {
+    display: flex;
+    flex-direction: column;
+  }
+    .dnk-social a {
+      color: #607D8B;
+      width: fit-content;
+      margin-bottom: 8px;
+      text-decoration: none;
+    }
+    .dnk-social a:last-of-type {
+      margin-bottom: 100px;
+    }
+      .dnk-social a:hover {
+        color: #0D47A1;
+      }
+
+  @media only screen and (max-width: 1000px) {
+    section {
+      width: calc(100% - 364px);
+    }
+  }
+
+  @media only screen and (max-width: 800px) {
+    section {
+      width: 100%;
+      margin-right: 0;
+    }
+    .dnk-social a:last-of-type {
+      margin-bottom: 0;
+    }
+  }
+
+</style>
