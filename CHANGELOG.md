@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The date format used is DD/MM/YYYY.
 
 
+## [3.1.0] - 30/12/2023
+### Added
+* DenkPoetry in Projects
+
+## [3.0.0] - 29/12/2023
+### Added
+* Redesign
+
 ## [2.1.5] - 18/09/2021
 ### Added
 * Storing section selection in localStorage
