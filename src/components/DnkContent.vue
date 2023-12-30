@@ -6,6 +6,29 @@
     data() {
       return {
         areAllCertificatesVisible: false,
+        projects: [
+          {
+            url: "https://medium.com/@DenkSchuldt",
+            img: require("./../images/projects/denk-poetry.png"),
+            title: "DenkPoetry",
+            description: "While my professional journey revolves around tech, this space is where I unveil another facet of my soul—poetry.",
+            creationDate: "2023 - Present"
+          },
+          {
+            url: "https://www.npmjs.com/package/@denkschuldt/react-dialog",
+            img: require("./../images/projects/react-dialog.png"),
+            title: "@denkschuldt/react-dialog ",
+            description: "A simple to use and customizable react dialog implementation.",
+            creationDate: "2021 - Present"
+          },
+          {
+            url: "https://denkschuldt.github.io/360",
+            img: require("./../images/projects/360.png"),
+            title: "Aventuras en 360",
+            description: "I created this project to share the beauty of the touristic places I've been with a 360º view. All pictures featured are mine and taken by myself, sometimes with a phone, others with a 360 camera.",
+            creationDate: "2016 - Present"
+          }
+        ],
         certificates: [
           {
             url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/309f9f8f-5977-4f10-a3c9-405ca32af763",
@@ -68,53 +91,36 @@
       </p>
     </article>
     <article>
-      <h1>Projects</h1>
-      <div class="dnk-projects">
-        <a
-          target="_blank" 
-          rel="noopener noreferrer" 
-          href="https://www.npmjs.com/package/@denkschuldt/react-dialog" 
-          class="dnk-project"
+      <h1>Personal projects</h1>
+      <ul class="dnk-projects">
+        <li
+          v-for="(project, index) of projects"
+          :key="index"
         >
-          <img 
-            src="./../images/projects/react-dialog.png" 
-            alt="@denkschuldt/react-dialog"
+          <a
+            target="_blank" 
+            rel="noopener noreferrer" 
+            :href="project.url" 
+            class="dnk-project"
           >
-          <div class="dnk-project-content">
-            <h4>
-              @denkschuldt/react-dialog
-            </h4>
-            <div>
-              A simple to use and customizable react dialog implementation.
+            <img 
+              :src="project.img"
+              :alt="project.title"
+            >
+            <div class="dnk-project-content">
+              <h4>
+                {{ project.title }}
+              </h4>
+              <div>
+                {{ project.description }}
+              </div>
+              <footer>
+                {{ project.creationDate }}
+              </footer>
             </div>
-            <footer>
-              2021 - Present
-            </footer>
-          </div>
-        </a>
-        <a
-          target="_blank" 
-          rel="noopener noreferrer" 
-          href="https://denkschuldt.github.io/360" 
-          class="dnk-project"
-        >
-          <img 
-            src="./../images/projects/360.png" 
-            alt="@denkschuldt/react-dialog"
-          >
-          <div class="dnk-project-content">
-            <h4>
-              Aventuras en 360
-            </h4>
-            <div>
-              I created this project to share the beauty of the touristic places I've been with a 360º view. All pictures featured are mine and taken by myself, sometimes with a phone, others with a 360 camera.
-            </div>
-            <footer>
-              2016 - Present
-            </footer>
-          </div>
-        </a>
-      </div>
+          </a>
+        </li>
+      </ul>
     </article>
     <article>
       <h1>Certificates</h1>
@@ -200,6 +206,14 @@
           <i class="fa-brands fa-x-twitter" />
           DenkSchuldt
         </a>
+        <a
+          target="_blank"
+          rel="noopener noreferrer"
+          href="https://medium.com/@DenkSchuldt"
+        >
+          <i class="fa-brands fa-medium"></i>
+          DenkSchuldt
+        </a>
       </div>
     </article>
   </section>
@@ -233,15 +247,28 @@
     }
 
   .dnk-projects {
+    margin: 0;
+    padding: 0;
     display: flex;
+    list-style-type: none;
     flex-direction: column;
   }
+    .dnk-projects li {
+      display: flex;
+      margin-bottom: 16px;
+    }
+    .dnk-projects li:last-of-type {
+      margin-bottom: 0px;
+    }
     .dnk-projects .dnk-project {
+      width: 100%;
+      height: 100%;
       padding: 16px;
       color: #303030;
       margin-bottom: 16px;
       border-radius: 20px;
       text-decoration: none;
+      box-sizing: border-box;
       border: 1px solid #BDBDBD;
     }
     .dnk-projects .dnk-project:hover {
@@ -337,6 +364,9 @@
       width: fit-content;
       margin-bottom: 8px;
       text-decoration: none;
+    }
+    .dnk-social i {
+      width: 24px;
     }
     .dnk-social a:last-of-type {
       margin-bottom: 100px;
