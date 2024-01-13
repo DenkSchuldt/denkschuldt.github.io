@@ -97,38 +97,6 @@
       </p>
     </article>
     <article>
-      <h1>Personal projects</h1>
-      <ul class="dnk-projects">
-        <li
-          v-for="(project, index) of projects"
-          :key="index"
-        >
-          <a
-            target="_blank" 
-            rel="noopener noreferrer" 
-            :href="project.url" 
-            class="dnk-project"
-          >
-            <img 
-              :src="project.img"
-              :alt="project.title"
-            >
-            <div class="dnk-project-content">
-              <h4>
-                {{ project.title }}
-              </h4>
-              <div>
-                {{ project.description }}
-              </div>
-              <footer>
-                {{ project.creationDate }}
-              </footer>
-            </div>
-          </a>
-        </li>
-      </ul>
-    </article>
-    <article>
       <h1>Certificates</h1>
       <ul class="dnk-certificates">
         <li
@@ -168,6 +136,38 @@
           <i class="fa-solid fa-plus"></i>
         </button>
       </div>
+    </article>
+    <article>
+      <h1>Personal projects</h1>
+      <ul class="dnk-projects">
+        <li
+          v-for="(project, index) of projects"
+          :key="index"
+        >
+          <a
+            target="_blank" 
+            rel="noopener noreferrer" 
+            :href="project.url" 
+            class="dnk-project"
+          >
+            <img 
+              :src="project.img"
+              :alt="project.title"
+            >
+            <div class="dnk-project-content">
+              <h4>
+                {{ project.title }}
+              </h4>
+              <div>
+                {{ project.description }}
+              </div>
+              <footer>
+                {{ project.creationDate }}
+              </footer>
+            </div>
+          </a>
+        </li>
+      </ul>
     </article>
     <article>
       <h1>Social networks</h1>
