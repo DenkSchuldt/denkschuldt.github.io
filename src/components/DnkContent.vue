@@ -31,6 +31,12 @@
         ],
         certificates: [
           {
+            url: "https://www.credential.net/05270819-3832-4321-883e-b401c38de4a5#gs.2x872f",
+            img: require("./../images/certificates/certificate-pm-colectivo23.png"),
+            title: "Product Management",
+            expeditionDate: "January 2024"
+          },
+          {
             url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/309f9f8f-5977-4f10-a3c9-405ca32af763",
             img: require("./../images/certificates/course-certificate-journey-mapping.jpg"),
             title: "Journey Mapping",
