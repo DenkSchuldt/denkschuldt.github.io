@@ -31,6 +31,18 @@
         ],
         certificates: [
           {
+            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/cd917770-e411-41d1-bb96-c910b9feb3ab",
+            img: require("./../images/certificates/course-certificate-hci-perception-and-memory.jpg"),
+            title: "Perception and Memory in HCI and UX",
+            expeditionDate: "March 2024"
+          },
+          {
+            url: "https://www.credential.net/05270819-3832-4321-883e-b401c38de4a5#gs.6bjgtw",
+            img: require("./../images/certificates/certificate-pm-colectivo23.54bf54a8.png"),
+            title: "Product Management",
+            expeditionDate: "January 2024"
+          },
+          {
             url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/309f9f8f-5977-4f10-a3c9-405ca32af763",
             img: require("./../images/certificates/course-certificate-journey-mapping.jpg"),
             title: "Journey Mapping",
@@ -164,7 +176,7 @@
       </div>
     </article>
     <article>
-      <h1>Social networks</h1>
+      <h1>Socials</h1>
       <div class="dnk-social">
         <a
           target="_blank"
@@ -234,7 +246,11 @@
       section article h1 {
         margin: 0;
         font-size: 32px;
-        margin-bottom: 16px;
+        position: sticky;
+        top: 0;
+        background: #fafafa;
+        padding: 16px 32px;
+        margin: 0 -32px;
       }
 
   .dnk-about a {

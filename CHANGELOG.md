@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The date format used is DD/MM/YYYY.
 
 
+## [3.1.1] - 24/03/2024
+### Added
+* New certificate: Perception and Memory in HCI and UX
+
 ## [3.1.0] - 30/12/2023
 ### Added
 * DenkPoetry in Projects
