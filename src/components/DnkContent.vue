@@ -408,6 +408,12 @@
     section {
       width: calc(100% - 364px);
     }
+    .dnk-certificates {
+      grid-template-columns: repeat(1, 1fr);
+    }
+      .dnk-certificates .dnk-certificate img {
+        height: auto;
+      }
   }
 
   @media only screen and (max-width: 800px) {
