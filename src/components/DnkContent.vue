@@ -6,30 +6,13 @@
     data() {
       return {
         areAllCertificatesVisible: false,
-        projects: [
-          {
-            url: "https://medium.com/@DenkSchuldt",
-            img: require("./../images/projects/denk-poetry.png"),
-            title: "DenkPoetry",
-            description: "While my professional journey revolves around tech, this space is where I unveil another facet of my soul—poetry.",
-            creationDate: "2023 - Present"
-          },
-          {
-            url: "https://www.npmjs.com/package/@denkschuldt/react-dialog",
-            img: require("./../images/projects/react-dialog.png"),
-            title: "@denkschuldt/react-dialog ",
-            description: "A simple to use and customizable react dialog implementation.",
-            creationDate: "2021 - Present"
-          },
-          {
-            url: "https://denkschuldt.github.io/360",
-            img: require("./../images/projects/360.png"),
-            title: "Aventuras en 360",
-            description: "I created this project to share the beauty of the touristic places I've been with a 360º view. All pictures featured are mine and taken by myself, sometimes with a phone, others with a 360 camera.",
-            creationDate: "2016 - Present"
-          }
-        ],
         certificates: [
+          {
+            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/masterclass/mcc_22661bf7b1aa41b599672ea7eb8453b9",
+            img: require("./../images/certificates/masterclass-certificate-the-importance-of-emotional-intelligence-in-ux.jpg"),
+            title: "The Importance of Emotional Intelligence in UX",
+            expeditionDate: "March 2024"
+          },
           {
             url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/cd917770-e411-41d1-bb96-c910b9feb3ab",
             img: require("./../images/certificates/course-certificate-hci-perception-and-memory.jpg"),
@@ -65,6 +48,29 @@
             img: require("./../images/certificates/course-certificate-data-driven-design-quantitative-research-for-ux.jpg"),
             title: "Data-Driven Design: Quantitative Research for UX",
             expeditionDate: "September 2021"
+          }
+        ],
+        projects: [
+          {
+            url: "https://medium.com/@DenkSchuldt",
+            img: require("./../images/projects/denk-poetry.png"),
+            title: "DenkPoetry",
+            description: "While my professional journey revolves around tech, this space is where I unveil another facet of my soul—poetry.",
+            creationDate: "2023 - Present"
+          },
+          {
+            url: "https://www.npmjs.com/package/@denkschuldt/react-dialog",
+            img: require("./../images/projects/react-dialog.png"),
+            title: "@denkschuldt/react-dialog ",
+            description: "A simple to use and customizable react dialog implementation.",
+            creationDate: "2021 - Present"
+          },
+          {
+            url: "https://denkschuldt.github.io/360",
+            img: require("./../images/projects/360.png"),
+            title: "Aventuras en 360",
+            description: "I created this project to share the beauty of the touristic places I've been with a 360º view. All pictures featured are mine and taken by myself, sometimes with a phone, others with a 360 camera.",
+            creationDate: "2016 - Present"
           }
         ]
       }
@@ -103,38 +109,6 @@
       </p>
     </article>
     <article>
-      <h1>Personal projects</h1>
-      <ul class="dnk-projects">
-        <li
-          v-for="(project, index) of projects"
-          :key="index"
-        >
-          <a
-            target="_blank" 
-            rel="noopener noreferrer" 
-            :href="project.url" 
-            class="dnk-project"
-          >
-            <img 
-              :src="project.img"
-              :alt="project.title"
-            >
-            <div class="dnk-project-content">
-              <h4>
-                {{ project.title }}
-              </h4>
-              <div>
-                {{ project.description }}
-              </div>
-              <footer>
-                {{ project.creationDate }}
-              </footer>
-            </div>
-          </a>
-        </li>
-      </ul>
-    </article>
-    <article>
       <h1>Certificates</h1>
       <ul class="dnk-certificates">
         <li
@@ -142,7 +116,7 @@
           :key="index"
         >
           <a
-            v-if="index > 1 ? areAllCertificatesVisible : true"
+            v-if="index > 3 ? areAllCertificatesVisible : true"
             target="_blank" 
             rel="noopener noreferrer" 
             :href="certificate.url" 
@@ -174,6 +148,38 @@
           <i class="fa-solid fa-plus"></i>
         </button>
       </div>
+    </article>
+    <article>
+      <h1>Personal projects</h1>
+      <ul class="dnk-projects">
+        <li
+          v-for="(project, index) of projects"
+          :key="index"
+        >
+          <a
+            target="_blank" 
+            rel="noopener noreferrer" 
+            :href="project.url" 
+            class="dnk-project"
+          >
+            <img 
+              :src="project.img"
+              :alt="project.title"
+            >
+            <div class="dnk-project-content">
+              <h4>
+                {{ project.title }}
+              </h4>
+              <div>
+                {{ project.description }}
+              </div>
+              <footer>
+                {{ project.creationDate }}
+              </footer>
+            </div>
+          </a>
+        </li>
+      </ul>
     </article>
     <article>
       <h1>Socials</h1>
@@ -314,9 +320,10 @@
   .dnk-certificates {
     margin: 0;
     padding: 0;
-    display: flex;
     list-style-type: none;
-    flex-direction: column;
+    display: grid;
+    grid-gap: 16px;
+    grid-template-columns: repeat(2, 1fr);
   }
     .dnk-certificates li {
       display: flex;
@@ -334,21 +341,27 @@
       text-decoration: none;
       box-sizing: border-box;
       border: 1px solid #BDBDBD;
+      display: flex;
+      flex-direction: column;
     }
     .dnk-certificates .dnk-certificate:hover {
       background-color: #E0E0E0;
     }
       .dnk-certificates .dnk-certificate img {
         width: 100%;
+        height: 155px;
         margin-bottom: 8px;
         border-radius: 16px;
       }
       .dnk-certificates .dnk-certificate .dnk-certificate-content {
-        display: grid;
         gap: 8px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
       }
         .dnk-certificates .dnk-certificate .dnk-certificate-content h4 {
           margin: 0;
+          height: 100%;
           font-size: 22px;
         }
     .dnk-show-more {
