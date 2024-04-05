@@ -8,6 +8,12 @@
         areAllCertificatesVisible: false,
         certificates: [
           {
+            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/cd130101-b4a3-4a80-a4a3-54a992d4fbd5",
+            img: require("./../images/certificates/course-certificate-ai-for-designers.jpg"),
+            title: "AI for Designers",
+            expeditionDate: "April 2024"
+          },
+          {
             url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/masterclass/mcc_22661bf7b1aa41b599672ea7eb8453b9",
             img: require("./../images/certificates/masterclass-certificate-the-importance-of-emotional-intelligence-in-ux.jpg"),
             title: "The Importance of Emotional Intelligence in UX",
