@@ -8,6 +8,12 @@
         areAllCertificatesVisible: false,
         certificates: [
           {
+            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/masterclass/mcc_b7228b61c46b4920a174be130ce321f9?r=denny-k-schuldt",
+            img: require("./../images/certificates/masterclass-certificate-learning-experience-design-that-delivers-impact-a-step-by-step-guide.jpg"),
+            title: "Learning Experience Design That Delivers Impact: A Step-by-Step Guide",
+            expeditionDate: "May 2025"
+          },
+          {
             url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/cd130101-b4a3-4a80-a4a3-54a992d4fbd5",
             img: require("./../images/certificates/course-certificate-ai-for-designers.jpg"),
             title: "AI for Designers",
