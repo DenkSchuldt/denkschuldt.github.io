@@ -8,6 +8,18 @@
         areAllCertificatesVisible: false,
         certificates: [
           {
+            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/bdcc9ca0-c9fd-43e1-bdf4-35a162d73deb?certificateType=course&r=denny-k-schuldt",
+            img: require("./../images/certificates/course-certificate-hci-thought-and-emotion.jpg"),
+            title: "Design for Thought and Emotion",
+            expeditionDate: "May 2025"
+          },
+          {
+            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/674a675b-00e1-4554-8286-66a9acd802ac?certificateType=course&r=denny-k-schuldt",
+            img: require("./../images/certificates/course-certificate-design-for-a-better-world-with-don-norman-course.jpg"),
+            title: "Design for a Better World with Don Norman",
+            expeditionDate: "May 2025"
+          },
+          {
             url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/masterclass/mcc_b7228b61c46b4920a174be130ce321f9?r=denny-k-schuldt",
             img: require("./../images/certificates/masterclass-certificate-learning-experience-design-that-delivers-impact-a-step-by-step-guide.jpg"),
             title: "Learning Experience Design That Delivers Impact: A Step-by-Step Guide",
