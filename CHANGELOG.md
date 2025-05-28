@@ -4,8 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The date format used is DD/MM/YYYY.
 
+## [3.2.6] - 28/05/2025
+### Added
+* New certificate: Design for Thought and Emotion
+* New certificate: Design for a Better World with Don Norman
+
 ## [3.2.5] - 20/05/2025
-### Changed
+### Added
 * New certificate: Learning Experience Design That Delivers Impact: A Step-by-Step Guide
 
 ## [3.2.4] - 22/01/2025
