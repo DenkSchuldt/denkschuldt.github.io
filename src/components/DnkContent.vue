@@ -113,23 +113,23 @@
     <article>
       <h1>About me</h1>
       <p class="dnk-about">
-        My name is Denny Schuldt, and I'm a knowledge-driven developer with a passion for code quality and product design. Colleagues have told me that I have great common sense and pixel-perfect attention to detail.
+        Strategic-minded Product Leader with a strong technical foundation and over a decade of experience designing and building tools that users actually rely on. I translate operational complexity into intuitive product flows, leading teams that deliver not just features, but measurable impact.
         <br><br>
-        I have +8 years of experience working as a software developer. I’ve done frontend, backend, and also designed projects from scratch using low and high fidelity prototypes to bring them to life. I am currently the VP of Product at Shippify, where I help the team design and implement effective solutions to help our users with their daily operations, and lead the backoffice team (true web development rockstars) as the Product Manager.
+        Currently VP of Product at Shippify, I lead the development of our internal platform (Dash): a suite of operational tools used daily for routes monitoring, fleet management, real-time tracking, and performance analytics. I work closely with our users and tech team to ensure the product evolves in ways that make their work easier and more efficient.
         <br><br>
-        My working stack involves React, Firestore/MySQL, maps (Google/Mapbox), Jest, NodeJs + Express, and Figma.In the past, I've also worked in mobile apps for Android with Java or React Native.
+        I began my career as a fullstack developer, working with technologies like React and Node.js, and that lens still shapes how I think about product: aligning UX with system behavior, reducing friction, and prioritizing what matters most.
         <br><br>
-        You can check my working style with my <a
+        Some of my public projects include my open-source library react-dialog <a
           target="_blank"
           rel="noopener noreferrer"
           href="https://www.npmjs.com/package/@denkschuldt/react-dialog"
-        >public react library</a> or my hobby project <a
+        >public react library</a> and my hobby project “Aventuras en 360” <a
           target="_blank"
           rel="noopener noreferrer"
           href="https://denkschuldt.github.io/360"
-        >Aventuras en 360</a>, in which I collect self-taken 360 photographs of touristic places I've been in, aiming to share their beauty with the world.
+        >Aventuras en 360</a>where I share immersive views of places I’ve visited.
         <br><br>
-        I speak native Spanish, fluent English e tenho um bom nível de Português Brasileiro. You can know more about me on social media, where you can find me as @DenkSchuldt (Github, Threads, X, etc).
+        Native Spanish speaker, fluent in English, and conversational in Brazilian Portuguese. You can find me online as @DenkSchuldt.
       </p>
     </article>
     <article>
