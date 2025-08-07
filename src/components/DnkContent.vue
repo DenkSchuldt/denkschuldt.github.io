@@ -119,17 +119,17 @@
         <br><br>
         I began my career as a fullstack developer, working with technologies like React and Node.js, and that lens still shapes how I think about product: aligning UX with system behavior, reducing friction, and prioritizing what matters most.
         <br><br>
-        Some of my public projects include my open-source library react-dialog <a
+        Some of my public projects include my open-source <a
           target="_blank"
           rel="noopener noreferrer"
           href="https://www.npmjs.com/package/@denkschuldt/react-dialog"
-        >public react library</a> and my hobby project “Aventuras en 360” <a
+        >public react library</a> and my hobby project <a
           target="_blank"
           rel="noopener noreferrer"
           href="https://denkschuldt.github.io/360"
-        >Aventuras en 360</a>where I share immersive views of places I’ve visited.
+        >Aventuras en 360</a> where I share immersive views of places I’ve visited.
         <br><br>
-        Native Spanish speaker, fluent in English, and conversational in Brazilian Portuguese. You can find me online as @DenkSchuldt.
+        Native Spanish speaker, fluent in English, and conversational in Brazilian Portuguese. You can find me online as <strong>@DenkSchuldt</strong>.
       </p>
     </article>
     <article>
