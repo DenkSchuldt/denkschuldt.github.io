@@ -8,6 +8,12 @@
         areAllCertificatesVisible: false,
         certificates: [
           {
+            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/masterclass/mcc_9e87d165ea6d4e53b3c42bf85e185671?r=denny-k-schuldt",
+            img: require("./../images/certificates/masterclass-certificate-design-patterns-for-ai-ux.jpg"),
+            title: "How to Elevate the User Experience of AI with Design Patterns",
+            expeditionDate: "August 2025"
+          },
+          {
             url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/bdcc9ca0-c9fd-43e1-bdf4-35a162d73deb?certificateType=course&r=denny-k-schuldt",
             img: require("./../images/certificates/course-certificate-hci-thought-and-emotion.jpg"),
             title: "Design for Thought and Emotion",
