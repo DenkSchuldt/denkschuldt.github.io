@@ -8,6 +8,18 @@
         areAllCertificatesVisible: false,
         certificates: [
           {
+            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/aab8be7b-092b-4381-9ad4-c6c6388b1196?r=denny-k-schuldt",
+            img: require("./../images/certificates/course-certificate-ux-management-strategy-and-tactics.jpg"),
+            title: "UX Management: Strategy and Tactics",
+            expeditionDate: "October 2025"
+          },
+          {
+            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/masterclass/mcc_39bb830818de407cb288495443738fcc?r=denny-k-schuldt",
+            img: require("./../images/certificates/masterclass-certificate-how-to-design-engaging-products-insights-from-fortnite-ux-strategy.jpg"),
+            title: "How to Design Engaging Products: Insights from Fortnite's UX",
+            expeditionDate: "August 2025"
+          },
+          {
             url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/masterclass/mcc_9e87d165ea6d4e53b3c42bf85e185671?r=denny-k-schuldt",
             img: require("./../images/certificates/masterclass-certificate-design-patterns-for-ai-ux.jpg"),
             title: "How to Elevate the User Experience of AI with Design Patterns",
@@ -32,49 +44,49 @@
             expeditionDate: "May 2025"
           },
           {
-            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/cd130101-b4a3-4a80-a4a3-54a992d4fbd5",
+            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/cd130101-b4a3-4a80-a4a3-54a992d4fbd5?r=denny-k-schuldt",
             img: require("./../images/certificates/course-certificate-ai-for-designers.jpg"),
             title: "AI for Designers",
             expeditionDate: "April 2024"
           },
           {
-            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/masterclass/mcc_22661bf7b1aa41b599672ea7eb8453b9",
+            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/masterclass/mcc_22661bf7b1aa41b599672ea7eb8453b9?r=denny-k-schuldt",
             img: require("./../images/certificates/masterclass-certificate-the-importance-of-emotional-intelligence-in-ux.jpg"),
             title: "The Importance of Emotional Intelligence in UX",
             expeditionDate: "March 2024"
           },
           {
-            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/cd917770-e411-41d1-bb96-c910b9feb3ab",
+            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/cd917770-e411-41d1-bb96-c910b9feb3ab?r=denny-k-schuldt",
             img: require("./../images/certificates/course-certificate-hci-perception-and-memory.jpg"),
             title: "Perception and Memory in HCI and UX",
             expeditionDate: "March 2024"
           },
           {
-            url: "https://www.credential.net/05270819-3832-4321-883e-b401c38de4a5#gs.6bjgtw",
+            url: "https://www.credential.net/05270819-3832-4321-883e-b401c38de4a5#gs.6bjgtw?r=denny-k-schuldt",
             img: require("./../images/certificates/certificate-pm-colectivo23.54bf54a8.png"),
             title: "Product Management",
             expeditionDate: "January 2024"
           },
           {
-            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/309f9f8f-5977-4f10-a3c9-405ca32af763",
+            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/309f9f8f-5977-4f10-a3c9-405ca32af763?r=denny-k-schuldt",
             img: require("./../images/certificates/course-certificate-journey-mapping.jpg"),
             title: "Journey Mapping",
             expeditionDate: "December 2023"
           },
           {
-            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/1dc1d6bb-f2f3-453f-a50b-6207feb12c82",
+            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/1dc1d6bb-f2f3-453f-a50b-6207feb12c82?r=denny-k-schuldt",
             img: require("./../images/certificates/course-certificate-accessibility-how-to-design-for-all.jpg"),
             title: "Accessibility: How to Design for All",
             expeditionDate: "October 2021"
           },
           {
-            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/53376127-fcaa-4ae4-8b76-6e5073a48b67",
+            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/53376127-fcaa-4ae4-8b76-6e5073a48b67?r=denny-k-schuldt",
             img: require("./../images/certificates/course-certificate-information-visualization-getting-dashboards-right.jpg"),
             title: "Information Visualization: Getting Dashboards Right",
             expeditionDate: "October 2021"
           },
           {
-            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/4d50e6f2-10d5-4212-8f3b-371475323472",
+            url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/4d50e6f2-10d5-4212-8f3b-371475323472?r=denny-k-schuldt",
             img: require("./../images/certificates/course-certificate-data-driven-design-quantitative-research-for-ux.jpg"),
             title: "Data-Driven Design: Quantitative Research for UX",
             expeditionDate: "September 2021"
@@ -119,9 +131,11 @@
     <article>
       <h1>About me</h1>
       <p class="dnk-about">
-        Strategic-minded Product Leader with a strong technical foundation and over a decade of experience designing and building tools that users actually rely on. I translate operational complexity into intuitive product flows, leading teams that deliver not just features, but measurable impact.
+        <strong>VP of Product | UX-oriented | Fullstack roots.</strong>
         <br><br>
-        Currently VP of Product at Shippify, I lead the development of our internal platform (Dash): a suite of operational tools used daily for routes monitoring, fleet management, real-time tracking, and performance analytics. I work closely with our users and tech team to ensure the product evolves in ways that make their work easier and more efficient.
+        My name is <i>Denny Schuldt</i>, and I'm a strategic-minded Product Leader with a strong technical foundation and over a decade of experience designing and building tools that users actually rely on. I translate operational complexity into intuitive product flows, leading tech teams that deliver not just features, but measurable impact.
+        <br><br>
+        Currently VP of Product at Shippify, I lead the development of our internal platform (Dash): a suite of operational tools used daily for routes monitoring, fleet management, real-time tracking, and performance analytics. I work closely with our users and tech teams to ensure the product evolves in ways that make their work easier and more efficient.
         <br><br>
         I began my career as a fullstack developer, working with technologies like React and Node.js, and that lens still shapes how I think about product: aligning UX with system behavior, reducing friction, and prioritizing what matters most.
         <br><br>
