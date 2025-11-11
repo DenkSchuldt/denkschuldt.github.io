@@ -131,25 +131,17 @@
     <article>
       <h1>About me</h1>
       <p class="dnk-about">
-        <strong>VP of Product | UX-oriented | Fullstack roots.</strong>
-        <br><br>
-        My name is <i>Denny Schuldt</i>, and I'm a strategic-minded Product Leader with a strong technical foundation and over a decade of experience designing and building tools that users actually rely on. I translate operational complexity into intuitive product flows, leading tech teams that deliver not just features, but measurable impact.
-        <br><br>
-        Currently VP of Product at Shippify, I lead the development of our internal platform (Dash): a suite of operational tools used daily for routes monitoring, fleet management, real-time tracking, and performance analytics. I work closely with our users and tech teams to ensure the product evolves in ways that make their work easier and more efficient.
-        <br><br>
-        I began my career as a fullstack developer, working with technologies like React and Node.js, and that lens still shapes how I think about product: aligning UX with system behavior, reducing friction, and prioritizing what matters most.
-        <br><br>
-        Some of my public projects include my open-source <a
-          target="_blank"
-          rel="noopener noreferrer"
-          href="https://www.npmjs.com/package/@denkschuldt/react-dialog"
-        >public react library</a> and my hobby project <a
-          target="_blank"
-          rel="noopener noreferrer"
-          href="https://denkschuldt.github.io/360"
-        >Aventuras en 360</a> where I share immersive views of places I’ve visited.
-        <br><br>
-        Native Spanish speaker, fluent in English, and conversational in Brazilian Portuguese. You can find me online as <strong>@DenkSchuldt</strong>.
+        <strong>Product Engineer | Bridging UX, Tech, and Strategy.</strong>
+        <br/><br/>
+        I build products that think clearly and experiences that move with purpose.
+        <br/><br/>
+        With over a decade of experience across software engineering, UX, and product strategy, I’ve worked between technology and human experience, translating complex flows into intuitive, scalable, and data-driven systems. My experience goes from hands-on development and real-time system design to redefining how a SaaS logistics platform connects technology, operations, and user experience, balancing structure with creativity and meaningful outcomes.
+        <br/><br/>
+        Beyond product development, I’ve had the honor of teaching UX/UI at ESPOL’s coding bootcamp, the top university in my country, guiding professionals and students through usability, analytics, and the creative use of generative AI to enhance design thinking.
+        <br/><br/>
+        Curiosity and precision guide everything I build, connecting logic and empathy to create technology that truly serves people.
+        <br/><br/>
+        Hablante nativo de Español, fluent in English, and conversational in Brazilian Portuguese. Você pode me encontrar online como @DenkSchuldt.
       </p>
     </article>
     <article>
@@ -250,14 +242,6 @@
           href="https://www.instagram.com/denkschuldt/"
         >
           <i class="fab fa-instagram" />
-          DenkSchuldt
-        </a>
-        <a
-          target="_blank"
-          rel="noopener noreferrer"
-          href="https://www.threads.net/@denkschuldt"
-        >
-          <i class="fa-brands fa-threads" />
           DenkSchuldt
         </a>
         <a
