@@ -5,7 +5,7 @@ import { Leva, useControls } from "leva";
 import { Suspense, useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { Scene, type SceneSettings } from "./Scene";
-import { CameraLocationLabel, CinematicFade, pathForCameraTarget, useCameraKeyboardNavigation, useCinematicCamera, useSceneRouter } from "./camera";
+import { CameraLocationLabel, CinematicFade, pathForCameraTarget, useCameraKeyboardNavigation, useCameraSwipeNavigation, useCinematicCamera, useSceneRouter } from "./camera";
 
 export default function Experience() {
   const route=useSceneRouter();
@@ -20,6 +20,7 @@ export default function Experience() {
     route.navigate(pathForCameraTarget(target));
   },[route.navigate]);
   useCameraKeyboardNavigation(cameraSystem,navigateCamera);
+  useCameraSwipeNavigation(cameraSystem,navigateCamera);
   useEffect(()=>{
     if(route.path!=="/"||route.directEntry) return;
     let frame=0;

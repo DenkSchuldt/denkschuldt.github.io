@@ -3,9 +3,8 @@
 import { button, folder, useControls } from "leva";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CAMERA_TARGETS } from "./cameraTargets";
+import { getAdjacentCameraTarget } from "./cameraNavigation";
 import type { CameraTargetId } from "./cameraTypes";
-
-const KEYBOARD_TARGETS: CameraTargetId[] = ["projects", "about", "certificates", "wall", "phone", "poems", "drawer"];
 
 export function useCameraKeyboardNavigation(system: { selectedTarget:CameraTargetId; cameraState:React.MutableRefObject<{introComplete:boolean}> }, navigateTo:(target:CameraTargetId)=>void) {
   useEffect(() => {
@@ -16,19 +15,47 @@ export function useCameraKeyboardNavigation(system: { selectedTarget:CameraTarge
       const direction = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 0;
       if (!direction) return;
       event.preventDefault();
-      if(system.selectedTarget==="projects"&&direction<0) {
-        navigateTo("opening");
-        return;
-      }
-      const current = KEYBOARD_TARGETS.indexOf(system.selectedTarget);
-      if(current<0) return;
-      const next=current+direction;
-      if(next<0||next>=KEYBOARD_TARGETS.length) return;
-      navigateTo(KEYBOARD_TARGETS[next]);
+      const target=getAdjacentCameraTarget(system.selectedTarget,direction as -1|1);
+      if(target) navigateTo(target);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [system,navigateTo]);
+}
+
+export function useCameraSwipeNavigation(system: { selectedTarget:CameraTargetId; cameraState:React.MutableRefObject<{introComplete:boolean;isTransitioning:boolean}> }, navigateTo:(target:CameraTargetId)=>void) {
+  useEffect(() => {
+    if(!window.matchMedia("(pointer: coarse)").matches) return;
+    let start:{x:number;y:number;time:number}|null=null;
+    const onTouchStart=(event:TouchEvent)=>{
+      if(event.touches.length!==1) { start=null; return; }
+      const element=event.target as HTMLElement|null;
+      if(element?.closest("input, textarea, select, button, [contenteditable='true']")) { start=null; return; }
+      const touch=event.touches[0];
+      start={x:touch.clientX,y:touch.clientY,time:Date.now()};
+    };
+    const onTouchEnd=(event:TouchEvent)=>{
+      if(!start||event.changedTouches.length!==1) { start=null; return; }
+      const touch=event.changedTouches[0];
+      const dx=touch.clientX-start.x;
+      const dy=touch.clientY-start.y;
+      const elapsed=Date.now()-start.time;
+      start=null;
+      if(!system.cameraState.current.introComplete||system.cameraState.current.isTransitioning) return;
+      if(elapsed>900||Math.abs(dx)<52||Math.abs(dx)<Math.abs(dy)*1.25) return;
+      const target=getAdjacentCameraTarget(system.selectedTarget,dx<0?1:-1);
+      if(target) navigateTo(target);
+    };
+    const cancel=()=>{start=null;};
+    window.addEventListener("touchstart",onTouchStart,{passive:true});
+    window.addEventListener("touchend",onTouchEnd,{passive:true});
+    window.addEventListener("touchcancel",cancel,{passive:true});
+    return()=>{
+      window.removeEventListener("touchstart",onTouchStart);
+      window.removeEventListener("touchend",onTouchEnd);
+      window.removeEventListener("touchcancel",cancel);
+    };
+  },[system,navigateTo]);
 }
 
 export function usePrefersReducedMotion() {
