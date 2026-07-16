@@ -1,0 +1,4 @@
+"use client";
+import { CameraRig } from "./CameraRig";
+import { CameraTargetHelpers } from "./CameraTargetHelper";
+export function CameraController({system,focusRef}:{system:any;focusRef:React.MutableRefObject<number>}) { return <><CameraRig requestedTarget={system.selectedTarget} directEntry={system.directEntry} introVersion={system.introVersion} skipVersion={system.skipVersion} workspaceVersion={system.workspaceVersion} reducedMotion={system.reducedMotion} paused={system.pauseTransitions} transitionSpeed={system.transitionSpeed} openingDuration={system.openingDuration} openingHold={system.openingHold} breathingEnabled={system.breathingEnabled} breathingStrength={system.breathingStrength} breathingSpeed={system.breathingSpeed} overshootStrength={system.overshootStrength} nearClip={system.nearClip} farClip={system.farClip} tuning={system.tuning} focusRef={focusRef} stateRef={system.cameraState}/><CameraTargetHelpers visible={system.targetHelpers}/></> }
