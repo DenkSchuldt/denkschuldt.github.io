@@ -4,7 +4,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { applyReducedMotionDuration, cinematicEase, clamp01 } from "./cameraEasing";
-import { resolveCameraTarget, validateCameraTargets } from "./cameraTargets";
+import { getViewportKind, resolveCameraTarget, validateCameraTargets } from "./cameraTargets";
 import type { CameraTargetId, ResolvedCameraTarget } from "./cameraTypes";
 
 interface Props {
@@ -39,9 +39,10 @@ const baseLook = new THREE.Vector3();
 const targetPosition = new THREE.Vector3();
 const travelDirection = new THREE.Vector3();
 
-function tuneTarget(target: ResolvedCameraTarget, tuning: Record<string, any>): ResolvedCameraTarget {
+function tuneTarget(target: ResolvedCameraTarget, tuning: Record<string, any>, aspect: number): ResolvedCameraTarget {
   const p=tuning[`${target.id}Position`], l=tuning[`${target.id}LookAt`];
-  return {...target, position:p?[p.x,p.y,p.z]:target.position, lookAt:l?[l.x,l.y,l.z]:target.lookAt, fov:tuning[`${target.id}Fov`]??target.fov, duration:tuning[`${target.id}Duration`]??target.duration};
+  const useTunedFraming=getViewportKind(aspect)==="desktop";
+  return {...target, position:useTunedFraming&&p?[p.x,p.y,p.z]:target.position, lookAt:useTunedFraming&&l?[l.x,l.y,l.z]:target.lookAt, fov:useTunedFraming?(tuning[`${target.id}Fov`]??target.fov):target.fov, duration:tuning[`${target.id}Duration`]??target.duration};
 }
 
 export function CameraRig(props: Props) {
@@ -71,7 +72,7 @@ export function CameraRig(props: Props) {
 
   const beginTransition = (id:CameraTargetId, now:number, durationOverride?:number) => {
     const aspect=size.width/size.height;
-    const next=tuneTarget(resolveCameraTarget(id,aspect),props.tuning);
+    const next=tuneTarget(resolveCameraTarget(id,aspect),props.tuning,aspect);
     startPosition.copy(basePosition); startLook.copy(baseLook);
     endPosition.set(...next.position); endLook.set(...next.lookAt);
     if(next.waypoint) waypoint.set(...next.waypoint); else waypoint.lerpVectors(startPosition,endPosition,.5);
@@ -88,7 +89,7 @@ export function CameraRig(props: Props) {
     if(!initialized.current){
       initialized.current=true;
       const initialId=props.directEntry?props.requestedTarget:"opening";
-      const initial=tuneTarget(resolveCameraTarget(initialId,size.width/size.height),props.tuning);
+      const initial=tuneTarget(resolveCameraTarget(initialId,size.width/size.height),props.tuning,size.width/size.height);
       basePosition.set(...initial.position);baseLook.set(...initial.lookAt);activeTarget.current=initial;activeId.current=initialId;requestedId.current=props.requestedTarget;
       introActive.current=!props.directEntry;introComplete.current=props.directEntry;transitioning.current=false;transitionStart.current=now;
       props.focusRef.current=initial.focusDistance??props.focusRef.current;
@@ -100,12 +101,12 @@ export function CameraRig(props: Props) {
     props.stateRef.current.isIntroActive=introActive.current;
     props.stateRef.current.introComplete=introComplete.current;
     props.stateRef.current.currentTarget=activeId.current;
-    if(lastIntroVersion.current!==props.introVersion){lastIntroVersion.current=props.introVersion;introActive.current=true;introComplete.current=false;activeId.current="opening";const opening=tuneTarget(resolveCameraTarget("opening",size.width/size.height),props.tuning);basePosition.set(...opening.position);baseLook.set(...opening.lookAt);baseRoll.current=THREE.MathUtils.degToRad(opening.roll??0);camera.position.copy(basePosition);camera.lookAt(baseLook);camera.rotateZ(baseRoll.current);transitionStart.current=now;transitioning.current=false;return;}
+    if(lastIntroVersion.current!==props.introVersion){lastIntroVersion.current=props.introVersion;introActive.current=true;introComplete.current=false;activeId.current="opening";const opening=tuneTarget(resolveCameraTarget("opening",size.width/size.height),props.tuning,size.width/size.height);basePosition.set(...opening.position);baseLook.set(...opening.lookAt);baseRoll.current=THREE.MathUtils.degToRad(opening.roll??0);camera.position.copy(basePosition);camera.lookAt(baseLook);camera.rotateZ(baseRoll.current);transitionStart.current=now;transitioning.current=false;return;}
     if(lastSkipVersion.current!==props.skipVersion){lastSkipVersion.current=props.skipVersion;introActive.current=false;introComplete.current=true;const destination=props.requestedTarget==="opening"?"workspace":props.requestedTarget;beginTransition(destination,now,props.reducedMotion?.18:.4);}
     if(lastWorkspaceVersion.current!==props.workspaceVersion){lastWorkspaceVersion.current=props.workspaceVersion;if(introComplete.current)beginTransition("workspace",now);}
 
     if(introActive.current){
-      const opening=tuneTarget(resolveCameraTarget("opening",size.width/size.height),props.tuning);
+      const opening=tuneTarget(resolveCameraTarget("opening",size.width/size.height),props.tuning,size.width/size.height);
       if(!basePosition.lengthSq()){basePosition.set(...opening.position);baseLook.set(...opening.lookAt);camera.position.copy(basePosition);camera.lookAt(baseLook);transitionStart.current=now;}
       const elapsed=now-transitionStart.current;
       if(props.reducedMotion){introActive.current=false;introComplete.current=true;beginTransition("projects",now,.18);}
