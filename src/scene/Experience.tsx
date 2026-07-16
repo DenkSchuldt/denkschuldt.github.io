@@ -5,7 +5,7 @@ import { Leva, useControls } from "leva";
 import { Suspense, useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { Scene, type SceneSettings } from "./Scene";
-import { CameraLocationLabel, CinematicFade, pathForShot, useCameraKeyboardNavigation, useCameraSwipeNavigation, useCinematicShots, useSceneRouter } from "./camera";
+import { CameraLocationLabel, CinematicFade, pathForShot, useCameraKeyboardNavigation, useCameraPinchNavigation, useCameraSwipeNavigation, useCinematicShots, useSceneRouter } from "./camera";
 
 export default function Experience() {
   const route=useSceneRouter();
@@ -13,16 +13,18 @@ export default function Experience() {
   const previousPath=useRef(route.path);
   useEffect(()=>{cameraSystem.goToShot(route.shot)},[route.shot]);
   useEffect(()=>{
-    if(route.path==="/"&&previousPath.current!=="/") cameraSystem.replayIntro();
+    if(route.path==="/"&&route.shot==="opening"&&previousPath.current!=="/") cameraSystem.replayIntro();
     previousPath.current=route.path;
   },[route.path]);
   const navigateCamera=useCallback((shot:Parameters<typeof pathForShot>[0])=>{
     const path=pathForShot(shot);
     if(path===null) cameraSystem.goToShot(shot);
-    else route.navigate(path);
+    else route.navigate(path,shot==="workspace"?"workspace":undefined);
   },[route.navigate]);
   useCameraKeyboardNavigation(cameraSystem,navigateCamera);
   useCameraSwipeNavigation(cameraSystem,navigateCamera);
+  const goToWorkspace=useCallback(()=>route.navigate("/","workspace"),[route.navigate]);
+  useCameraPinchNavigation(cameraSystem,goToWorkspace);
   useEffect(()=>{
     if(route.path!=="/"||route.directEntry) return;
     let frame=0;
@@ -89,7 +91,7 @@ export default function Experience() {
   };
   return <div className="canvas-stage">
     <Canvas shadows dpr={[1, 1.6]} camera={{ position: [-0.72, 1.9, 4.82], fov: 42, near: 0.1, far: 45 }} gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: settings.exposure, powerPreference: "high-performance" }}>
-      <Suspense fallback={null}><Scene s={settings} cameraSystem={cameraSystem} /></Suspense>
+      <Suspense fallback={null}><Scene s={settings} cameraSystem={cameraSystem} goToShot={navigateCamera} /></Suspense>
     </Canvas>
     <Leva collapsed />
     <CameraLocationLabel stateRef={cameraSystem.cameraState} />

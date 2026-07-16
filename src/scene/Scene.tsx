@@ -26,12 +26,13 @@ function CinematicEffects({ s, focusRef, readingMode }: { s: SceneSettings; focu
 }
 
 import * as THREE from "three";
-export function Scene({ s, cameraSystem }: { s: SceneSettings; cameraSystem:any }) { const focusRef=useRef(s.focusDistance); return <>
+import type { ShotId } from "./camera";
+export function Scene({ s, cameraSystem, goToShot }: { s: SceneSettings; cameraSystem:any; goToShot:(shot:ShotId)=>void }) { const focusRef=useRef(s.focusDistance); return <>
   <color attach="background" args={["#070707"]} />
   <fog attach="fog" args={["#111216", 7, s.fog]} />
   <Lighting desk={s.desk} moon={s.moon} moonColor={s.moonColor} bounce={s.bounce} />
   <CameraController system={cameraSystem} focusRef={focusRef} />
-  <Room /><Desk /><Laptop position={s.laptopPosition} rotation={s.laptopRotation} /><DeskObjects coffeePosition={s.coffeePosition} lampPosition={s.lampPosition} folderPosition={s.folderPosition} folderRotation={s.folderRotation} paperPosition={s.paperPosition} paperRotation={s.paperRotation} penPosition={s.penPosition} penRotation={s.penRotation} /><Chair /><Shelf /><Posters /><Plant position={s.plantPosition} rotationY={s.plantRotationY} />
+  <Room /><Desk onNavigate={()=>goToShot("workspace")} onDrawer={()=>goToShot("drawer")} /><Laptop position={s.laptopPosition} rotation={s.laptopRotation} onNavigate={()=>goToShot("projects")} /><DeskObjects coffeePosition={s.coffeePosition} lampPosition={s.lampPosition} folderPosition={s.folderPosition} folderRotation={s.folderRotation} paperPosition={s.paperPosition} paperRotation={s.paperRotation} penPosition={s.penPosition} penRotation={s.penRotation} onPaper={()=>goToShot("about")} onFolder={()=>goToShot("poems")} onPhone={()=>goToShot("phone")} /><Chair /><Shelf onNavigate={()=>goToShot("certificates")} /><Posters onNavigate={()=>goToShot("wall")} /><Plant position={s.plantPosition} rotationY={s.plantRotationY} />
   <DebugHelpers visible={s.helpers} />
   <CinematicEffects s={s} focusRef={focusRef} readingMode={cameraSystem.selectedShot==="about"} />
 </>; }

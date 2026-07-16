@@ -4,6 +4,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { applyReducedMotionDuration, cinematicEase, clamp01 } from "./cameraEasing";
+import { shouldBeginShotTransition } from "./cameraNavigation";
 import { getViewportKind, resolveCameraTarget, validateCameraTargets } from "./cameraTargets";
 import type { CameraTargetId, ResolvedCameraTarget } from "./cameraTypes";
 
@@ -118,7 +119,7 @@ export function CameraRig(props: Props) {
       else if(elapsed>=props.openingHold&&!transitioning.current){beginTransition("projects",now,props.openingDuration-props.openingHold);}
     }
 
-    if(introComplete.current && !transitioning.current && props.requestedTarget!==requestedId.current && !props.paused) beginTransition(props.requestedTarget,now);
+    if(shouldBeginShotTransition(introComplete.current,props.paused,props.requestedTarget,requestedId.current)) beginTransition(props.requestedTarget,now);
     if(props.paused) return;
 
     if(transitioning.current){

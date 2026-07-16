@@ -3,7 +3,7 @@ export { CameraController } from "./CameraController";
 export { CameraLocationLabel } from "./CameraLocationLabel";
 export { ShotHelpers, CameraTargetHelpers } from "./CameraTargetHelper";
 export { CinematicFade } from "./CinematicFade";
-export { useCinematicShots, useCinematicCamera, useCameraKeyboardNavigation, useCameraSwipeNavigation } from "./useCinematicCamera";
+export { useCinematicShots, useCinematicCamera, useCameraKeyboardNavigation, useCameraSwipeNavigation, useCameraPinchNavigation } from "./useCinematicCamera";
 export * from "./cameraTypes";
 export * from "./shotTypes";
 export * from "./shotRegistry";

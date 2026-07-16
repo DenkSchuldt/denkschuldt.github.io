@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { parseScenePath, withSceneBasePath, withoutSceneBasePath } from "./sceneRoutes";
+import type { ShotId } from "./shotTypes";
 
 const currentPath=()=>typeof window==="undefined"?"/":withoutSceneBasePath(window.location.pathname);
 
@@ -16,10 +17,11 @@ export function useSceneRouter() {
     sync();
     return()=>window.removeEventListener("popstate",sync);
   },[]);
-  const navigate=useCallback((path:string)=>{
+  const navigate=useCallback((path:string,shotOverride?:ShotId)=>{
     const browserPath=withSceneBasePath(path);
     if(path===currentPath()){
-      setRoute(parseScenePath(path));
+      const parsed=parseScenePath(path);
+      setRoute(shotOverride?{...parsed,shot:shotOverride,target:shotOverride}:parsed);
       return;
     }
     // Projects is the landing shot. Keep the opening immediately behind it in
@@ -28,7 +30,8 @@ export function useSceneRouter() {
       window.history.pushState({scene:"opening"},"",withSceneBasePath("/"));
     }
     window.history.pushState({},"",browserPath);
-    setRoute(parseScenePath(path));
+    const parsed=parseScenePath(path);
+    setRoute(shotOverride?{...parsed,shot:shotOverride,target:shotOverride}:parsed);
   },[]);
   return {...route,navigate,goToRoute:navigate};
 }

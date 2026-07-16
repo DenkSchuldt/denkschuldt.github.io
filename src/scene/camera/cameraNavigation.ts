@@ -9,3 +9,7 @@ export function getAdjacentShot(current:ShotId,direction:-1|1):ShotId|null {
 
 /** @deprecated Use getAdjacentShot. */
 export const getAdjacentCameraTarget=getAdjacentShot;
+
+export const isPinchOut=(initialDistance:number,currentDistance:number)=>initialDistance>0&&currentDistance>=initialDistance*1.22;
+export const isTrackpadPinchOut=(accumulatedDelta:number)=>accumulatedDelta>=48;
+export const shouldBeginShotTransition=(introCompleted:boolean,paused:boolean,requested:ShotId,activeRequest:ShotId)=>introCompleted&&!paused&&requested!==activeRequest;

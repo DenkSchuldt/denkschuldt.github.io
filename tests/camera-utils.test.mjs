@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { cinematicEase, applyReducedMotionDuration } from "../src/scene/camera/cameraEasing.ts";
 import { resolveCameraTarget, getViewportKind } from "../src/scene/camera/cameraTargets.ts";
-import { getAdjacentCameraTarget } from "../src/scene/camera/cameraNavigation.ts";
+import { getAdjacentCameraTarget, isPinchOut, isTrackpadPinchOut, shouldBeginShotTransition } from "../src/scene/camera/cameraNavigation.ts";
 import { SHOT_REGISTRY, resolveShot } from "../src/scene/camera/shotRegistry.ts";
 import { parseScenePath, pathForShot } from "../src/scene/camera/sceneRoutes.ts";
 
@@ -44,4 +44,18 @@ test("shot registry owns routes and preserves the golden About framing", () => {
   assert.equal(resolveShot("about", 1.8).framing.roll, -25);
   assert.deepEqual(resolveShot("about", .6).framing.position, [-1.897, 3.16, -.578]);
   assert.equal(resolveShot("about", .6).framing.roll, 0);
+});
+
+test("pinch-out gesture requires a deliberate scale increase", () => {
+  assert.equal(isPinchOut(100, 121), false);
+  assert.equal(isPinchOut(100, 122), true);
+  assert.equal(isPinchOut(0, 200), false);
+  assert.equal(isTrackpadPinchOut(47), false);
+  assert.equal(isTrackpadPinchOut(48), true);
+});
+
+test("a new shot request interrupts an active camera journey", () => {
+  assert.equal(shouldBeginShotTransition(true, false, "workspace", "about"), true);
+  assert.equal(shouldBeginShotTransition(true, false, "about", "about"), false);
+  assert.equal(shouldBeginShotTransition(false, false, "workspace", "about"), false);
 });

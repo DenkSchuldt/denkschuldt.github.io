@@ -14,18 +14,18 @@ export function Room() { return <group>
   <mesh position={[-5.94,3.65,-.7]} rotation-y={Math.PI/2}><planeGeometry args={[3.3,3.8]}/><meshStandardMaterial color="#151a20" roughness={.5}/></mesh>
 </group> }
 
-export function Desk() { return <group position={[0,0,-1.5]}>
+export function Desk({onNavigate,onDrawer}:{onNavigate?:()=>void;onDrawer?:()=>void}) { return <group position={[0,0,-1.5]} onClick={(event)=>{event.stopPropagation();onNavigate?.();}}>
   <RoundedBox args={[5.5,.18,2.2]} radius={.08} position={[0,1.15,0]} castShadow receiveShadow><meshStandardMaterial color={C.wood} roughness={.66}/></RoundedBox>
   {[-2.35,2.35].flatMap(x=>[-.75,.75].map(z=><mesh key={`${x}${z}`} position={[x,.56,z]} castShadow><boxGeometry args={[.13,1.12,.13]}/><meshStandardMaterial color={C.metal} metalness={.65} roughness={.34}/></mesh>))}
-  <Drawer />
+  <Drawer onNavigate={onDrawer} />
 </group> }
 
-function Drawer() { return <group position={[1.72,.68,0]}>
+function Drawer({onNavigate}:{onNavigate?:()=>void}) { return <group position={[1.72,.68,0]} onClick={(event)=>{event.stopPropagation();onNavigate?.();}}>
   <RoundedBox args={[1.5,.72,1.72]} radius={.04} castShadow><meshStandardMaterial color={C.woodEdge} roughness={.72}/></RoundedBox>
   {[.86,.62].map((y,i)=><group key={y}><mesh position={[0,y-.68,.87]}><boxGeometry args={[1.37,.19,.04]}/><meshStandardMaterial color={C.wood}/></mesh><mesh position={[0,y-.68,.91]}><boxGeometry args={[.28,.035,.05]}/><meshStandardMaterial color={C.metal} metalness={.8}/></mesh></group>)}
 </group> }
 
-export function Laptop({position,rotation}:{position:[number,number,number];rotation:number}) { return <group position={[position[0],1.34+position[1],-1.5+position[2]]} rotation-y={THREE.MathUtils.degToRad(rotation)}>
+export function Laptop({position,rotation,onNavigate}:{position:[number,number,number];rotation:number;onNavigate?:()=>void}) { return <group position={[position[0],1.34+position[1],-1.5+position[2]]} rotation-y={THREE.MathUtils.degToRad(rotation)} onClick={(event)=>{event.stopPropagation();onNavigate?.();}}>
   <RoundedBox args={[1.72,.075,1.02]} radius={.055} position={[0,.02,0]} castShadow receiveShadow><meshStandardMaterial color="#4b4d4d" metalness={.18} roughness={.56}/></RoundedBox>
   <RoundedBox args={[1.55,.018,.68]} radius={.025} position={[0,.068,-.08]}><meshStandardMaterial color="#343637" metalness={.12} roughness={.5}/></RoundedBox>
   {[-.48,-.24,0,.24,.48].flatMap((x,row)=>[-.25,-.08,.09].map((z,col)=><mesh key={`${x}${z}`} position={[x+(col%2)*.025,.082,z-.09]}><boxGeometry args={[.16,.012,.105]}/><meshStandardMaterial color="#606263" roughness={.62}/></mesh>))}
@@ -36,10 +36,10 @@ export function Laptop({position,rotation}:{position:[number,number,number];rota
   </group>
 </group> }
 
-export function DeskObjects({coffeePosition,lampPosition,folderPosition,folderRotation,paperPosition,paperRotation,penPosition,penRotation}:{coffeePosition:[number,number,number];lampPosition:[number,number,number];folderPosition:[number,number];folderRotation:number;paperPosition:[number,number];paperRotation:number;penPosition:[number,number];penRotation:number}) { return <group position={[0,1.31,-1.5]}>
-  <PaperAndPen position={paperPosition} rotation={paperRotation} penPosition={penPosition} penRotation={penRotation} />
-  <Phone />
-  <group position={[folderPosition[0],-.0325,folderPosition[1]]} rotation-y={THREE.MathUtils.degToRad(folderRotation)}>
+export function DeskObjects({coffeePosition,lampPosition,folderPosition,folderRotation,paperPosition,paperRotation,penPosition,penRotation,onPaper,onFolder,onPhone}:{coffeePosition:[number,number,number];lampPosition:[number,number,number];folderPosition:[number,number];folderRotation:number;paperPosition:[number,number];paperRotation:number;penPosition:[number,number];penRotation:number;onPaper?:()=>void;onFolder?:()=>void;onPhone?:()=>void}) { return <group position={[0,1.31,-1.5]}>
+  <PaperAndPen position={paperPosition} rotation={paperRotation} penPosition={penPosition} penRotation={penRotation} onNavigate={onPaper} />
+  <Phone onNavigate={onPhone} />
+  <group position={[folderPosition[0],-.0325,folderPosition[1]]} rotation-y={THREE.MathUtils.degToRad(folderRotation)} onClick={(event)=>{event.stopPropagation();onFolder?.();}}>
     <RoundedBox args={[1.15,.075,.75]} radius={.035} castShadow><meshStandardMaterial color={C.leather} roughness={.78}/></RoundedBox>
     <RoundedBox args={[1.06,.04,.69]} radius={.025} position={[-.04,.08,.16]} rotation-x={.15} castShadow><meshStandardMaterial color="#5a3828" roughness={.8}/></RoundedBox>
     <RoundedBox args={[.72,.018,.48]} radius={.012} position={[-.1,.073,-.11]} rotation-y={-.025} castShadow><meshStandardMaterial color="#b8b2a7" roughness={.92}/></RoundedBox>
@@ -48,7 +48,7 @@ export function DeskObjects({coffeePosition,lampPosition,folderPosition,folderRo
   <DeskLamp position={lampPosition} />
 </group> }
 
-function Phone() { return <group position={[-.25,-.057,.77]} rotation-y={THREE.MathUtils.degToRad(4)}>
+function Phone({onNavigate}:{onNavigate?:()=>void}) { return <group position={[-.25,-.057,.77]} rotation-y={THREE.MathUtils.degToRad(4)} onClick={(event)=>{event.stopPropagation();onNavigate?.();}}>
   <RoundedBox args={[.32,.026,.62]} radius={.052} castShadow receiveShadow><meshStandardMaterial color="#202223" metalness={.62} roughness={.3}/></RoundedBox>
   <RoundedBox args={[.292,.004,.584]} radius={.044} position={[0,.015,0]}><meshStandardMaterial color="#010202" metalness={.08} roughness={.2}/></RoundedBox>
   <RoundedBox args={[.105,.003,.025]} radius={.012} position={[0,.019,-.245]}><meshStandardMaterial color="#090a0b" roughness={.3}/></RoundedBox>
@@ -57,7 +57,7 @@ function Phone() { return <group position={[-.25,-.057,.77]} rotation-y={THREE.M
   <mesh position={[.162,-.001,-.04]}><boxGeometry args={[.008,.017,.13]}/><meshStandardMaterial color="#303334" metalness={.7} roughness={.28}/></mesh>
 </group> }
 
-function PaperAndPen({position,rotation,penPosition,penRotation}:{position:[number,number];rotation:number;penPosition:[number,number];penRotation:number}) { return <group position={[position[0],-.064,position[1]]} rotation-y={THREE.MathUtils.degToRad(rotation)}>
+function PaperAndPen({position,rotation,penPosition,penRotation,onNavigate}:{position:[number,number];rotation:number;penPosition:[number,number];penRotation:number;onNavigate?:()=>void}) { return <group position={[position[0],-.064,position[1]]} rotation-y={THREE.MathUtils.degToRad(rotation)} onClick={(event)=>{event.stopPropagation();onNavigate?.();}}>
   <RoundedBox args={[.72,.006,1.02]} radius={.006} castShadow receiveShadow><meshStandardMaterial color="#d8d5ce" roughness={.96} emissive="#25221e" emissiveIntensity={.08}/></RoundedBox>
   <mesh position={[0,.004,0]} rotation-x={-Math.PI/2}>
     <planeGeometry args={[.708,1.008]}/>
@@ -123,7 +123,7 @@ export function Chair() { return <group position={[-.92,.55,1.48]} rotation-y={M
   <mesh position={[0,-.82,0]} rotation-z={Math.PI/2}><cylinderGeometry args={[.035,.035,1.15,10]}/><meshStandardMaterial color={C.metal}/></mesh>
 </group> }
 
-export function Shelf() { return <group position={[-3.8,2,-3.63]}>
+export function Shelf({onNavigate}:{onNavigate?:()=>void}) { return <group position={[-3.8,2,-3.63]} onClick={(event)=>{event.stopPropagation();onNavigate?.();}}>
   {[-1.7,-.85,0,.85,1.7].map(y=><mesh key={y} position={[0,y,0]} castShadow><boxGeometry args={[2.45,.1,.68]}/><meshStandardMaterial color={C.wood}/></mesh>)}
   {[-1.15,1.15].map(x=><mesh key={x} position={[x,0,0]} castShadow><boxGeometry args={[.1,3.5,.68]}/><meshStandardMaterial color={C.woodEdge}/></mesh>)}
   {[-.72,-.46,-.2,.22,.52].map((x,i)=><mesh key={x} position={[x,1.27,.04]}><boxGeometry args={[.18,.65-(i%2)*.12,.45]}/><meshStandardMaterial color={["#6c5843","#464641","#7a6b56"][i%3]}/></mesh>)}
@@ -132,7 +132,7 @@ export function Shelf() { return <group position={[-3.8,2,-3.63]}>
 const WALL_IMAGES = ["arrival.jpg", "her.jpg", "interstellar.jpg", "matrix.jpg"]
   .map((image) => withSceneBasePath(`/wall/${image}`));
 
-export function Posters() {
+export function Posters({onNavigate}:{onNavigate?:()=>void}) {
   const textures = useTexture(WALL_IMAGES);
   textures.forEach((texture, index) => {
     const sourceAspect = index === 0 ? 1920 / 1200 : index === 3 ? 598 / 362 : 728 / 410;
@@ -146,7 +146,7 @@ export function Posters() {
       texture.offset.set(0, (1 - texture.repeat.y) / 2);
     }
   });
-  return <group position={[2.55,3,-3.84]}>
+  return <group position={[2.55,3,-3.84]} onClick={(event)=>{event.stopPropagation();onNavigate?.();}}>
     <group position={[0,.67,.08]}>
       <RoundedBox args={[.92,.075,.12]} radius={.035} castShadow><meshStandardMaterial color="#343231" metalness={.28} roughness={.55}/></RoundedBox>
       <mesh position={[0,-.03,-.12]}><boxGeometry args={[.08,.08,.22]}/><meshStandardMaterial color="#292827" metalness={.2} roughness={.6}/></mesh>

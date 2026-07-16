@@ -3,7 +3,7 @@
 import { button, folder, useControls } from "leva";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CAMERA_TARGETS } from "./cameraTargets";
-import { getAdjacentShot } from "./cameraNavigation";
+import { getAdjacentShot, isPinchOut, isTrackpadPinchOut } from "./cameraNavigation";
 import { SHOT_REGISTRY } from "./shotRegistry";
 import type { ShotId } from "./shotTypes";
 
@@ -66,6 +66,56 @@ export function useCameraSwipeNavigation(system: { selectedTarget:CameraTargetId
       window.removeEventListener("touchcancel",cancel);
     };
   },[system,navigateTo]);
+}
+
+export function useCameraPinchNavigation(system:{cameraState:React.MutableRefObject<{introComplete:boolean;isTransitioning:boolean}>},goToWorkspace:()=>void) {
+  useEffect(()=>{
+    let initialDistance=0;
+    let triggered=false;
+    let trackpadDelta=0;
+    let trackpadReset=0;
+    const distance=(touches:TouchList)=>Math.hypot(touches[0].clientX-touches[1].clientX,touches[0].clientY-touches[1].clientY);
+    const onTouchStart=(event:TouchEvent)=>{
+      if(event.touches.length!==2) return;
+      initialDistance=distance(event.touches);
+      triggered=false;
+    };
+    const onTouchMove=(event:TouchEvent)=>{
+      if(triggered||initialDistance<=0||event.touches.length!==2) return;
+      if(!isPinchOut(initialDistance,distance(event.touches))) return;
+      if(!system.cameraState.current.introComplete) return;
+      triggered=true;
+      goToWorkspace();
+    };
+    const reset=()=>{initialDistance=0;triggered=false;};
+    const onWheel=(event:WheelEvent)=>{
+      if(!event.ctrlKey) return;
+      event.preventDefault();
+      window.clearTimeout(trackpadReset);
+      trackpadReset=window.setTimeout(()=>{trackpadDelta=0;triggered=false;},180);
+      if(triggered||event.deltaY>=0) return;
+      trackpadDelta+=-event.deltaY;
+      if(!isTrackpadPinchOut(trackpadDelta)) return;
+      if(!system.cameraState.current.introComplete) return;
+      triggered=true;
+      goToWorkspace();
+    };
+    if(window.matchMedia("(pointer: coarse)").matches){
+      window.addEventListener("touchstart",onTouchStart,{passive:true});
+      window.addEventListener("touchmove",onTouchMove,{passive:true});
+      window.addEventListener("touchend",reset,{passive:true});
+      window.addEventListener("touchcancel",reset,{passive:true});
+    }
+    window.addEventListener("wheel",onWheel,{passive:false});
+    return()=>{
+      window.removeEventListener("touchstart",onTouchStart);
+      window.removeEventListener("touchmove",onTouchMove);
+      window.removeEventListener("touchend",reset);
+      window.removeEventListener("touchcancel",reset);
+      window.removeEventListener("wheel",onWheel);
+      window.clearTimeout(trackpadReset);
+    };
+  },[system,goToWorkspace]);
 }
 
 export function usePrefersReducedMotion() {
