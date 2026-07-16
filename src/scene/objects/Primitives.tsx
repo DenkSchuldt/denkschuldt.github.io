@@ -2,6 +2,7 @@
 import { Capsule, RoundedBox, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import { PALETTE as C } from "../constants";
+import { withSceneBasePath } from "../camera/sceneRoutes";
 
 const mat = { roughness: .82, metalness: 0 };
 
@@ -90,7 +91,8 @@ export function Shelf() { return <group position={[-3.8,2,-3.63]}>
   {[-.72,-.46,-.2,.22,.52].map((x,i)=><mesh key={x} position={[x,1.27,.04]}><boxGeometry args={[.18,.65-(i%2)*.12,.45]}/><meshStandardMaterial color={["#6c5843","#464641","#7a6b56"][i%3]}/></mesh>)}
 </group> }
 
-const WALL_IMAGES = ["/wall/arrival.jpg", "/wall/her.jpg", "/wall/interstellar.jpg", "/wall/matrix.jpg"];
+const WALL_IMAGES = ["arrival.jpg", "her.jpg", "interstellar.jpg", "matrix.jpg"]
+  .map((image) => withSceneBasePath(`/wall/${image}`));
 
 export function Posters() {
   const textures = useTexture(WALL_IMAGES);

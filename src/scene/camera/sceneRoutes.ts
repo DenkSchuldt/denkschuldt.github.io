@@ -1,5 +1,19 @@
 import type { CameraTargetId } from "./cameraTypes";
 
+export const SCENE_BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH ?? "").replace(/\/$/, "");
+
+export function withSceneBasePath(path:string) {
+  return `${SCENE_BASE_PATH}${path === "/" ? "/" : path}`;
+}
+
+export function withoutSceneBasePath(path:string) {
+  if (!SCENE_BASE_PATH) return path;
+  const stripped = path.startsWith(`${SCENE_BASE_PATH}/`)
+    ? path.slice(SCENE_BASE_PATH.length)
+    : path;
+  return stripped || "/";
+}
+
 export const SCENE_ROUTES = {
   paper: { path:"/about", target:"about" },
   laptop: { path:"/projects", target:"projects" },
@@ -24,6 +38,7 @@ export function pathForCameraTarget(target:CameraTargetId) {
 export interface SceneRouteState { path:string; target:CameraTargetId; section?:string; slug?:string; directEntry:boolean }
 
 export function parseScenePath(pathname:string):SceneRouteState {
+  pathname=withoutSceneBasePath(pathname);
   const parts=pathname.split("/").filter(Boolean);
   if(!parts.length) return {path:"/",target:"projects",directEntry:false};
   const base=`/${parts[0]}`;
