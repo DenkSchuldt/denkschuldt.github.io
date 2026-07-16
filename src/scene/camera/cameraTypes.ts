@@ -12,6 +12,7 @@ export interface CameraTargetOverride {
   position?: Vec3Tuple;
   lookAt?: Vec3Tuple;
   fov?: number;
+  roll?: number;
 }
 
 export interface CameraTarget {
@@ -20,6 +21,7 @@ export interface CameraTarget {
   position: Vec3Tuple;
   lookAt: Vec3Tuple;
   fov: number;
+  roll?: number;
   duration: number;
   arrivalDelay?: number;
   focusDistance?: number;

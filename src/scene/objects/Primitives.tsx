@@ -1,5 +1,5 @@
 "use client";
-import { Capsule, RoundedBox, useTexture } from "@react-three/drei";
+import { Capsule, RoundedBox, Text, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import { PALETTE as C } from "../constants";
 import { withSceneBasePath } from "../camera/sceneRoutes";
@@ -58,11 +58,49 @@ function Phone() { return <group position={[-.25,-.057,.77]} rotation-y={THREE.M
 </group> }
 
 function PaperAndPen({position,rotation,penPosition,penRotation}:{position:[number,number];rotation:number;penPosition:[number,number];penRotation:number}) { return <group position={[position[0],-.064,position[1]]} rotation-y={THREE.MathUtils.degToRad(rotation)}>
-  <RoundedBox args={[.72,.012,1.02]} radius={.012} castShadow receiveShadow><meshStandardMaterial color="#aaa79f" roughness={.96}/></RoundedBox>
-  <mesh position={[penPosition[0],.025,penPosition[1]]} rotation={[0,THREE.MathUtils.degToRad(penRotation),Math.PI/2]} castShadow>
-    <cylinderGeometry args={[.018,.018,.52,12]}/><meshStandardMaterial color="#242526" metalness={.28} roughness={.48}/>
+  <RoundedBox args={[.72,.006,1.02]} radius={.006} castShadow receiveShadow><meshStandardMaterial color="#d8d5ce" roughness={.96} emissive="#25221e" emissiveIntensity={.08}/></RoundedBox>
+  <mesh position={[0,.004,0]} rotation-x={-Math.PI/2}>
+    <planeGeometry args={[.708,1.008]}/>
+    <meshBasicMaterial color="#d2cec5" toneMapped={false}/>
   </mesh>
-  <mesh position={[penPosition[0]-.235,.025,penPosition[1]+.11]} rotation={[0,THREE.MathUtils.degToRad(penRotation),Math.PI/2]}><cylinderGeometry args={[.012,.018,.05,12]}/><meshStandardMaterial color="#171819" metalness={.3}/></mesh>
+  <Text
+    position={[-.32,.012,-.46]}
+    rotation-x={-Math.PI/2}
+    anchorX="left"
+    anchorY="top"
+    fontSize={.044}
+    fontWeight={700}
+    outlineWidth={.0012}
+    outlineColor="#000000"
+    font="https://raw.githubusercontent.com/google/fonts/main/ofl/patrickhand/PatrickHand-Regular.ttf"
+  >About me<meshBasicMaterial color="#000000" toneMapped={false}/></Text>
+  <Text
+    position={[-.32,.011,-.395]}
+    rotation-x={-Math.PI/2}
+    anchorX="left"
+    anchorY="top"
+    maxWidth={.64}
+    fontSize={.027}
+    fontWeight={400}
+    lineHeight={1.18}
+    font="https://raw.githubusercontent.com/google/fonts/main/ofl/patrickhand/PatrickHand-Regular.ttf"
+  >{`I build products that think clearly and experiences that move with purpose.
+
+With over a decade of experience across software engineering, UX, and product strategy, I’ve worked between technology and human experience, translating complex flows into intuitive, scalable, and data-driven systems. My experience goes from hands-on development and real-time system design to redefining how a SaaS logistics platform connects technology, operations, and user experience, balancing structure with creativity and meaningful outcomes.
+
+Beyond product development, I’ve had the honor of teaching UX/UI at ESPOL’s coding bootcamp, the top university in my country, guiding professionals and students through usability, analytics, and the creative use of generative AI to enhance design thinking.
+
+Curiosity and precision guide everything I build, connecting logic and empathy to create technology that truly serves people.
+
+Hablante nativo de Español, fluent in English, and conversational in Brazilian Portuguese. Você pode me encontrar online como @DenkSchuldt.`}<meshBasicMaterial color="#000000" toneMapped={false}/></Text>
+  <group position={[penPosition[0],.025,penPosition[1]]} rotation-y={THREE.MathUtils.degToRad(penRotation)}>
+    <mesh rotation-z={Math.PI/2} castShadow>
+      <cylinderGeometry args={[.018,.018,.52,12]}/><meshStandardMaterial color="#242526" metalness={.28} roughness={.48}/>
+    </mesh>
+    <mesh position={[-.285,0,0]} rotation-z={Math.PI/2}>
+      <cylinderGeometry args={[.012,.018,.05,12]}/><meshStandardMaterial color="#171819" metalness={.3}/>
+    </mesh>
+  </group>
 </group> }
 
 function DeskLamp({position}:{position:[number,number,number]}) { return <group position={position} rotation-y={THREE.MathUtils.degToRad(6)}>

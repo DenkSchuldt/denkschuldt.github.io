@@ -42,6 +42,12 @@ export function useCameraSwipeNavigation(system: { selectedTarget:CameraTargetId
       const elapsed=Date.now()-start.time;
       start=null;
       if(!system.cameraState.current.introComplete||system.cameraState.current.isTransitioning) return;
+      const isTap=elapsed<=500&&Math.abs(dx)<12&&Math.abs(dy)<12;
+      if(isTap) {
+        const target=getAdjacentCameraTarget(system.selectedTarget,1);
+        if(target) navigateTo(target);
+        return;
+      }
       if(elapsed>900||Math.abs(dx)<52||Math.abs(dx)<Math.abs(dy)*1.25) return;
       const target=getAdjacentCameraTarget(system.selectedTarget,dx<0?1:-1);
       if(target) navigateTo(target);

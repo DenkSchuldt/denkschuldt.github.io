@@ -6,8 +6,11 @@ import type { CameraTargetId } from "./cameraTypes";
 const LABELS: Record<CameraTargetId,string> = {
   opening:"Opening",
   workspace:"Workspace",
+  about:"About me",
   projects:"Projects",
+  certificates:"Certificates",
   poems:"Poems",
+  phone:"Phone",
   wall:"Wall",
   drawer:"Drawer",
 };
