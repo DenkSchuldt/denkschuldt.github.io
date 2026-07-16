@@ -11,13 +11,24 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  actions: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
+  trigger-master-deployment:
+    if: github.ref == 'refs/heads/revamp'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch protected Pages deployment from master
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --repo "${{ github.repository }}" --ref master
+
   build:
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - name: Check out master
