@@ -1,10 +1,11 @@
-import type { CameraTargetId } from "./cameraTypes";
+import { GUIDED_SHOT_IDS } from "./shotRegistry.ts";
+import type { ShotId } from "./shotTypes";
 
-const NAVIGATION_TARGETS: CameraTargetId[] = ["projects", "about", "certificates", "wall", "phone", "poems", "drawer"];
-
-export function getAdjacentCameraTarget(currentTarget:CameraTargetId, direction:-1|1):CameraTargetId|null {
-  if(currentTarget==="projects"&&direction<0) return "opening";
-  const current=NAVIGATION_TARGETS.indexOf(currentTarget);
-  if(current<0) return null;
-  return NAVIGATION_TARGETS[current+direction]??null;
+export function getAdjacentShot(current:ShotId,direction:-1|1):ShotId|null {
+  if(current==="projects"&&direction<0) return "opening";
+  const index=GUIDED_SHOT_IDS.indexOf(current);
+  return index<0?null:(GUIDED_SHOT_IDS[index+direction]??null);
 }
+
+/** @deprecated Use getAdjacentShot. */
+export const getAdjacentCameraTarget=getAdjacentShot;

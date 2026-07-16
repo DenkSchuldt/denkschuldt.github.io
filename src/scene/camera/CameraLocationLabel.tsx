@@ -1,30 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { CameraTargetId } from "./cameraTypes";
+import { SHOT_REGISTRY } from "./shotRegistry";
+import type { ShotId } from "./shotTypes";
 
-const LABELS: Record<CameraTargetId,string> = {
-  opening:"Opening",
-  workspace:"Workspace",
-  about:"About me",
-  projects:"Projects",
-  certificates:"Certificates",
-  poems:"Poems",
-  phone:"Phone",
-  wall:"Wall",
-  drawer:"Drawer",
-};
-
-export function CameraLocationLabel({ stateRef }: { stateRef:React.MutableRefObject<{requestedTarget:CameraTargetId;isIntroActive:boolean}> }) {
-  const [area,setArea]=useState<CameraTargetId>("opening");
+export function CameraLocationLabel({ stateRef }: { stateRef:React.MutableRefObject<{requestedShot:ShotId;introActive:boolean}> }) {
+  const [area,setArea]=useState<ShotId>("opening");
   useEffect(()=>{
     const update=()=>{
-      const next=stateRef.current.isIntroActive?"opening":stateRef.current.requestedTarget;
+      const next=stateRef.current.introActive?"opening":stateRef.current.requestedShot;
       setArea((current)=>current===next?current:next);
     };
     update();
     const timer=window.setInterval(update,120);
     return()=>window.clearInterval(timer);
   },[stateRef]);
-  return <div className="camera-location" aria-live="polite">{LABELS[area]}</div>;
+  return <div className="camera-location" aria-live="polite">{SHOT_REGISTRY[area].label}</div>;
 }

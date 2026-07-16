@@ -33,5 +33,5 @@ export function Scene({ s, cameraSystem }: { s: SceneSettings; cameraSystem:any 
   <CameraController system={cameraSystem} focusRef={focusRef} />
   <Room /><Desk /><Laptop position={s.laptopPosition} rotation={s.laptopRotation} /><DeskObjects coffeePosition={s.coffeePosition} lampPosition={s.lampPosition} folderPosition={s.folderPosition} folderRotation={s.folderRotation} paperPosition={s.paperPosition} paperRotation={s.paperRotation} penPosition={s.penPosition} penRotation={s.penRotation} /><Chair /><Shelf /><Posters /><Plant position={s.plantPosition} rotationY={s.plantRotationY} />
   <DebugHelpers visible={s.helpers} />
-  <CinematicEffects s={s} focusRef={focusRef} readingMode={cameraSystem.selectedTarget==="about"} />
+  <CinematicEffects s={s} focusRef={focusRef} readingMode={cameraSystem.selectedShot==="about"} />
 </>; }

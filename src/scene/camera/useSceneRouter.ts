@@ -4,14 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 import { parseScenePath, withSceneBasePath, withoutSceneBasePath } from "./sceneRoutes";
 
 const currentPath=()=>typeof window==="undefined"?"/":withoutSceneBasePath(window.location.pathname);
-const LAST_SCENE_PATH="cinematic-room:last-path";
 
 export function useSceneRouter() {
   const [route,setRoute]=useState(()=>parseScenePath(currentPath()));
   useEffect(()=>{
     const sync=()=>{
       const path=currentPath();
-      window.localStorage.setItem(LAST_SCENE_PATH,path);
       setRoute(parseScenePath(path));
     };
     window.addEventListener("popstate",sync);
@@ -20,7 +18,6 @@ export function useSceneRouter() {
   },[]);
   const navigate=useCallback((path:string)=>{
     const browserPath=withSceneBasePath(path);
-    window.localStorage.setItem(LAST_SCENE_PATH,path);
     if(path===currentPath()){
       setRoute(parseScenePath(path));
       return;
@@ -33,5 +30,5 @@ export function useSceneRouter() {
     window.history.pushState({},"",browserPath);
     setRoute(parseScenePath(path));
   },[]);
-  return {...route,navigate};
+  return {...route,navigate,goToRoute:navigate};
 }

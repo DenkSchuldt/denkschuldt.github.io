@@ -26,7 +26,7 @@ interface Props {
   farClip: number;
   tuning: Record<string, any>;
   focusRef: React.MutableRefObject<number>;
-  stateRef: React.MutableRefObject<{currentTarget:CameraTargetId;requestedTarget:CameraTargetId;isTransitioning:boolean;isIntroActive:boolean;introComplete:boolean;transitionProgress:number}>;
+  stateRef: React.MutableRefObject<{currentShot:CameraTargetId;requestedShot:CameraTargetId;transitioning:boolean;introCompleted:boolean;introActive:boolean;lastVisitedShot:CameraTargetId|null;transitionProgress:number;currentTarget:CameraTargetId;requestedTarget:CameraTargetId;isTransitioning:boolean;isIntroActive:boolean;introComplete:boolean}>;
 }
 
 const startPosition = new THREE.Vector3();
@@ -97,10 +97,15 @@ export function CameraRig(props: Props) {
       if(camera instanceof THREE.PerspectiveCamera){camera.fov=initial.fov;camera.updateProjectionMatrix();}
     }
     props.stateRef.current.requestedTarget=props.requestedTarget;
+    props.stateRef.current.requestedShot=props.requestedTarget;
     props.stateRef.current.isTransitioning=transitioning.current;
+    props.stateRef.current.transitioning=transitioning.current;
     props.stateRef.current.isIntroActive=introActive.current;
+    props.stateRef.current.introActive=introActive.current;
     props.stateRef.current.introComplete=introComplete.current;
+    props.stateRef.current.introCompleted=introComplete.current;
     props.stateRef.current.currentTarget=activeId.current;
+    props.stateRef.current.currentShot=activeId.current;
     if(lastIntroVersion.current!==props.introVersion){lastIntroVersion.current=props.introVersion;introActive.current=true;introComplete.current=false;activeId.current="opening";const opening=tuneTarget(resolveCameraTarget("opening",size.width/size.height),props.tuning,size.width/size.height);basePosition.set(...opening.position);baseLook.set(...opening.lookAt);baseRoll.current=THREE.MathUtils.degToRad(opening.roll??0);camera.position.copy(basePosition);camera.lookAt(baseLook);camera.rotateZ(baseRoll.current);transitionStart.current=now;transitioning.current=false;return;}
     if(lastSkipVersion.current!==props.skipVersion){lastSkipVersion.current=props.skipVersion;introActive.current=false;introComplete.current=true;const destination=props.requestedTarget==="opening"?"workspace":props.requestedTarget;beginTransition(destination,now,props.reducedMotion?.18:.4);}
     if(lastWorkspaceVersion.current!==props.workspaceVersion){lastWorkspaceVersion.current=props.workspaceVersion;if(introComplete.current)beginTransition("workspace",now);}
@@ -131,7 +136,7 @@ export function CameraRig(props: Props) {
       baseRoll.current=THREE.MathUtils.lerp(startRoll.current,endRoll.current,t);camera.position.copy(targetPosition); camera.lookAt(baseLook);camera.rotateZ(baseRoll.current);
       if(camera instanceof THREE.PerspectiveCamera){camera.fov=THREE.MathUtils.lerp(startFov.current,endFov.current,t);camera.updateProjectionMatrix();}
       props.focusRef.current=THREE.MathUtils.lerp(startFocus.current,endFocus.current,t);
-      if(raw>=1){transitioning.current=false;activeId.current=activeTarget.current.id;props.stateRef.current.transitionProgress=1;if(introActive.current){introActive.current=false;introComplete.current=true;requestedId.current="projects";}}
+      if(raw>=1){transitioning.current=false;activeId.current=activeTarget.current.id;props.stateRef.current.currentShot=activeTarget.current.id;props.stateRef.current.lastVisitedShot=activeTarget.current.id;props.stateRef.current.transitionProgress=1;if(introActive.current){introActive.current=false;introComplete.current=true;requestedId.current="projects";}}
       return;
     }
 

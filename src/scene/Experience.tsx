@@ -5,19 +5,21 @@ import { Leva, useControls } from "leva";
 import { Suspense, useCallback, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { Scene, type SceneSettings } from "./Scene";
-import { CameraLocationLabel, CinematicFade, pathForCameraTarget, useCameraKeyboardNavigation, useCameraSwipeNavigation, useCinematicCamera, useSceneRouter } from "./camera";
+import { CameraLocationLabel, CinematicFade, pathForShot, useCameraKeyboardNavigation, useCameraSwipeNavigation, useCinematicShots, useSceneRouter } from "./camera";
 
 export default function Experience() {
   const route=useSceneRouter();
-  const cameraSystem = useCinematicCamera(route.target,route.directEntry);
+  const cameraSystem = useCinematicShots(route.shot,route.directEntry);
   const previousPath=useRef(route.path);
-  useEffect(()=>{cameraSystem.navigateTo(route.target)},[route.target]);
+  useEffect(()=>{cameraSystem.goToShot(route.shot)},[route.shot]);
   useEffect(()=>{
     if(route.path==="/"&&previousPath.current!=="/") cameraSystem.replayIntro();
     previousPath.current=route.path;
   },[route.path]);
-  const navigateCamera=useCallback((target:Parameters<typeof pathForCameraTarget>[0])=>{
-    route.navigate(pathForCameraTarget(target));
+  const navigateCamera=useCallback((shot:Parameters<typeof pathForShot>[0])=>{
+    const path=pathForShot(shot);
+    if(path===null) cameraSystem.goToShot(shot);
+    else route.navigate(path);
   },[route.navigate]);
   useCameraKeyboardNavigation(cameraSystem,navigateCamera);
   useCameraSwipeNavigation(cameraSystem,navigateCamera);
