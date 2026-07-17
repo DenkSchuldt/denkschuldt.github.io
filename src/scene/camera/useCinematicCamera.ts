@@ -3,8 +3,8 @@
 import { button, folder, useControls } from "leva";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CAMERA_TARGETS } from "./cameraTargets";
-import { getAdjacentShot, isPinchOut, isTrackpadPinchOut } from "./cameraNavigation";
-import { SHOT_REGISTRY } from "./shotRegistry";
+import { getAdjacentShot, isTrackpadPinchOut } from "./cameraNavigation";
+import { INTRO_DESTINATION, SHOT_REGISTRY } from "./shotRegistry";
 import type { ShotId } from "./shotTypes";
 
 const LAST_SHOT_KEY="cinematic-room:last-shot";
@@ -15,8 +15,8 @@ export function useCameraKeyboardNavigation(system: { selectedTarget:CameraTarge
     const onKeyDown = (event: KeyboardEvent) => {
       if (!system.cameraState.current.introComplete || event.metaKey || event.ctrlKey || event.altKey) return;
       const element = event.target as HTMLElement | null;
-      if (element?.matches("input, textarea, select, [contenteditable='true']")) return;
-      const direction = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 0;
+      if (element?.matches("input, textarea, select, button, [contenteditable='true']")) return;
+      const direction = event.key === "ArrowRight" || event.key === "ArrowDown" || event.code === "Space" ? 1 : event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 0;
       if (!direction) return;
       event.preventDefault();
       const target=getAdjacentShot(system.selectedTarget,direction as -1|1);
@@ -27,7 +27,7 @@ export function useCameraKeyboardNavigation(system: { selectedTarget:CameraTarge
   }, [system,navigateTo]);
 }
 
-export function useCameraSwipeNavigation(system: { selectedTarget:CameraTargetId; cameraState:React.MutableRefObject<{introComplete:boolean;isTransitioning:boolean}> }, navigateTo:(target:CameraTargetId)=>void) {
+export function useCameraTapNavigation(system: { selectedTarget:CameraTargetId; cameraState:React.MutableRefObject<{introComplete:boolean;isTransitioning:boolean}> }, navigateTo:(target:CameraTargetId)=>void) {
   useEffect(() => {
     if(!window.matchMedia("(pointer: coarse)").matches) return;
     let start:{x:number;y:number;time:number}|null=null;
@@ -52,9 +52,6 @@ export function useCameraSwipeNavigation(system: { selectedTarget:CameraTargetId
         if(target) navigateTo(target);
         return;
       }
-      if(elapsed>900||Math.abs(dx)<52||Math.abs(dx)<Math.abs(dy)*1.25) return;
-      const target=getAdjacentShot(system.selectedTarget,dx<0?1:-1);
-      if(target) navigateTo(target);
     };
     const cancel=()=>{start=null;};
     window.addEventListener("touchstart",onTouchStart,{passive:true});
@@ -70,24 +67,9 @@ export function useCameraSwipeNavigation(system: { selectedTarget:CameraTargetId
 
 export function useCameraPinchNavigation(system:{cameraState:React.MutableRefObject<{introComplete:boolean;isTransitioning:boolean}>},goToWorkspace:()=>void) {
   useEffect(()=>{
-    let initialDistance=0;
     let triggered=false;
     let trackpadDelta=0;
     let trackpadReset=0;
-    const distance=(touches:TouchList)=>Math.hypot(touches[0].clientX-touches[1].clientX,touches[0].clientY-touches[1].clientY);
-    const onTouchStart=(event:TouchEvent)=>{
-      if(event.touches.length!==2) return;
-      initialDistance=distance(event.touches);
-      triggered=false;
-    };
-    const onTouchMove=(event:TouchEvent)=>{
-      if(triggered||initialDistance<=0||event.touches.length!==2) return;
-      if(!isPinchOut(initialDistance,distance(event.touches))) return;
-      if(!system.cameraState.current.introComplete) return;
-      triggered=true;
-      goToWorkspace();
-    };
-    const reset=()=>{initialDistance=0;triggered=false;};
     const onWheel=(event:WheelEvent)=>{
       if(!event.ctrlKey) return;
       event.preventDefault();
@@ -100,18 +82,8 @@ export function useCameraPinchNavigation(system:{cameraState:React.MutableRefObj
       triggered=true;
       goToWorkspace();
     };
-    if(window.matchMedia("(pointer: coarse)").matches){
-      window.addEventListener("touchstart",onTouchStart,{passive:true});
-      window.addEventListener("touchmove",onTouchMove,{passive:true});
-      window.addEventListener("touchend",reset,{passive:true});
-      window.addEventListener("touchcancel",reset,{passive:true});
-    }
     window.addEventListener("wheel",onWheel,{passive:false});
     return()=>{
-      window.removeEventListener("touchstart",onTouchStart);
-      window.removeEventListener("touchmove",onTouchMove);
-      window.removeEventListener("touchend",reset);
-      window.removeEventListener("touchcancel",reset);
       window.removeEventListener("wheel",onWheel);
       window.clearTimeout(trackpadReset);
     };
@@ -129,14 +101,15 @@ export function usePrefersReducedMotion() {
   return reduced;
 }
 
-export function useCinematicShots(initialTarget:ShotId="projects", directEntry=false) {
+export function useCinematicShots(initialTarget:ShotId=INTRO_DESTINATION, directEntry=false) {
   const reducedMotion = usePrefersReducedMotion();
   const [introVersion, setIntroVersion] = useState(0);
   const [skipVersion, setSkipVersion] = useState(0);
   const [workspaceVersion, setWorkspaceVersion] = useState(0);
-  const [requestedTarget, setRequestedTarget] = useState<CameraTargetId>(initialTarget);
+  const initialRequested=directEntry?initialTarget:INTRO_DESTINATION;
+  const [requestedTarget, setRequestedTarget] = useState<CameraTargetId>(initialRequested);
   const initialCurrent=(directEntry?initialTarget:"opening") as ShotId;
-  const stateRef = useRef({ currentShot:initialCurrent, requestedShot:initialTarget, transitioning:false, introCompleted:directEntry, introActive:!directEntry, lastVisitedShot:null as ShotId|null, transitionProgress:directEntry?1:0, currentTarget:initialCurrent, requestedTarget:initialTarget, isTransitioning:false, isIntroActive:!directEntry, introComplete:directEntry });
+  const stateRef = useRef({ currentShot:initialCurrent, requestedShot:initialRequested, transitioning:false, introCompleted:directEntry, introActive:!directEntry, lastVisitedShot:null as ShotId|null, transitionProgress:directEntry?1:0, currentTarget:initialCurrent, requestedTarget:initialRequested, isTransitioning:false, isIntroActive:!directEntry, introComplete:directEntry });
   useEffect(()=>{
     if(requestedTarget!=="opening"&&requestedTarget!=="workspace") {
       window.localStorage.setItem(LAST_SHOT_KEY,requestedTarget);
@@ -146,13 +119,13 @@ export function useCinematicShots(initialTarget:ShotId="projects", directEntry=f
 
   const controls = useControls("Camera System", {
     Navigation: folder({
-      selectedTarget: { value:initialTarget, options:Object.keys(SHOT_REGISTRY), onChange:(value:string)=>setRequestedTarget(value as CameraTargetId) },
+      selectedTarget: { value:initialRequested, options:Object.keys(SHOT_REGISTRY), onChange:(value:string)=>setRequestedTarget(value as CameraTargetId) },
       replayOpening: button(() => setIntroVersion((v)=>v+1)),
       skipOpening: button(() => setSkipVersion((v)=>v+1)),
       returnToWorkspace: button(() => setWorkspaceVersion((v)=>v+1)),
       pauseTransitions: false,
     }),
-    Opening: folder({ openingDuration:{value:7.1,min:5.5,max:10,step:.1}, openingHold:{value:.9,min:0,max:3,step:.1}, fadeDuration:{value:2.8,min:.2,max:6,step:.1} }),
+    Opening: folder({ openingDuration:{value:13.5,min:8,max:18,step:.1}, openingHold:{value:2.4,min:0,max:5,step:.1}, fadeDuration:{value:3.2,min:.2,max:7,step:.1} }),
     Motion: folder({ transitionSpeed:{value:1,min:.35,max:2,step:.05}, breathingEnabled:true, breathingStrength:{value:1,min:0,max:3,step:.05}, breathingSpeed:{value:1,min:.25,max:2,step:.05}, overshootStrength:{value:.018,min:0,max:.08,step:.002} }),
     Lens: folder({ cameraFov:{value:37,min:24,max:65,step:1}, nearClip:{value:.1,min:.03,max:1,step:.01}, farClip:{value:45,min:15,max:100,step:1} }),
     Debug: folder({ targetHelpers:false }),

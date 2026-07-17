@@ -4,7 +4,8 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { applyReducedMotionDuration, cinematicEase, clamp01 } from "./cameraEasing";
-import { shouldBeginShotTransition } from "./cameraNavigation";
+import { getShotOvershoot, isDrawerOpeningReturn, isOpeningAboutJourney, shouldBeginShotTransition } from "./cameraNavigation";
+import { INTRO_DESTINATION, INTRO_PAN_SHOT } from "./shotRegistry";
 import { getViewportKind, resolveCameraTarget, validateCameraTargets } from "./cameraTargets";
 import type { CameraTargetId, ResolvedCameraTarget } from "./cameraTypes";
 
@@ -49,7 +50,7 @@ function tuneTarget(target: ResolvedCameraTarget, tuning: Record<string, any>, a
 export function CameraRig(props: Props) {
   const { camera, size } = useThree();
   const activeId = useRef<CameraTargetId>("opening");
-  const requestedId = useRef<CameraTargetId>("projects");
+  const requestedId = useRef<CameraTargetId>(INTRO_DESTINATION);
   const transitioning = useRef(false);
   const introActive = useRef(true);
   const introComplete = useRef(false);
@@ -71,9 +72,10 @@ export function CameraRig(props: Props) {
   useEffect(() => validateCameraTargets(), []);
   useEffect(() => { camera.near=props.nearClip; camera.far=props.farClip; camera.updateProjectionMatrix(); }, [camera,props.nearClip,props.farClip]);
 
-  const beginTransition = (id:CameraTargetId, now:number, durationOverride?:number) => {
+  const beginTransition = (id:CameraTargetId, now:number, durationOverride?:number, waypointOverride?:THREE.Vector3Tuple) => {
     const aspect=size.width/size.height;
-    const next=tuneTarget(resolveCameraTarget(id,aspect),props.tuning,aspect);
+    const resolved=tuneTarget(resolveCameraTarget(id,aspect),props.tuning,aspect);
+    const next=waypointOverride?{...resolved,waypoint:waypointOverride}:resolved;
     startPosition.copy(basePosition); startLook.copy(baseLook);
     endPosition.set(...next.position); endLook.set(...next.lookAt);
     if(next.waypoint) waypoint.set(...next.waypoint); else waypoint.lerpVectors(startPosition,endPosition,.5);
@@ -108,18 +110,29 @@ export function CameraRig(props: Props) {
     props.stateRef.current.currentTarget=activeId.current;
     props.stateRef.current.currentShot=activeId.current;
     if(lastIntroVersion.current!==props.introVersion){lastIntroVersion.current=props.introVersion;introActive.current=true;introComplete.current=false;activeId.current="opening";const opening=tuneTarget(resolveCameraTarget("opening",size.width/size.height),props.tuning,size.width/size.height);basePosition.set(...opening.position);baseLook.set(...opening.lookAt);baseRoll.current=THREE.MathUtils.degToRad(opening.roll??0);camera.position.copy(basePosition);camera.lookAt(baseLook);camera.rotateZ(baseRoll.current);transitionStart.current=now;transitioning.current=false;return;}
-    if(lastSkipVersion.current!==props.skipVersion){lastSkipVersion.current=props.skipVersion;introActive.current=false;introComplete.current=true;const destination=props.requestedTarget==="opening"?"workspace":props.requestedTarget;beginTransition(destination,now,props.reducedMotion?.18:.4);}
+    if(lastSkipVersion.current!==props.skipVersion){lastSkipVersion.current=props.skipVersion;introActive.current=false;introComplete.current=true;const destination=props.requestedTarget==="opening"?INTRO_DESTINATION:props.requestedTarget;beginTransition(destination,now,props.reducedMotion?.18:.4);}
     if(lastWorkspaceVersion.current!==props.workspaceVersion){lastWorkspaceVersion.current=props.workspaceVersion;if(introComplete.current)beginTransition("workspace",now);}
 
     if(introActive.current){
       const opening=tuneTarget(resolveCameraTarget("opening",size.width/size.height),props.tuning,size.width/size.height);
       if(!basePosition.lengthSq()){basePosition.set(...opening.position);baseLook.set(...opening.lookAt);camera.position.copy(basePosition);camera.lookAt(baseLook);transitionStart.current=now;}
       const elapsed=now-transitionStart.current;
-      if(props.reducedMotion){introActive.current=false;introComplete.current=true;beginTransition("projects",now,.18);}
-      else if(elapsed>=props.openingHold&&!transitioning.current){beginTransition("projects",now,props.openingDuration-props.openingHold);}
+      if(props.reducedMotion){introActive.current=false;introComplete.current=true;beginTransition(INTRO_DESTINATION,now,.18);}
+      else if(elapsed>=props.openingHold&&!transitioning.current){
+        const aspect=size.width/size.height;
+        const workspace=tuneTarget(resolveCameraTarget(INTRO_PAN_SHOT,aspect),props.tuning,aspect);
+        beginTransition(INTRO_DESTINATION,now,props.openingDuration-props.openingHold,workspace.position);
+      }
     }
 
-    if(shouldBeginShotTransition(introComplete.current,props.paused,props.requestedTarget,requestedId.current)) beginTransition(props.requestedTarget,now);
+    if(shouldBeginShotTransition(introComplete.current,props.paused,props.requestedTarget,requestedId.current)) {
+      if(isOpeningAboutJourney(activeId.current,props.requestedTarget)||isDrawerOpeningReturn(activeId.current,props.requestedTarget)) {
+        const aspect=size.width/size.height;
+        const workspace=tuneTarget(resolveCameraTarget(INTRO_PAN_SHOT,aspect),props.tuning,aspect);
+        const duration=isDrawerOpeningReturn(activeId.current,props.requestedTarget)?Math.max(6.5,props.openingDuration*.5):props.openingDuration-props.openingHold;
+        beginTransition(props.requestedTarget,now,duration,workspace.position);
+      } else beginTransition(props.requestedTarget,now);
+    }
     if(props.paused) return;
 
     if(transitioning.current){
@@ -131,13 +144,17 @@ export function CameraRig(props: Props) {
         basePosition.copy(startPosition).multiplyScalar(inv*inv).addScaledVector(waypoint,2*inv*t).addScaledVector(endPosition,t*t);
       }else basePosition.lerpVectors(startPosition,endPosition,t);
       baseLook.lerpVectors(startLook,endLook,t);
-      const settle=Math.sin(Math.PI*raw)*Math.pow(raw,5)*props.overshootStrength;
+      const settle=Math.sin(Math.PI*raw)*Math.pow(raw,5)*getShotOvershoot(activeTarget.current.id,props.overshootStrength);
       travelDirection.subVectors(endPosition,startPosition).normalize();
       targetPosition.copy(basePosition).addScaledVector(travelDirection,settle);
       baseRoll.current=THREE.MathUtils.lerp(startRoll.current,endRoll.current,t);camera.position.copy(targetPosition); camera.lookAt(baseLook);camera.rotateZ(baseRoll.current);
       if(camera instanceof THREE.PerspectiveCamera){camera.fov=THREE.MathUtils.lerp(startFov.current,endFov.current,t);camera.updateProjectionMatrix();}
       props.focusRef.current=THREE.MathUtils.lerp(startFocus.current,endFocus.current,t);
-      if(raw>=1){transitioning.current=false;activeId.current=activeTarget.current.id;props.stateRef.current.currentShot=activeTarget.current.id;props.stateRef.current.lastVisitedShot=activeTarget.current.id;props.stateRef.current.transitionProgress=1;if(introActive.current){introActive.current=false;introComplete.current=true;requestedId.current="projects";}}
+      if(raw>=1){
+        const arrivedId=activeTarget.current.id;
+        transitioning.current=false;activeId.current=arrivedId;props.stateRef.current.currentShot=arrivedId;props.stateRef.current.lastVisitedShot=arrivedId;props.stateRef.current.transitionProgress=1;
+        if(introActive.current){introActive.current=false;introComplete.current=true;requestedId.current=INTRO_DESTINATION;}
+      }
       return;
     }
 

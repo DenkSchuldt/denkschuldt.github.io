@@ -2,27 +2,32 @@
 
 import { Canvas } from "@react-three/fiber";
 import { Leva, useControls } from "leva";
-import { Suspense, useCallback, useEffect, useRef } from "react";
+import { Suspense, useCallback, useEffect } from "react";
 import * as THREE from "three";
 import { Scene, type SceneSettings } from "./Scene";
-import { CameraLocationLabel, CinematicFade, pathForShot, useCameraKeyboardNavigation, useCameraPinchNavigation, useCameraSwipeNavigation, useCinematicShots, useSceneRouter } from "./camera";
+import { CameraLocationLabel, CinematicFade, INTRO_DESTINATION, MobileCameraNavigation, pathForShot, shouldSyncRouteShot, useCameraKeyboardNavigation, useCameraPinchNavigation, useCameraTapNavigation, useCinematicShots, useSceneRouter } from "./camera";
 
 export default function Experience() {
   const route=useSceneRouter();
   const cameraSystem = useCinematicShots(route.shot,route.directEntry);
-  const previousPath=useRef(route.path);
-  useEffect(()=>{cameraSystem.goToShot(route.shot)},[route.shot]);
   useEffect(()=>{
-    if(route.path==="/"&&route.shot==="opening"&&previousPath.current!=="/") cameraSystem.replayIntro();
-    previousPath.current=route.path;
-  },[route.path]);
+    if(!shouldSyncRouteShot(route.path,route.directEntry)) return;
+    cameraSystem.goToShot(route.shot);
+  },[route.path,route.shot,route.directEntry]);
   const navigateCamera=useCallback((shot:Parameters<typeof pathForShot>[0])=>{
     const path=pathForShot(shot);
     if(path===null) cameraSystem.goToShot(shot);
-    else route.navigate(path,shot==="workspace"?"workspace":undefined);
-  },[route.navigate]);
+    else if(shot==="opening"||shot==="about") {
+      cameraSystem.goToShot(shot);
+      route.navigateWithinScene(path);
+    }
+    else {
+      cameraSystem.goToShot(shot);
+      route.navigate(path,shot==="workspace"?"workspace":undefined);
+    }
+  },[route.navigate,route.navigateWithinScene]);
   useCameraKeyboardNavigation(cameraSystem,navigateCamera);
-  useCameraSwipeNavigation(cameraSystem,navigateCamera);
+  useCameraTapNavigation(cameraSystem,navigateCamera);
   const goToWorkspace=useCallback(()=>route.navigate("/","workspace"),[route.navigate]);
   useCameraPinchNavigation(cameraSystem,goToWorkspace);
   useEffect(()=>{
@@ -32,15 +37,16 @@ export default function Experience() {
     const waitForOpening=()=>{
       const state=cameraSystem.cameraState.current;
       if(state.isIntroActive) sawOpening=true;
-      if(sawOpening&&state.introComplete&&state.currentTarget==="projects") {
-        route.navigate("/projects");
+      if(sawOpening&&state.introComplete&&state.currentTarget===INTRO_DESTINATION) {
+        cameraSystem.goToShot(INTRO_DESTINATION);
+        route.navigateWithinScene("/about");
         return;
       }
       frame=window.requestAnimationFrame(waitForOpening);
     };
     frame=window.requestAnimationFrame(waitForOpening);
     return()=>window.cancelAnimationFrame(frame);
-  },[route.path,route.directEntry,route.navigate,cameraSystem.cameraState,cameraSystem.introVersion]);
+  },[route.path,route.directEntry,route.navigateWithinScene,cameraSystem.cameraState,cameraSystem.introVersion]);
   const controls = useControls("Cinematography", {
     deskLampIntensity: { value: 19, min: 0, max: 90, step: 1, label: "Lamp intensity" },
     moonlightIntensity: { value: 1.05, min: 0, max: 4, step: 0.02, label: "Moonlight" },
@@ -95,6 +101,7 @@ export default function Experience() {
     </Canvas>
     <Leva collapsed />
     <CameraLocationLabel stateRef={cameraSystem.cameraState} />
+    <MobileCameraNavigation selectedShot={cameraSystem.selectedShot} stateRef={cameraSystem.cameraState} onNavigate={navigateCamera} />
     <CinematicFade replayKey={cameraSystem.introVersion} skipKey={cameraSystem.skipVersion} hold={route.directEntry?.18:cameraSystem.openingHold*.55} duration={route.directEntry?1.65:cameraSystem.fadeDuration} reducedMotion={cameraSystem.reducedMotion} />
   </div>;
 }

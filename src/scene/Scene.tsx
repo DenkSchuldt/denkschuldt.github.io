@@ -34,5 +34,5 @@ export function Scene({ s, cameraSystem, goToShot }: { s: SceneSettings; cameraS
   <CameraController system={cameraSystem} focusRef={focusRef} />
   <Room /><Desk onNavigate={()=>goToShot("workspace")} onDrawer={()=>goToShot("drawer")} /><Laptop position={s.laptopPosition} rotation={s.laptopRotation} onNavigate={()=>goToShot("projects")} /><DeskObjects coffeePosition={s.coffeePosition} lampPosition={s.lampPosition} folderPosition={s.folderPosition} folderRotation={s.folderRotation} paperPosition={s.paperPosition} paperRotation={s.paperRotation} penPosition={s.penPosition} penRotation={s.penRotation} onPaper={()=>goToShot("about")} onFolder={()=>goToShot("poems")} onPhone={()=>goToShot("phone")} /><Chair /><Shelf onNavigate={()=>goToShot("certificates")} /><Posters onNavigate={()=>goToShot("wall")} /><Plant position={s.plantPosition} rotationY={s.plantRotationY} />
   <DebugHelpers visible={s.helpers} />
-  <CinematicEffects s={s} focusRef={focusRef} readingMode={cameraSystem.selectedShot==="about"} />
+  <CinematicEffects s={s} focusRef={focusRef} readingMode={cameraSystem.selectedShot==="about"||cameraSystem.cameraState.current.introActive} />
 </>; }

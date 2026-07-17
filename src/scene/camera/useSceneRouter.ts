@@ -24,14 +24,17 @@ export function useSceneRouter() {
       setRoute(shotOverride?{...parsed,shot:shotOverride,target:shotOverride}:parsed);
       return;
     }
-    // Projects is the landing shot. Keep the opening immediately behind it in
+    // About is the landing shot. Keep the opening immediately behind it in
     // the in-world history, regardless of which section discovered it.
-    if(path==="/projects"&&currentPath()!=="/") {
+    if(path==="/about"&&currentPath()!=="/") {
       window.history.pushState({scene:"opening"},"",withSceneBasePath("/"));
     }
     window.history.pushState({},"",browserPath);
     const parsed=parseScenePath(path);
     setRoute(shotOverride?{...parsed,shot:shotOverride,target:shotOverride}:parsed);
   },[]);
-  return {...route,navigate,goToRoute:navigate};
+  const navigateWithinScene=useCallback((path:string)=>{
+    History.prototype.pushState.call(window.history,{},"",withSceneBasePath(path));
+  },[]);
+  return {...route,navigate,navigateWithinScene,goToRoute:navigate};
 }

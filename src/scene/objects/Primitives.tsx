@@ -116,7 +116,7 @@ function Coffee({position}:{position:[number,number,number]}) { return <group po
   <mesh position={[0,.175,0]} rotation-x={-Math.PI/2}><circleGeometry args={[.145,24]}/><meshStandardMaterial color="#2a160d" roughness={.25}/></mesh>
 </group> }
 
-export function Chair() { return <group position={[-.92,.55,1.48]} rotation-y={Math.PI+.21} rotation-z={-.018}>
+export function Chair() { return <group position={[1.45,.55,1.48]} rotation-y={Math.PI+.21} rotation-z={-.018}>
   <RoundedBox args={[1.2,.18,1.05]} radius={.16} castShadow><meshStandardMaterial color="#262321" roughness={.88}/></RoundedBox>
   <RoundedBox args={[1.22,1.55,.16]} radius={.16} position={[0,.9,.47]} rotation-x={-.12} castShadow><meshStandardMaterial color="#24211f" roughness={.88}/></RoundedBox>
   <mesh position={[0,-.43,0]}><cylinderGeometry args={[.08,.08,.75,14]}/><meshStandardMaterial color={C.metal} metalness={.6}/></mesh>
