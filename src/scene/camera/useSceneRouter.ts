@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { parseScenePath, withSceneBasePath, withoutSceneBasePath } from "./sceneRoutes";
-import type { ShotId } from "./shotTypes";
 
 const currentPath=()=>typeof window==="undefined"?"/":withoutSceneBasePath(window.location.pathname);
 
@@ -17,11 +16,11 @@ export function useSceneRouter() {
     sync();
     return()=>window.removeEventListener("popstate",sync);
   },[]);
-  const navigate=useCallback((path:string,shotOverride?:ShotId)=>{
+  const navigate=useCallback((path:string)=>{
     const browserPath=withSceneBasePath(path);
     if(path===currentPath()){
       const parsed=parseScenePath(path);
-      setRoute(shotOverride?{...parsed,shot:shotOverride,target:shotOverride}:parsed);
+      setRoute(parsed);
       return;
     }
     // About is the landing shot. Keep the opening immediately behind it in
@@ -31,7 +30,7 @@ export function useSceneRouter() {
     }
     window.history.pushState({},"",browserPath);
     const parsed=parseScenePath(path);
-    setRoute(shotOverride?{...parsed,shot:shotOverride,target:shotOverride}:parsed);
+    setRoute(parsed);
   },[]);
   const navigateWithinScene=useCallback((path:string)=>{
     History.prototype.pushState.call(window.history,{},"",withSceneBasePath(path));

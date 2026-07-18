@@ -1,16 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+/* eslint-disable react-hooks/set-state-in-effect -- each replay intentionally restarts the fade state machine. */
+import { useEffect,useState } from "react";
 
 export function CinematicFade({ replayKey, skipKey, hold, duration, reducedMotion }: { replayKey:number; skipKey:number; hold:number; duration:number; reducedMotion:boolean }) {
   const [visible, setVisible] = useState(true);
-  const holdRef=useRef(hold);
-  holdRef.current=hold;
   useEffect(() => {
     setVisible(true);
-    const delay = reducedMotion ? 80 : (holdRef.current * 1000);
+    const delay = reducedMotion ? 80 : (hold * 1000);
     const timer = window.setTimeout(() => setVisible(false), delay);
     return () => window.clearTimeout(timer);
-  }, [replayKey, skipKey, reducedMotion]);
+  }, [replayKey,skipKey,reducedMotion,hold]);
   return <div aria-hidden="true" className="cinematic-fade" style={{ opacity:visible?1:0, transitionDuration:`${reducedMotion?.18:duration}s` }} />;
 }

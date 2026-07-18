@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/immutability -- React Three Fiber cameras and runtime refs are imperative by design. */
 
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
@@ -7,6 +8,8 @@ import { applyReducedMotionDuration, cinematicEase, clamp01 } from "./cameraEasi
 import { getCertificateBrowseOffset, getShotOvershoot, isDrawerOpeningReturn, isOpeningAboutJourney, shouldBeginShotTransition } from "./cameraNavigation";
 import { INTRO_DESTINATION, INTRO_PAN_SHOT } from "./shotRegistry";
 import { getViewportKind, resolveCameraTarget, validateCameraTargets } from "./cameraTargets";
+import type { CameraNavigationState } from "./navigationTypes";
+import { sceneForCameraTarget } from "./sceneRegistry";
 import type { CameraTargetId, ResolvedCameraTarget } from "./cameraTypes";
 
 interface Props {
@@ -15,6 +18,7 @@ interface Props {
   introVersion: number;
   skipVersion: number;
   workspaceVersion: number;
+  focusVersion:number;
   reducedMotion: boolean;
   paused: boolean;
   transitionSpeed: number;
@@ -26,10 +30,14 @@ interface Props {
   overshootStrength: number;
   nearClip: number;
   farClip: number;
-  tuning: Record<string, any>;
+  tuning: Record<string,unknown>;
   focusRef: React.MutableRefObject<number>;
   certificateFocusRef: React.MutableRefObject<{x:number;y:number}|null>;
-  stateRef: React.MutableRefObject<{currentShot:CameraTargetId;requestedShot:CameraTargetId;transitioning:boolean;introCompleted:boolean;introActive:boolean;lastVisitedShot:CameraTargetId|null;transitionProgress:number;currentTarget:CameraTargetId;requestedTarget:CameraTargetId;isTransitioning:boolean;isIntroActive:boolean;introComplete:boolean}>;
+  stateRef: React.MutableRefObject<CameraNavigationState>;
+  onTransitionProgress?:(progress:number)=>void;
+  onTransitionComplete?:()=>void;
+  onResponsiveMode?:(mode:string)=>void;
+  onIntroState?:(active:boolean,completed:boolean)=>void;
 }
 
 const startPosition = new THREE.Vector3();
@@ -43,10 +51,11 @@ const targetPosition = new THREE.Vector3();
 const travelDirection = new THREE.Vector3();
 const certificateBrowseOffset = new THREE.Vector2();
 
-function tuneTarget(target: ResolvedCameraTarget, tuning: Record<string, any>, aspect: number): ResolvedCameraTarget {
-  const p=tuning[`${target.id}Position`], l=tuning[`${target.id}LookAt`];
+function tuneTarget(target:ResolvedCameraTarget,tuning:Record<string,unknown>,aspect:number):ResolvedCameraTarget {
+  const p=tuning[`${target.id}Position`] as {x:number;y:number;z:number}|undefined,l=tuning[`${target.id}LookAt`] as {x:number;y:number;z:number}|undefined;
+  const tunedFov=tuning[`${target.id}Fov`] as number|undefined,tunedDuration=tuning[`${target.id}Duration`] as number|undefined;
   const useTunedFraming=getViewportKind(aspect)==="desktop";
-  return {...target, position:useTunedFraming&&p?[p.x,p.y,p.z]:target.position, lookAt:useTunedFraming&&l?[l.x,l.y,l.z]:target.lookAt, fov:useTunedFraming?(tuning[`${target.id}Fov`]??target.fov):target.fov, duration:tuning[`${target.id}Duration`]??target.duration};
+  return {...target,position:useTunedFraming&&p?[p.x,p.y,p.z]:target.position,lookAt:useTunedFraming&&l?[l.x,l.y,l.z]:target.lookAt,fov:useTunedFraming?(tunedFov??target.fov):target.fov,duration:tunedDuration??target.duration};
 }
 
 function applyCertificateFocus(target:ResolvedCameraTarget,focus:{x:number;y:number}|null):ResolvedCameraTarget {
@@ -75,6 +84,7 @@ export function CameraRig(props: Props) {
   const lastIntroVersion = useRef(props.introVersion);
   const lastSkipVersion = useRef(props.skipVersion);
   const lastWorkspaceVersion = useRef(props.workspaceVersion);
+  const lastFocusVersion=useRef(props.focusVersion);
   const certificatePointerAnchor = useRef({x:0,y:0});
   const certificatePointerAnchored = useRef(false);
 
@@ -114,6 +124,7 @@ export function CameraRig(props: Props) {
       const initial=applyCertificateFocus(rawInitial,initialId==="certificate-detail"?props.certificateFocusRef.current:null);
       basePosition.set(...initial.position);baseLook.set(...initial.lookAt);activeTarget.current=initial;activeId.current=initialId;requestedId.current=props.requestedTarget;
       introActive.current=!props.directEntry;introComplete.current=props.directEntry;transitioning.current=false;transitionStart.current=now;
+      props.stateRef.current.sceneId=sceneForCameraTarget(initialId);props.stateRef.current.focusCollectionId=props.directEntry?props.stateRef.current.requestedFocusCollection:null;props.stateRef.current.focusItemId=props.directEntry?props.stateRef.current.requestedFocusItem:null;props.stateRef.current.cameraTarget=initialId;
       props.focusRef.current=initial.focusDistance??props.focusRef.current;
       baseRoll.current=THREE.MathUtils.degToRad(initial.roll??0);camera.position.copy(basePosition);camera.lookAt(baseLook);camera.rotateZ(baseRoll.current);
       if(camera instanceof THREE.PerspectiveCamera){camera.fov=initial.fov;camera.updateProjectionMatrix();}
@@ -126,11 +137,18 @@ export function CameraRig(props: Props) {
     props.stateRef.current.introActive=introActive.current;
     props.stateRef.current.introComplete=introComplete.current;
     props.stateRef.current.introCompleted=introComplete.current;
+    props.stateRef.current.transitionState=transitioning.current?"transitioning":"idle";
+    props.stateRef.current.viewport=getViewportKind(size.width/size.height);
+    props.onResponsiveMode?.(props.stateRef.current.viewport);
+    props.onIntroState?.(introActive.current,introComplete.current);
+    props.stateRef.current.cameraPosition=[camera.position.x,camera.position.y,camera.position.z];
+    props.stateRef.current.cameraLookAt=[baseLook.x,baseLook.y,baseLook.z];
     props.stateRef.current.currentTarget=activeId.current;
     props.stateRef.current.currentShot=activeId.current;
     if(lastIntroVersion.current!==props.introVersion){lastIntroVersion.current=props.introVersion;introActive.current=true;introComplete.current=false;activeId.current="opening";const opening=tuneTarget(resolveCameraTarget("opening",size.width/size.height),props.tuning,size.width/size.height);basePosition.set(...opening.position);baseLook.set(...opening.lookAt);baseRoll.current=THREE.MathUtils.degToRad(opening.roll??0);camera.position.copy(basePosition);camera.lookAt(baseLook);camera.rotateZ(baseRoll.current);transitionStart.current=now;transitioning.current=false;return;}
     if(lastSkipVersion.current!==props.skipVersion){lastSkipVersion.current=props.skipVersion;introActive.current=false;introComplete.current=true;const destination=props.requestedTarget==="opening"?INTRO_DESTINATION:props.requestedTarget;beginTransition(destination,now,props.reducedMotion?.18:.4);}
     if(lastWorkspaceVersion.current!==props.workspaceVersion){lastWorkspaceVersion.current=props.workspaceVersion;if(introComplete.current)beginTransition("workspace",now);}
+    if(lastFocusVersion.current!==props.focusVersion){lastFocusVersion.current=props.focusVersion;if(introComplete.current&&!props.paused&&props.requestedTarget===requestedId.current)beginTransition(props.requestedTarget,now);}
 
     if(introActive.current){
       const opening=tuneTarget(resolveCameraTarget("opening",size.width/size.height),props.tuning,size.width/size.height);
@@ -157,6 +175,7 @@ export function CameraRig(props: Props) {
     if(transitioning.current){
       const raw=clamp01((now-transitionStart.current)/Math.max(.001,transitionDuration.current));
       props.stateRef.current.transitionProgress=raw;
+      props.onTransitionProgress?.(raw);
       const t=cinematicEase(raw);
       if(activeTarget.current.waypoint){
         const inv=1-t;
@@ -172,7 +191,9 @@ export function CameraRig(props: Props) {
       if(raw>=1){
         const arrivedId=activeTarget.current.id;
         transitioning.current=false;activeId.current=arrivedId;props.stateRef.current.currentShot=arrivedId;props.stateRef.current.lastVisitedShot=arrivedId;props.stateRef.current.transitionProgress=1;
+        props.stateRef.current.sceneId=props.stateRef.current.requestedScene;props.stateRef.current.focusCollectionId=props.stateRef.current.requestedFocusCollection;props.stateRef.current.focusItemId=props.stateRef.current.requestedFocusItem;props.stateRef.current.cameraTarget=arrivedId;props.stateRef.current.transitionState="idle";
         if(introActive.current){introActive.current=false;introComplete.current=true;requestedId.current=INTRO_DESTINATION;}
+        props.onTransitionComplete?.();
       }
       return;
     }

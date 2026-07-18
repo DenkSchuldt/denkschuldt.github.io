@@ -1,11 +1,11 @@
 "use client";
 import { Capsule, RoundedBox, Text, useCursor, useTexture } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { PALETTE as C } from "../constants";
 import { withSceneBasePath } from "../camera/sceneRoutes";
-import { CERTIFICATES, CERTIFICATE_LAYOUT, type CertificateFocus, type CertificateRecord } from "./certificates";
+import { CERTIFICATES, CERTIFICATE_LAYOUT, type CertificateRecord } from "./certificates";
 
 const mat = { roughness: .82, metalness: 0 };
 
@@ -25,13 +25,13 @@ export function Desk() { return <group position={[0,0,-1.5]}>
 
 function Drawer() { return <group position={[1.72,.68,0]}>
   <RoundedBox args={[1.5,.72,1.72]} radius={.04} castShadow><meshStandardMaterial color={C.woodEdge} roughness={.72}/></RoundedBox>
-  {[.86,.62].map((y,i)=><group key={y}><mesh position={[0,y-.68,.87]}><boxGeometry args={[1.37,.19,.04]}/><meshStandardMaterial color={C.wood}/></mesh><mesh position={[0,y-.68,.91]}><boxGeometry args={[.28,.035,.05]}/><meshStandardMaterial color={C.metal} metalness={.8}/></mesh></group>)}
+  {[.86,.62].map((y)=><group key={y}><mesh position={[0,y-.68,.87]}><boxGeometry args={[1.37,.19,.04]}/><meshStandardMaterial color={C.wood}/></mesh><mesh position={[0,y-.68,.91]}><boxGeometry args={[.28,.035,.05]}/><meshStandardMaterial color={C.metal} metalness={.8}/></mesh></group>)}
 </group> }
 
 export function Laptop({position,rotation}:{position:[number,number,number];rotation:number}) { return <group position={[position[0],1.34+position[1],-1.5+position[2]]} rotation-y={THREE.MathUtils.degToRad(rotation)}>
   <RoundedBox args={[1.72,.075,1.02]} radius={.055} position={[0,.02,0]} castShadow receiveShadow><meshStandardMaterial color="#4b4d4d" metalness={.18} roughness={.56}/></RoundedBox>
   <RoundedBox args={[1.55,.018,.68]} radius={.025} position={[0,.068,-.08]}><meshStandardMaterial color="#343637" metalness={.12} roughness={.5}/></RoundedBox>
-  {[-.48,-.24,0,.24,.48].flatMap((x,row)=>[-.25,-.08,.09].map((z,col)=><mesh key={`${x}${z}`} position={[x+(col%2)*.025,.082,z-.09]}><boxGeometry args={[.16,.012,.105]}/><meshStandardMaterial color="#606263" roughness={.62}/></mesh>))}
+  {[-.48,-.24,0,.24,.48].flatMap((x)=>[-.25,-.08,.09].map((z,col)=><mesh key={`${x}${z}`} position={[x+(col%2)*.025,.082,z-.09]}><boxGeometry args={[.16,.012,.105]}/><meshStandardMaterial color="#606263" roughness={.62}/></mesh>))}
   <RoundedBox args={[.56,.012,.3]} radius={.018} position={[0,.084,.31]}><meshStandardMaterial color="#57595a" roughness={.48}/></RoundedBox>
   <group position={[0,.075,-.49]} rotation-x={THREE.MathUtils.degToRad(-15)}>
     <RoundedBox args={[1.72,.98,.055]} radius={.055} position={[0,.49,0]} castShadow><meshStandardMaterial color="#464849" metalness={.15} roughness={.58}/></RoundedBox>
@@ -127,36 +127,71 @@ export function Chair() { return <group position={[1.45,.55,1.48]} rotation-y={M
 </group> }
 
 const CERTIFICATE_IMAGES=CERTIFICATES.map(({image})=>withSceneBasePath(`/certificates/${image}`));
-function CertificateCard({record,texture,index,position,rotation,onHover}:{record:CertificateRecord;texture:THREE.Texture;index:number;position:[number,number,number];rotation:number;onHover?:(focus:CertificateFocus)=>void}) {
+const ACTIVE_CERTIFICATE_COLOR=new THREE.Color("#ffffff");
+const AMBIENT_CERTIFICATE_COLOR=new THREE.Color("#100f0e");
+const ACTIVE_CERTIFICATE_PIN_COLOR=new THREE.Color("#9a7b4e");
+const AMBIENT_CERTIFICATE_PIN_COLOR=new THREE.Color("#17130f");
+const AMBIENT_CERTIFICATE_LABEL_COLOR=new THREE.Color("#0c0a08");
+const CERTIFICATE_LIGHT_RISE=.72;
+const CERTIFICATE_LIGHT_FALL=1.1;
+function CertificateCard({record,texture,index,position,rotation,illuminated,onHover}:{record:CertificateRecord;texture:THREE.Texture;index:number;position:[number,number,number];rotation:number;illuminated:boolean;onHover?:(slug:string)=>void}) {
   const ref=useRef<THREE.Group>(null);
+  const imageMaterialRef=useRef<THREE.MeshBasicMaterial>(null);
+  const pinMaterialRef=useRef<THREE.MeshStandardMaterial>(null);
+  const labelMaterialRef=useRef<THREE.MeshBasicMaterial>(null);
+  const activeLabelColor=useMemo(()=>new THREE.Color(index<9?"#b99a67":"#7f6a4b"),[index]);
+  const [initialImageColor]=useState(()=>(illuminated?ACTIVE_CERTIFICATE_COLOR:AMBIENT_CERTIFICATE_COLOR).clone());
+  const [initialPinColor]=useState(()=>(illuminated?ACTIVE_CERTIFICATE_PIN_COLOR:AMBIENT_CERTIFICATE_PIN_COLOR).clone());
+  const [initialLabelColor]=useState(()=>(illuminated?activeLabelColor:AMBIENT_CERTIFICATE_LABEL_COLOR).clone());
   const [hovered,setHovered]=useState(false);
-  useCursor(hovered);
+  const interactive=illuminated;
+  useCursor(hovered&&interactive);
   useFrame((_,delta)=>{
     if(!ref.current)return;
-    const scale=THREE.MathUtils.damp(ref.current.scale.x,hovered?1.09:1,12,delta);
+    const activeHover=hovered&&interactive;
+    const scale=THREE.MathUtils.damp(ref.current.scale.x,activeHover?1.09:1,6.5,delta);
     ref.current.scale.setScalar(scale);
-    ref.current.position.z=THREE.MathUtils.damp(ref.current.position.z,hovered?position[2]+.055:position[2],12,delta);
+    ref.current.position.z=THREE.MathUtils.damp(ref.current.position.z,activeHover?position[2]+.055:position[2],6,delta);
+    if(imageMaterialRef.current){
+      const target=illuminated?ACTIVE_CERTIFICATE_COLOR:AMBIENT_CERTIFICATE_COLOR;
+      const easing=illuminated?CERTIFICATE_LIGHT_RISE:CERTIFICATE_LIGHT_FALL;
+      imageMaterialRef.current.color.r=THREE.MathUtils.damp(imageMaterialRef.current.color.r,target.r,easing,delta);
+      imageMaterialRef.current.color.g=THREE.MathUtils.damp(imageMaterialRef.current.color.g,target.g,easing,delta);
+      imageMaterialRef.current.color.b=THREE.MathUtils.damp(imageMaterialRef.current.color.b,target.b,easing,delta);
+      if(pinMaterialRef.current){
+        const pinTarget=illuminated?ACTIVE_CERTIFICATE_PIN_COLOR:AMBIENT_CERTIFICATE_PIN_COLOR;
+        pinMaterialRef.current.color.r=THREE.MathUtils.damp(pinMaterialRef.current.color.r,pinTarget.r,easing,delta);
+        pinMaterialRef.current.color.g=THREE.MathUtils.damp(pinMaterialRef.current.color.g,pinTarget.g,easing,delta);
+        pinMaterialRef.current.color.b=THREE.MathUtils.damp(pinMaterialRef.current.color.b,pinTarget.b,easing,delta);
+      }
+      if(labelMaterialRef.current){
+        const labelTarget=illuminated?activeLabelColor:AMBIENT_CERTIFICATE_LABEL_COLOR;
+        labelMaterialRef.current.color.r=THREE.MathUtils.damp(labelMaterialRef.current.color.r,labelTarget.r,easing,delta);
+        labelMaterialRef.current.color.g=THREE.MathUtils.damp(labelMaterialRef.current.color.g,labelTarget.g,easing,delta);
+        labelMaterialRef.current.color.b=THREE.MathUtils.damp(labelMaterialRef.current.color.b,labelTarget.b,easing,delta);
+      }
+    }
   });
-  return <group ref={ref} position={position} rotation-z={rotation} onPointerOver={()=>{setHovered(true);onHover?.({x:position[0],y:position[1],slug:record.slug});}} onPointerOut={()=>setHovered(false)} onClick={(event)=>{event.stopPropagation();window.open(record.url,"_blank","noopener,noreferrer");}}>
+  return <group ref={ref} position={position} rotation-z={rotation} onPointerOver={()=>{if(!interactive)return;setHovered(true);onHover?.(record.slug);}} onPointerOut={()=>setHovered(false)} onClick={(event)=>{if(!interactive)return;event.stopPropagation();window.open(record.url,"_blank","noopener,noreferrer");}}>
     <RoundedBox args={[.51,.405,.04]} radius={.018} castShadow>
       <meshStandardMaterial color="#241f1a" metalness={.15} roughness={.58}/>
     </RoundedBox>
     <mesh position={[0,0,.023]}>
       <planeGeometry args={[.455,.334]}/>
-      <meshBasicMaterial map={texture} toneMapped={false}/>
+      <meshBasicMaterial ref={imageMaterialRef} map={texture} color={initialImageColor} toneMapped={false}/>
     </mesh>
     <mesh position={[0,.217,.014]} castShadow>
       <cylinderGeometry args={[.018,.018,.026,12]}/>
-      <meshStandardMaterial color="#9a7b4e" metalness={.72} roughness={.3}/>
+      <meshStandardMaterial ref={pinMaterialRef} color={initialPinColor} metalness={.72} roughness={.3}/>
     </mesh>
     <mesh position={[-.216,-.184,.026]}>
       <planeGeometry args={[.045,.018]}/>
-      <meshBasicMaterial color={index<9?"#b99a67":"#7f6a4b"} toneMapped={false}/>
+      <meshBasicMaterial ref={labelMaterialRef} color={initialLabelColor} toneMapped={false}/>
     </mesh>
   </group>;
 }
 
-export function Shelf({onCertificateHover}:{onCertificateHover?:(focus:CertificateFocus)=>void}) {
+export function Shelf({illuminated=false,onCertificateHover}:{illuminated?:boolean;onCertificateHover?:(slug:string)=>void}) {
   const textures=useTexture(CERTIFICATE_IMAGES);
   textures.forEach((texture)=>{texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=8;});
   return <group position={[-3.8,2,-3.63]}>
@@ -164,7 +199,7 @@ export function Shelf({onCertificateHover}:{onCertificateHover?:(focus:Certifica
     {[-1.7,-.85,0,.85,1.7].map(y=><mesh key={y} position={[0,y,0]} castShadow><boxGeometry args={[2.45,.1,.68]}/><meshStandardMaterial color={C.wood}/></mesh>)}
     {[-1.15,1.15].map(x=><mesh key={x} position={[x,0,0]} castShadow><boxGeometry args={[.1,3.5,.68]}/><meshStandardMaterial color={C.woodEdge}/></mesh>)}
     {[-1.275,-.425,.425,1.275].map(y=><mesh key={y} position={[0,y,.305]}><boxGeometry args={[2.15,.025,.035]}/><meshStandardMaterial color="#8b6c45" metalness={.5} roughness={.4}/></mesh>)}
-    {CERTIFICATE_LAYOUT.map(({index,x,y,rotation})=><CertificateCard key={CERTIFICATES[index].image} record={CERTIFICATES[index]} texture={textures[index]} index={index} position={[x,y,.35]} rotation={rotation} onHover={onCertificateHover}/>) }
+    {CERTIFICATE_LAYOUT.map(({index,x,y,rotation})=><CertificateCard key={CERTIFICATES[index].image} record={CERTIFICATES[index]} texture={textures[index]} index={index} position={[x,y,.35]} rotation={rotation} illuminated={illuminated} onHover={onCertificateHover}/>) }
   </group>;
 }
 

@@ -1,6 +1,5 @@
 import SceneShell from "../SceneShell";
-import { SCENE_ROUTES } from "@/src/scene/camera";
-import { CERTIFICATES } from "@/src/scene/objects/certificates";
+import { SCENE_ROUTES, STATIC_FOCUS_ROUTES } from "@/src/scene/camera";
 
 export const dynamicParams = false;
 
@@ -8,7 +7,7 @@ export function generateStaticParams() {
   return [
     { route: [] },
     ...Object.values(SCENE_ROUTES).map(({path})=>({route:[path.slice(1)]})),
-    ...CERTIFICATES.map(({slug})=>({route:["certificates",slug]})),
+    ...STATIC_FOCUS_ROUTES.map((path)=>({route:path.split("/").filter(Boolean)})),
   ];
 }
 

@@ -2,10 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { cinematicEase, applyReducedMotionDuration } from "../src/scene/camera/cameraEasing.ts";
 import { resolveCameraTarget, getViewportKind } from "../src/scene/camera/cameraTargets.ts";
-import { getAdjacentCameraTarget, getCertificateBrowseOffset, getShotOvershoot, isDrawerOpeningReturn, isOpeningAboutJourney, isTrackpadPinchOut, shouldBeginShotTransition, shouldSyncRouteShot } from "../src/scene/camera/cameraNavigation.ts";
+import { getAdjacentCameraTarget, getCertificateBrowseOffset, getFocusDirectionForKey, getShotOvershoot, isDrawerOpeningReturn, isOpeningAboutJourney, isTrackpadPinchOut, shouldBeginShotTransition, shouldSyncRouteShot } from "../src/scene/camera/cameraNavigation.ts";
 import { INTRO_DESTINATION, INTRO_PAN_SHOT, SHOT_REGISTRY, resolveShot } from "../src/scene/camera/shotRegistry.ts";
 import { parseScenePath, pathForShot } from "../src/scene/camera/sceneRoutes.ts";
-import { CERTIFICATES, getCertificateFocusBySlug } from "../src/scene/objects/certificates.ts";
+import { CERTIFICATES, CERTIFICATE_LAYOUT, getCertificateFocusBySlug } from "../src/scene/objects/certificates.ts";
+import { FOCUS_COLLECTIONS, getAdjacentFocus, getAdjacentScene, getFocusNeighbor, GUIDED_SCENE_IDS, locationForFocus, locationForScene, SCENE_REGISTRY } from "../src/scene/camera/sceneRegistry.ts";
+import { pathForFocus, pathForScene, resolveNavigationPath, STATIC_FOCUS_ROUTES } from "../src/scene/camera/sceneRoutes.ts";
 
 test("cinematic easing preserves exact endpoints", () => {
   assert.equal(cinematicEase(0), 0);
@@ -130,4 +132,93 @@ test("certificate detail URLs restore an exact shelf focus", () => {
   assert.ok(Math.abs(focus.x+.275)<1e-9);
   assert.ok(Math.abs(focus.y-.425)<1e-9);
   assert.equal(getCertificateFocusBySlug("missing-certificate"),null);
+});
+
+test("guided Scenes preserve the cinematic order and Drawer loop",()=>{
+  assert.deepEqual(GUIDED_SCENE_IDS,["opening","about","certificates","projects","wall","phone","poems","drawer"]);
+  for(let index=0;index<GUIDED_SCENE_IDS.length-1;index++)assert.equal(getAdjacentScene(GUIDED_SCENE_IDS[index],1),GUIDED_SCENE_IDS[index+1]);
+  assert.equal(getAdjacentScene("drawer",1),"opening");
+  assert.equal(getAdjacentScene("opening",-1),null);
+});
+
+test("Scene definitions own camera framing without changing About",()=>{
+  assert.equal(SCENE_REGISTRY.about.subject,"paper");
+  assert.equal(SCENE_REGISTRY.about.route,"/about");
+  assert.deepEqual(SCENE_REGISTRY.about.framing.position,[-1.8,3,-.772]);
+  assert.deepEqual(SCENE_REGISTRY.about.framing.lookAt,[-2,1.25,-1.022]);
+  assert.equal(SCENE_REGISTRY.about.framing.fov,31);
+  assert.equal(SCENE_REGISTRY.about.framing.roll,-25);
+  assert.deepEqual(SCENE_REGISTRY.about.responsive.mobile.position,[-1.897,3.16,-.578]);
+  assert.equal(SCENE_REGISTRY.about.responsive.mobile.fov,46);
+  assert.equal(SCENE_REGISTRY.about.responsive.mobile.roll,0);
+  assert.equal(SCENE_REGISTRY.about.responsive.tablet,undefined);
+  assert.equal(SCENE_REGISTRY.about.transition.duration,4.3);
+  assert.equal(SCENE_REGISTRY.about.cameraFocus.depthOfFieldStrength,0);
+});
+
+test("Certificates parent and representative Focus framing remain numerically stable",()=>{
+  assert.deepEqual(SCENE_REGISTRY.certificates.framing.position,[-3.75,2.3,1.25]);
+  assert.deepEqual(SCENE_REGISTRY.certificates.framing.lookAt,[-3.8,2,-3.58]);
+  assert.equal(SCENE_REGISTRY.certificates.framing.fov,44);
+  assert.deepEqual(SCENE_REGISTRY.certificates.responsive.mobile.position,[-3.72,2.35,2.1]);
+  const first=FOCUS_COLLECTIONS.certificates.items[CERTIFICATES[0].slug];
+  assert.equal(first.cameraTarget,"certificate-detail");
+  assert.equal(first.framing.fov,27);
+  assert.equal(first.transition.duration,3.2);
+  assert.equal(first.cameraFocus.depthOfFieldStrength,0);
+});
+
+test("every certificate Focus item keeps its subject centered",()=>{
+  const collection=FOCUS_COLLECTIONS.certificates;
+  for(const layout of CERTIFICATE_LAYOUT){
+    const certificate=CERTIFICATES[layout.index];
+    const focused=collection.items[certificate.slug];
+    assert.ok(Math.abs((focused.framing.position[0]-collection.defaultFraming.position[0])-layout.x)<1e-9);
+    assert.ok(Math.abs((focused.framing.position[1]-collection.defaultFraming.position[1])-layout.y)<1e-9);
+    assert.ok(Math.abs((focused.framing.lookAt[0]-collection.defaultFraming.lookAt[0])-layout.x)<1e-9);
+    assert.ok(Math.abs((focused.framing.lookAt[1]-collection.defaultFraming.lookAt[1])-layout.y)<1e-9);
+  }
+});
+
+test("Focus activation and restoration keep the parent Scene",()=>{
+  const item=CERTIFICATES[0];
+  const focused=locationForFocus("certificates",item.slug);
+  assert.deepEqual(focused,{sceneId:"certificates",focusCollectionId:"certificates",focusItemId:item.slug,cameraTarget:"certificate-detail"});
+  assert.deepEqual(locationForScene(focused.sceneId),{sceneId:"certificates",focusCollectionId:null,focusItemId:null,cameraTarget:"certificates"});
+});
+
+test("Focus-to-Focus navigation stays inside the collection",()=>{
+  const first=CERTIFICATES[0].slug,second=CERTIFICATES[1].slug;
+  assert.equal(getAdjacentFocus("certificates",first,1).id,second);
+  const firstLocation=locationForFocus("certificates",first),secondLocation=locationForFocus("certificates",second);
+  assert.equal(firstLocation.sceneId,secondLocation.sceneId);
+  assert.equal(firstLocation.cameraTarget,secondLocation.cameraTarget);
+});
+
+test("certificate Focus neighbors follow spatial layout",()=>{
+  const topLeft=CERTIFICATES[0].slug;
+  assert.equal(getFocusNeighbor("certificates",topLeft,"left"),null);
+  assert.equal(getFocusNeighbor("certificates",topLeft,"right").id,CERTIFICATES[1].slug);
+  assert.equal(getFocusNeighbor("certificates",topLeft,"down").id,CERTIFICATES[4].slug);
+  assert.match(FOCUS_COLLECTIONS.certificates.items[topLeft].subject,/^certificate:/);
+});
+
+test("arrow keys resolve to Focus movement before Scene navigation",()=>{
+  assert.equal(getFocusDirectionForKey("ArrowLeft"),"left");
+  assert.equal(getFocusDirectionForKey("ArrowRight"),"right");
+  assert.equal(getFocusDirectionForKey("ArrowUp"),"up");
+  assert.equal(getFocusDirectionForKey("ArrowDown"),"down");
+  assert.equal(getFocusDirectionForKey(" "),null);
+});
+
+test("routes reconstruct Scene and Focus state for deep links and Back",()=>{
+  const first=CERTIFICATES[0].slug,second=CERTIFICATES[1].slug;
+  assert.equal(pathForScene("certificates"),"/certificates");
+  assert.equal(pathForFocus("certificates",first),`/certificates/${first}`);
+  const history=[resolveNavigationPath("/certificates"),resolveNavigationPath(`/certificates/${first}`),resolveNavigationPath(`/certificates/${second}`)];
+  assert.equal(history[2].focusItemId,second);
+  assert.equal(history[1].focusItemId,first);
+  assert.equal(history[0].focusItemId,null);
+  assert.ok(STATIC_FOCUS_ROUTES.includes("/phone/qr"));
+  assert.ok(STATIC_FOCUS_ROUTES.includes("/socials"));
 });

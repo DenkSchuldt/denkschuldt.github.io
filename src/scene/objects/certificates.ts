@@ -27,7 +27,7 @@ const CERTIFICATE_SOURCES:CertificateSource[] = [
 ];
 
 export const CERTIFICATES:CertificateRecord[]=CERTIFICATE_SOURCES.map((record)=>({...record,slug:slugifyCertificate(record.title)}));
-export const CERTIFICATE_LAYOUT=[4,4,3,3].flatMap((count,row)=>Array.from({length:count},(_,column)=>({index:[0,4,8,11][row]+column,x:(column-(count-1)/2)*(count===4?.55:.62),y:1.275-row*.85,rotation:(column-(count-1)/2)*.018})));
+export const CERTIFICATE_LAYOUT=[4,4,3,3].flatMap((count,row)=>Array.from({length:count},(_,column)=>({index:[0,4,8,11][row]+column,row,column,x:(column-(count-1)/2)*(count===4?.55:.62),y:1.275-row*.85,rotation:(column-(count-1)/2)*.018})));
 export interface CertificateFocus { x:number;y:number;slug:string }
 export function getCertificateFocusBySlug(slug?:string|null):CertificateFocus|null {
   if(!slug)return null;

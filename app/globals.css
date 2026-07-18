@@ -6,6 +6,7 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background:
 body { font-family: ui-sans-serif, system-ui, sans-serif; }
 .experience-shell { position: fixed; inset: 0; background: #050504; }
 .canvas-stage { position: absolute; inset: 0; width: 100%; height: 100%; }
+.canvas-stage.diagnostic-mobile-viewport { inset: 0 auto auto 0; width: 390px; height: 720px; }
 .canvas-stage > div:first-child, .canvas-stage canvas { width: 100% !important; height: 100% !important; }
 .grain { position: fixed; inset: 0; pointer-events: none; opacity: .018; z-index: 5; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.75'/%3E%3C/svg%3E"); background-size: 180px 180px; animation: grain .45s steps(2) infinite; }
 .opening-curtain { position: fixed; inset: 0; z-index: 10; pointer-events: none; background: #030303; animation: reveal 3.8s cubic-bezier(.65,0,.35,1) forwards; }
@@ -13,6 +14,18 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; }
 .camera-location { position: fixed; left: 28px; bottom: 24px; z-index: 12; display: flex; align-items: center; gap: 14px; pointer-events: none; color: rgba(229,224,214,.72); font-size: 11px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; text-shadow: 0 1px 10px rgba(0,0,0,.75); }
 .camera-location-return { display: flex; align-items: center; gap: 8px; color: rgba(229,224,214,.5); font-size: 9px; letter-spacing: .14em; animation: hint-in .9s .75s cubic-bezier(.22,1,.36,1) both; }
 .camera-location-return kbd { min-width: 29px; padding: 4px 5px 3px; border: 1px solid rgba(229,224,214,.22); border-radius: 3px; background: rgba(8,8,8,.2); box-shadow: inset 0 1px 0 rgba(255,255,255,.04); font: inherit; letter-spacing: .07em; text-align: center; }
+.navigation-debug { position: fixed; top: 18px; left: 18px; z-index: 30; width: 330px; padding: 12px 14px; border: 1px solid rgba(255,255,255,.16); border-radius: 8px; color: rgba(239,235,226,.82); background: rgba(4,5,6,.78); font: 10px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace; pointer-events: none; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+.navigation-debug dl { display: grid; grid-template-columns: 84px 1fr; gap: 3px 9px; margin: 0; }
+.navigation-debug dt { color: rgba(239,235,226,.42); text-transform: uppercase; }
+.navigation-debug dd { min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rendering-diagnostics { position: fixed; top: 18px; right: 18px; z-index: 40; width: min(390px,calc(100vw - 36px)); color: rgba(239,235,226,.86); background: rgba(4,5,6,.88); border: 1px solid rgba(255,255,255,.16); border-radius: 8px; font: 10px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace; -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); }
+.rendering-diagnostics > summary { padding: 9px 11px; cursor: pointer; letter-spacing: .08em; text-transform: uppercase; }
+.rendering-diagnostics-body { max-height: min(76vh,720px); padding: 0 11px 11px; overflow: auto; }
+.rendering-diagnostics-actions { display: flex; justify-content: flex-end; margin-bottom: 7px; }
+.rendering-diagnostics button { padding: 5px 8px; border: 1px solid rgba(255,255,255,.18); border-radius: 4px; color: inherit; background: rgba(255,255,255,.06); font: inherit; }
+.rendering-diagnostics fieldset { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; margin: 0 0 9px; border: 1px solid rgba(255,255,255,.12); }
+.rendering-diagnostics label { display: flex; align-items: center; gap: 5px; }
+.rendering-diagnostics pre { margin: 0; white-space: pre-wrap; word-break: break-word; }
 .mobile-camera-nav { display: none; }
 .liquid-nav-button { position: relative; display: grid; width: 52px; height: 52px; padding: 0; place-items: center; overflow: hidden; border: 1px solid rgba(255,255,255,.25); border-radius: 999px; color: rgba(255,255,255,.84); background: linear-gradient(145deg,rgba(255,255,255,.12),rgba(255,255,255,.035) 55%,rgba(255,255,255,.065)); box-shadow: inset 0 1px 0 rgba(255,255,255,.22), inset 0 -1px 0 rgba(255,255,255,.04), 0 7px 22px rgba(0,0,0,.28); -webkit-backdrop-filter: blur(14px) saturate(135%); backdrop-filter: blur(14px) saturate(135%); transition: transform .22s ease, border-color .22s ease, background .22s ease, opacity .22s ease; }
 .liquid-nav-button::before { position: absolute; inset: 3px 9px auto; height: 30%; border-radius: 999px; background: linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,0)); content: ""; pointer-events: none; }

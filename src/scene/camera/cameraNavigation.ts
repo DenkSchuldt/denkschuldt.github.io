@@ -1,13 +1,12 @@
-import { GUIDED_SHOT_IDS } from "./shotRegistry.ts";
+import { getAdjacentFocus, getAdjacentScene, getFocusNeighbor, SCENE_REGISTRY, sceneForCameraTarget } from "./sceneRegistry.ts";
+import type { FocusDirection } from "./navigationTypes.ts";
 import type { ShotId } from "./shotTypes";
 
 export function getAdjacentShot(current:ShotId,direction:-1|1):ShotId|null {
-  if(current==="opening"&&direction>0) return "about";
-  if(current==="about"&&direction<0) return "opening";
   if(current==="certificate-detail") return direction>0?"projects":"certificates";
-  if(current==="drawer"&&direction>0) return "opening";
-  const index=GUIDED_SHOT_IDS.indexOf(current);
-  return index<0?null:(GUIDED_SHOT_IDS[index+direction]??null);
+  if(current==="workspace"||current==="project-detail"||current==="poem-detail"||current==="phone-qr"||current==="socials"||current==="movie-detail")return null;
+  const scene=getAdjacentScene(sceneForCameraTarget(current),direction);
+  return scene?SCENE_REGISTRY[scene].cameraTarget:null;
 }
 
 /** @deprecated Use getAdjacentShot. */
@@ -20,3 +19,6 @@ export const isOpeningAboutJourney=(from:ShotId,to:ShotId)=>(from==="opening"&&t
 export const isDrawerOpeningReturn=(from:ShotId,to:ShotId)=>from==="drawer"&&to==="opening";
 export const getShotOvershoot=(shot:ShotId,overshoot:number)=>shot==="about"||shot==="opening"||shot==="certificate-detail"?0:overshoot;
 export const getCertificateBrowseOffset=(pointerX:number,pointerY:number,anchorX:number,anchorY:number)=>[(pointerX-anchorX)*1.9,(pointerY-anchorY)*2.1] as const;
+export const getFocusDirectionForKey=(key:string):FocusDirection|null=>key==="ArrowLeft"?"left":key==="ArrowRight"?"right":key==="ArrowUp"?"up":key==="ArrowDown"?"down":null;
+export { getAdjacentFocus, getFocusNeighbor };
+export type { FocusDirection };

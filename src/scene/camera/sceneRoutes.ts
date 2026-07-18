@@ -1,39 +1,51 @@
+import { FOCUS_COLLECTIONS, locationForFocus, locationForScene, SCENE_REGISTRY } from "./sceneRegistry.ts";
 import { SHOT_REGISTRY } from "./shotRegistry.ts";
-import type { ShotId } from "./shotTypes";
+import type { FocusCollectionId, NavigationLocation, SceneId } from "./navigationTypes.ts";
+import type { ShotId } from "./shotTypes.ts";
+import { addBasename, removeBasename } from "@denk/cinematic-navigation/router";
 
 export const SCENE_BASE_PATH=(process.env.NEXT_PUBLIC_BASE_PATH??"").replace(/\/$/,"");
-export const withSceneBasePath=(path:string)=>`${SCENE_BASE_PATH}${path==="/"?"/":path}`;
-export function withoutSceneBasePath(path:string){if(!SCENE_BASE_PATH)return path;const stripped=path.startsWith(`${SCENE_BASE_PATH}/`)?path.slice(SCENE_BASE_PATH.length):path;return stripped||"/";}
+export const withSceneBasePath=(path:string)=>addBasename(path,SCENE_BASE_PATH);
+export const withoutSceneBasePath=(path:string)=>removeBasename(path,SCENE_BASE_PATH);
 
-export interface SceneRouteState { path:string; shot:ShotId; target:ShotId; section?:string; slug?:string; directEntry:boolean }
+export interface SceneRouteState extends NavigationLocation {path:string;shot:ShotId;target:ShotId;section?:string;slug?:string;directEntry:boolean}
 
-export function pathForShot(id:ShotId,slug?:string) {
+export function pathForScene(sceneId:SceneId){return SCENE_REGISTRY[sceneId].route;}
+export function pathForFocus(collectionId:FocusCollectionId,itemId:string){
+  const item=FOCUS_COLLECTIONS[collectionId].items[itemId];
+  return item?.route??FOCUS_COLLECTIONS[collectionId].routePattern.replace(":slug",itemId);
+}
+
+export function pathForShot(id:ShotId,slug?:string){
   const route=SHOT_REGISTRY[id].route;
-  if(route===null) return null;
+  if(route===null)return null;
   return route.includes(":slug")?route.replace(":slug",slug??""):route;
 }
 
 /** @deprecated Use pathForShot. */
 export const pathForCameraTarget=pathForShot;
 
-export function shotForRoute(pathname:string):ShotId {
+export function resolveNavigationPath(pathname:string):NavigationLocation {
   const parts=withoutSceneBasePath(pathname).split("/").filter(Boolean);
-  if(!parts.length) return "opening";
-  if(parts[0]==="projects") return parts[1]?"project-detail":"projects";
-  if(parts[0]==="certificates") return parts[1]?"certificate-detail":"certificates";
-  if(parts[0]==="poems") return parts[1]?"poem-detail":"poems";
-  if(parts[0]==="phone") return parts[1]==="qr"?"phone-qr":"phone";
-  if(parts[0]==="socials") return "socials";
-  if(parts[0]==="wall") return parts[1]?"movie-detail":"wall";
-  if(parts[0]==="about") return "about";
-  return "workspace";
+  if(!parts.length)return locationForScene("opening");
+  if(parts[0]==="about")return locationForScene("about");
+  if(parts[0]==="projects")return parts[1]?locationForFocus("projects",parts[1])??locationForScene("projects"):locationForScene("projects");
+  if(parts[0]==="certificates")return parts[1]?locationForFocus("certificates",parts[1])??{sceneId:"certificates",focusCollectionId:"certificates",focusItemId:parts[1],cameraTarget:"certificate-detail"}:locationForScene("certificates");
+  if(parts[0]==="poems")return parts[1]?locationForFocus("poems",parts[1])??locationForScene("poems"):locationForScene("poems");
+  if(parts[0]==="phone")return parts[1]==="qr"?locationForFocus("phone","qr")??locationForScene("phone"):locationForScene("phone");
+  if(parts[0]==="socials")return locationForFocus("phone","socials")??locationForScene("phone");
+  if(parts[0]==="wall")return parts[1]?locationForFocus("wall",parts[1])??locationForScene("wall"):locationForScene("wall");
+  return locationForScene("opening","workspace");
 }
+
+export function shotForRoute(pathname:string):ShotId{return resolveNavigationPath(pathname).cameraTarget;}
 
 export function parseScenePath(pathname:string):SceneRouteState {
   pathname=withoutSceneBasePath(pathname);
   const parts=pathname.split("/").filter(Boolean);
-  const shot=shotForRoute(pathname);
-  return {path:pathname,shot,target:shot,section:parts[0],slug:parts[1],directEntry:pathname!=="/"};
+  const location=resolveNavigationPath(pathname);
+  return {...location,path:pathname,shot:location.cameraTarget,target:location.cameraTarget,section:parts[0],slug:parts[1],directEntry:pathname!=="/"};
 }
 
-export const SCENE_ROUTES=Object.fromEntries(Object.values(SHOT_REGISTRY).filter((shot)=>shot.route&&!shot.route.includes(":" )).map((shot)=>[shot.subject,{path:shot.route,target:shot.id,shot:shot.id}]));
+export const SCENE_ROUTES=Object.fromEntries(Object.values(SCENE_REGISTRY).filter((scene)=>scene.route!==null).map((scene)=>[scene.subject,{path:scene.route!,target:scene.cameraTarget,shot:scene.cameraTarget,sceneId:scene.id}]));
+export const STATIC_FOCUS_ROUTES=Object.values(FOCUS_COLLECTIONS).flatMap((collection)=>Object.values(collection.items).map((item)=>item.route));
