@@ -8,6 +8,7 @@ interface Props {
   selectedScene:SceneId;
   selectedFocusCollection:FocusCollectionId|null;
   selectedFocusItem:string|null;
+  resumeScene:SceneId|null;
   stateRef:React.MutableRefObject<{introComplete:boolean}>;
   onNavigate:(scene:SceneId)=>void;
   onEnterFocus:(collection:FocusCollectionId,item:string)=>unknown;
@@ -36,7 +37,7 @@ function FadingSceneName({label}:{label:string}){
   return <span className={`scene-name${visible?" is-visible":""}`}>{displayed}</span>;
 }
 
-export function SceneNavigation({selectedScene,selectedFocusCollection,selectedFocusItem,stateRef,onNavigate,onEnterFocus,onExitFocus}:Props){
+export function SceneNavigation({selectedScene,selectedFocusCollection,selectedFocusItem,resumeScene,stateRef,onNavigate,onEnterFocus,onExitFocus}:Props){
   const [introComplete,setIntroComplete]=useState(false);
   useEffect(()=>{
     const update=()=>setIntroComplete(stateRef.current.introComplete);
@@ -44,20 +45,10 @@ export function SceneNavigation({selectedScene,selectedFocusCollection,selectedF
     const timer=window.setInterval(update,120);
     return()=>window.clearInterval(timer);
   },[stateRef]);
-  useEffect(()=>{
-    if(!selectedFocusCollection)return;
-    const onKeyDown=(event:KeyboardEvent)=>{
-      if(event.key!=="Escape")return;
-      event.preventDefault();
-      onExitFocus();
-    };
-    window.addEventListener("keydown",onKeyDown);
-    return()=>window.removeEventListener("keydown",onKeyDown);
-  },[selectedFocusCollection,onExitFocus]);
-
   const current=introComplete?selectedScene:"opening";
   const previous=getAdjacentScene(current,-1);
-  const next=getAdjacentScene(current,1);
+  const resumeTarget=introComplete&&current==="opening"?resumeScene:null;
+  const next=resumeTarget??getAdjacentScene(current,1);
   const currentLabel=current==="opening"?"":SCENE_REGISTRY[current].label;
   const collectionId=SCENE_REGISTRY[current].focusCollection??null;
   const collection=collectionId?FOCUS_COLLECTIONS[collectionId]:null;

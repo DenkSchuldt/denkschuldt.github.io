@@ -16,11 +16,12 @@ import { useSceneRouter } from "./camera/useSceneRouter";
 import type { RenderingDiagnosticsSnapshot } from "./diagnostics/RenderingDiagnostics";
 import { DEFAULT_RENDER_ISOLATION } from "./rendering/renderIsolation";
 import { RENDERING_INTENT } from "./rendering/renderingIntent";
+import { POEMS_FOLDER_LAYOUT } from "./sceneLayout";
 
 const Scene=lazy(()=>import("./Scene").then((module)=>({default:module.Scene})));
 const RenderingDiagnosticsProbe=lazy(()=>import("./diagnostics/RenderingDiagnostics").then((module)=>({default:module.RenderingDiagnosticsProbe})));
 const RenderingDiagnosticsPanel=lazy(()=>import("./diagnostics/RenderingDiagnostics").then((module)=>({default:module.RenderingDiagnosticsPanel})));
-const SETTINGS:SceneSettings={desk:19,moon:1.05,moonColor:"#91a8c2",bounce:.62,bloom:.08,fog:16.5,exposure:RENDERING_INTENT.renderer.exposure,dof:.45,focusDistance:.02,helpers:false,laptopPosition:[-.55,0,-.08],laptopRotation:-3,folderPosition:[1.55,.82],folderRotation:7,paperPosition:[-2,.518],paperRotation:12,penPosition:[.46,.05],penRotation:78,coffeePosition:[1.58,.175,-.58],plantPosition:[-2.48,1.35,-2.34],plantRotationY:-12,lampPosition:[-1.5,-.02,-.45]};
+const SETTINGS:SceneSettings={desk:19,moon:1.05,moonColor:"#91a8c2",bounce:.62,bloom:.08,fog:16.5,exposure:RENDERING_INTENT.renderer.exposure,dof:.45,focusDistance:.02,helpers:false,laptopPosition:[-.55,0,-.28],laptopRotation:-3,folderPosition:POEMS_FOLDER_LAYOUT.position,folderRotation:POEMS_FOLDER_LAYOUT.rotationDegrees,paperPosition:[-2,.518],paperRotation:12,penPosition:[.46,.05],penRotation:78,coffeePosition:[1.18,.175,-.58],plantPosition:[-2.48,1.35,-2.34],plantRotationY:-12,lampPosition:[-1.9,-.07,-.45]};
 
 export default function Experience({initialPath="/"}:{initialPath?:string}) {
   const [renderIsolation,setRenderIsolation]=useState(DEFAULT_RENDER_ISOLATION);
@@ -39,7 +40,7 @@ export default function Experience({initialPath="/"}:{initialPath?:string}) {
     return()=>window.cancelAnimationFrame(frame);
   },[]);
   const route=useSceneRouter(initialPath);
-  const {focusCollectionId:routeFocusCollection,sceneId:routeScene,path:routePath,navigate:routeNavigate,navigateWithinScene,replaceWithinScene}=route;
+  const {focusCollectionId:routeFocusCollection,sceneId:routeScene,navigate:routeNavigate,navigateWithinScene,replaceWithinScene}=route;
   const commitNavigation=useCallback((location:NavigationLocation)=>{
     if(location.focusCollectionId&&location.focusItemId){
       const path=pathForFocus(location.focusCollectionId,location.focusItemId);
@@ -50,17 +51,18 @@ export default function Experience({initialPath="/"}:{initialPath?:string}) {
     if(path===null)return;
     if(routeFocusCollection&&routeScene===location.sceneId)replaceWithinScene(path);
     else if(location.sceneId==="opening"||location.sceneId==="about")navigateWithinScene(path);
-    else if(routePath!==path)routeNavigate(path);
-  },[routeFocusCollection,routeScene,routePath,routeNavigate,navigateWithinScene,replaceWithinScene]);
+    else routeNavigate(path);
+  },[routeFocusCollection,routeScene,routeNavigate,navigateWithinScene,replaceWithinScene]);
   const cameraSystem=useCinematicNavigation(route,route.directEntry,{onNavigate:commitNavigation});
-  const {syncRoute,goToScene,cameraState,introVersion}=cameraSystem;
+  const {syncRoute,goToScene,resumeFromStart,cameraState,introVersion}=cameraSystem;
   useEffect(()=>{
     if(!shouldSyncRouteShot(route.path,route.directEntry)) return;
     syncRoute({sceneId:route.sceneId,focusCollectionId:route.focusCollectionId,focusItemId:route.focusItemId,cameraTarget:route.cameraTarget});
   },[route.path,route.sceneId,route.focusCollectionId,route.focusItemId,route.cameraTarget,route.directEntry,syncRoute]);
   const navigateScene=useCallback((sceneId:SceneId)=>{
+    if(resumeFromStart(sceneId))return;
     goToScene(sceneId);
-  },[goToScene]);
+  },[resumeFromStart,goToScene]);
   useCameraKeyboardNavigation(cameraSystem,navigateScene);
   useCameraTapNavigation(cameraSystem,navigateScene);
   const goToWorkspace=useCallback(()=>{goToScene("opening","workspace");},[goToScene]);
@@ -72,6 +74,7 @@ export default function Experience({initialPath="/"}:{initialPath?:string}) {
     const waitForOpening=()=>{
       const state=cameraState.current;
       if(state.isIntroActive) sawOpening=true;
+      if(sawOpening&&state.introComplete&&state.currentTarget==="opening"&&state.requestedTarget==="opening")return;
       if(sawOpening&&state.introComplete&&state.currentTarget===INTRO_DESTINATION) {
         goToScene("about",INTRO_DESTINATION);
         return;
@@ -89,7 +92,7 @@ export default function Experience({initialPath="/"}:{initialPath?:string}) {
     </Canvas>
     <div className={`experience-loading${sceneReady?" is-ready":""}`} role="status" aria-live="polite"><span>Entering workspace</span></div>
     <NavigationDebugPanel visible={cameraSystem.navigationDebug} stateRef={cameraSystem.cameraState} boundsVisible={settings.helpers} />
-    <SceneNavigation selectedScene={cameraSystem.selectedScene} selectedFocusCollection={cameraSystem.selectedFocusCollection} selectedFocusItem={cameraSystem.selectedFocusItem} stateRef={cameraSystem.cameraState} onNavigate={navigateScene} onEnterFocus={cameraSystem.enterFocus} onExitFocus={cameraSystem.exitFocus} />
+    <SceneNavigation selectedScene={cameraSystem.selectedScene} selectedFocusCollection={cameraSystem.selectedFocusCollection} selectedFocusItem={cameraSystem.selectedFocusItem} resumeScene={cameraSystem.resumeScene} stateRef={cameraSystem.cameraState} onNavigate={navigateScene} onEnterFocus={cameraSystem.enterFocus} onExitFocus={cameraSystem.exitFocus} />
     {process.env.NODE_ENV!=="production"&&<Suspense fallback={null}><RenderingDiagnosticsPanel snapshot={renderingDiagnostics} isolation={renderIsolation} onChange={setRenderIsolation} mobileViewport={diagnosticMobileViewport} onMobileViewportChange={setDiagnosticMobileViewport}/></Suspense>}
     <CinematicFade replayKey={cameraSystem.introVersion} skipKey={cameraSystem.skipVersion} hold={route.directEntry?.18:cameraSystem.openingHold*.55} duration={route.directEntry?1.65:cameraSystem.fadeDuration} reducedMotion={cameraSystem.reducedMotion} />
   </div>;

@@ -27,7 +27,22 @@ const CERTIFICATE_SOURCES:CertificateSource[] = [
 ];
 
 export const CERTIFICATES:CertificateRecord[]=CERTIFICATE_SOURCES.map((record)=>({...record,slug:slugifyCertificate(record.title)}));
-export const CERTIFICATE_LAYOUT=[4,4,3,3].flatMap((count,row)=>Array.from({length:count},(_,column)=>({index:[0,4,8,11][row]+column,row,column,x:(column-(count-1)/2)*(count===4?.55:.62),y:1.275-row*.85,rotation:(column-(count-1)/2)*.018})));
+export const CERTIFICATE_LAYOUT=[
+  {index:0,row:0,column:0,x:-.825,y:1.275,rotation:-.026,tiltY:.018,scale:1.04,depth:.372},
+  {index:1,row:0,column:1,x:-.275,y:1.275,rotation:.014,tiltY:-.012,scale:.93,depth:.36},
+  {index:2,row:0,column:2,x:.275,y:1.275,rotation:-.008,tiltY:.015,scale:.97,depth:.368},
+  {index:3,row:0,column:3,x:.825,y:1.275,rotation:.032,tiltY:-.02,scale:.88,depth:.354},
+  {index:4,row:1,column:0,x:-.825,y:.425,rotation:.018,tiltY:-.014,scale:.91,depth:.362},
+  {index:5,row:1,column:1,x:-.275,y:.425,rotation:-.022,tiltY:.012,scale:.99,depth:.374},
+  {index:6,row:1,column:2,x:.275,y:.425,rotation:.026,tiltY:-.016,scale:.92,depth:.358},
+  {index:7,row:1,column:3,x:.825,y:.425,rotation:-.012,tiltY:.02,scale:.86,depth:.37},
+  {index:8,row:2,column:0,x:-.62,y:-.425,rotation:-.024,tiltY:.016,scale:.96,depth:.368},
+  {index:9,row:2,column:1,x:0,y:-.425,rotation:.012,tiltY:-.012,scale:1.06,depth:.38},
+  {index:10,row:2,column:2,x:.62,y:-.425,rotation:.028,tiltY:.018,scale:.93,depth:.36},
+  {index:11,row:3,column:0,x:-.62,y:-1.275,rotation:.026,tiltY:-.016,scale:.89,depth:.36},
+  {index:12,row:3,column:1,x:0,y:-1.275,rotation:-.016,tiltY:.012,scale:.97,depth:.374},
+  {index:13,row:3,column:2,x:.62,y:-1.275,rotation:.018,tiltY:-.018,scale:.91,depth:.362},
+] as const;
 export interface CertificateFocus { x:number;y:number;slug:string }
 export function getCertificateFocusBySlug(slug?:string|null):CertificateFocus|null {
   if(!slug)return null;

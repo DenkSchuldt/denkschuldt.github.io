@@ -49,7 +49,7 @@ export function RenderingDiagnosticsProbe({settings,isolation,stateRef,onSnapsho
       lights,
       environment:{present:Boolean(scene.environment),intensity:scene.environment?scene.environmentIntensity:0},
       shadows:{enabled:gl.shadowMap.enabled,type:shadowTypeName(gl.shadowMap.type)},
-      postProcessing:{active:isolation.postProcessing,effects,multisampling:0,aoIntensity:isolation.postProcessing&&isolation.ambientOcclusion?RENDERING_INTENT.postProcessing.ambientOcclusionIntensity:0,vignetteDarkness:isolation.postProcessing&&isolation.vignette?RENDERING_INTENT.postProcessing.vignetteDarkness:0,bloomIntensity:isolation.postProcessing&&isolation.bloom?settings.bloom:0},
+      postProcessing:{active:isolation.postProcessing,effects,multisampling:isolation.postProcessing&&stateRef.current.requestedTarget==="about"?RENDERING_INTENT.postProcessing.paperMultisampling:0,aoIntensity:isolation.postProcessing&&isolation.ambientOcclusion?RENDERING_INTENT.postProcessing.ambientOcclusionIntensity:0,vignetteDarkness:isolation.postProcessing&&isolation.vignette?RENDERING_INTENT.postProcessing.vignetteDarkness:0,bloomIntensity:isolation.postProcessing&&isolation.bloom?settings.bloom:0},
       camera:{position:[round(camera.position.x),round(camera.position.y),round(camera.position.z)],target:stateRef.current.cameraLookAt.map(round) as [number,number,number]},
       isolation,
       mobilePerformanceAdaptations:[],

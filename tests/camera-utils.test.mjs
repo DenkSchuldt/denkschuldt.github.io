@@ -2,12 +2,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { cinematicEase, applyReducedMotionDuration } from "../src/scene/camera/cameraEasing.ts";
 import { resolveCameraTarget, getViewportKind } from "../src/scene/camera/cameraTargets.ts";
-import { getAdjacentCameraTarget, getCertificateBrowseOffset, getFocusDirectionForKey, getShotOvershoot, isDrawerOpeningReturn, isOpeningAboutJourney, isTrackpadPinchOut, shouldBeginShotTransition, shouldSyncRouteShot } from "../src/scene/camera/cameraNavigation.ts";
+import { getAdjacentCameraTarget, getCertificateBrowseOffset, getFocusDirectionForKey, getShotOvershoot, isDrawerOpeningReturn, isOpeningAboutJourney, isReturnToStartKey, isTrackpadPinchOut, shouldBeginShotTransition, shouldResumeFromStart, shouldSyncRouteShot } from "../src/scene/camera/cameraNavigation.ts";
 import { INTRO_DESTINATION, INTRO_PAN_SHOT, SHOT_REGISTRY, resolveShot } from "../src/scene/camera/shotRegistry.ts";
 import { parseScenePath, pathForShot } from "../src/scene/camera/sceneRoutes.ts";
 import { CERTIFICATES, CERTIFICATE_LAYOUT, getCertificateFocusBySlug } from "../src/scene/objects/certificates.ts";
 import { FOCUS_COLLECTIONS, getAdjacentFocus, getAdjacentScene, getFocusNeighbor, GUIDED_SCENE_IDS, locationForFocus, locationForScene, SCENE_REGISTRY } from "../src/scene/camera/sceneRegistry.ts";
 import { pathForFocus, pathForScene, resolveNavigationPath, STATIC_FOCUS_ROUTES } from "../src/scene/camera/sceneRoutes.ts";
+import { POEMS_FOLDER_LAYOUT } from "../src/scene/sceneLayout.ts";
 
 test("cinematic easing preserves exact endpoints", () => {
   assert.equal(cinematicEase(0), 0);
@@ -20,7 +21,7 @@ test("responsive target resolution selects mobile framing", () => {
   assert.equal(getViewportKind(.6), "mobile");
   assert.equal(getViewportKind(1.1), "tablet");
   assert.equal(getViewportKind(1.8), "desktop");
-  assert.equal(resolveCameraTarget("projects", .6).fov, 45);
+  assert.equal(resolveCameraTarget("projects", .6).fov, 44);
   assert.deepEqual(resolveCameraTarget("about", .6).position, [-1.897, 3.16, -.578]);
   assert.equal(resolveCameraTarget("about", .6).fov, 46);
   assert.equal(resolveCameraTarget("about", .6).roll, 0);
@@ -41,6 +42,21 @@ test("camera navigation resolves adjacent swipe targets", () => {
   assert.equal(getAdjacentCameraTarget("about", -1), "opening");
   assert.equal(getAdjacentCameraTarget("drawer", 1), "opening");
   assert.equal(getAdjacentCameraTarget("opening", -1), null);
+});
+
+test("Escape always resolves to the Opening starting point",()=>{
+  assert.equal(isReturnToStartKey("Escape"),true);
+  assert.equal(isReturnToStartKey("Esc"),false);
+  assert.equal(isReturnToStartKey(" "),false);
+  assert.deepEqual(locationForScene("opening"),{sceneId:"opening",focusCollectionId:null,focusItemId:null,cameraTarget:"opening"});
+});
+
+test("only an Escape return resumes the latest scene from Opening",()=>{
+  assert.equal(shouldResumeFromStart("projects","opening","about"),true);
+  assert.equal(shouldResumeFromStart("projects","opening","projects"),true);
+  assert.equal(shouldResumeFromStart(null,"opening","about"),false);
+  assert.equal(shouldResumeFromStart("projects","drawer","opening"),false);
+  assert.equal(shouldResumeFromStart("projects","opening","certificates"),false);
 });
 
 test("opening and About share the same reversible camera journey", () => {
@@ -80,6 +96,14 @@ test("Certificates uses an unobstructed straight-on archive framing", () => {
   const frame=resolveShot("certificates",1.8).framing;
   assert.ok(Math.abs(frame.position[0]-frame.lookAt[0])<.1);
   assert.equal(frame.composition,"chronological certificate archive");
+});
+
+test("Projects frames the MacBook display as its subject",()=>{
+  const frame=resolveShot("projects",1.8).framing;
+  assert.deepEqual(frame.lookAt,[-.55,1.78,-2.3]);
+  assert.ok(frame.position[2]<0);
+  assert.equal(frame.fov,31);
+  assert.equal(frame.composition,"interactive MacBook display");
 });
 
 test("Certificate inspection uses a close cursor-controlled framing", () => {
@@ -154,6 +178,22 @@ test("Scene definitions own camera framing without changing About",()=>{
   assert.equal(SCENE_REGISTRY.about.responsive.tablet,undefined);
   assert.equal(SCENE_REGISTRY.about.transition.duration,4.3);
   assert.equal(SCENE_REGISTRY.about.cameraFocus.depthOfFieldStrength,0);
+});
+
+test("Poems camera remains centered on and aligned with the writing portfolio",()=>{
+  const framing=SCENE_REGISTRY.poems.framing;
+  assert.deepEqual(framing.lookAt,POEMS_FOLDER_LAYOUT.worldCenter);
+  const cameraOffsetX=framing.position[0]-framing.lookAt[0];
+  const cameraOffsetZ=framing.position[2]-framing.lookAt[2];
+  const offsetLength=Math.hypot(cameraOffsetX,cameraOffsetZ);
+  const screenRight=[cameraOffsetZ/offsetLength,-cameraOffsetX/offsetLength];
+  const angle=POEMS_FOLDER_LAYOUT.rotationDegrees*Math.PI/180;
+  const folderRight=[Math.cos(angle),-Math.sin(angle)];
+  assert.ok(Math.abs(screenRight[0]-folderRight[0])<1e-9);
+  assert.ok(Math.abs(screenRight[1]-folderRight[1])<1e-9);
+  const verticalDistance=framing.position[1]-framing.lookAt[1];
+  assert.ok(Math.atan2(offsetLength,verticalDistance)<10*Math.PI/180);
+  assert.equal(SCENE_REGISTRY.poems.cameraFocus.depthOfFieldStrength,0);
 });
 
 test("Certificates parent and representative Focus framing remain numerically stable",()=>{

@@ -40,11 +40,25 @@ test("collection focus is explicit and the responsive navigation stays scene-bas
   ]);
   assert.match(navigation,/onFocus=\{\(\)=>\{if\(!active\)onEnterFocus/);
   assert.match(navigation,/aria-label="Close collection"/);
+  assert.doesNotMatch(navigation,/event\.key!=="Escape"/);
+  assert.match(await readFile(new URL("../src/scene/camera/useCinematicCamera.ts",import.meta.url),"utf8"),/isReturnToStartKey\(event\.key\).*system\.returnToStart\(\)/s);
   assert.match(navigation,/<FadingSceneName label=\{currentLabel\}\/>/);
   assert.equal((navigation.match(/<FadingSceneName /g)??[]).length,3);
+  assert.match(navigation,/const next=resumeTarget\?\?getAdjacentScene\(current,1\)/);
   assert.match(scene,/onCertificateSelect=\{focusCertificate\}/);
   assert.match(primitives,/onPointerOver=\{\(\)=>\{if\(interactive\)setHovered\(true\);\}\}/);
   assert.doesNotMatch(primitives,/onPointerOver=\{\(\)=>\{[^}]*onSelect/);
+  assert.match(primitives,/function ShelfDecor\(\)/);
+  assert.match(primitives,/function Pen\(\{position,rotation\}/);
+  assert.match(primitives,/<sphereGeometry args=\{\[\.0032,12,8\]\}/);
+  assert.match(primitives,/MACBOOK_CHASSIS_MATERIAL=new THREE\.MeshStandardMaterial/);
+  assert.match(primitives,/bevelSegments:1/);
+  assert.match(primitives,/new THREE\.CylinderGeometry\(\.026,\.026,1\.18,8,1,false\)/);
+  assert.doesNotMatch(primitives,/\[-\.48,-\.24,0,\.24,\.48\]\.flatMap/);
+  assert.match(primitives,/shelf-led-row-/);
+  assert.match(primitives,/emissiveIntensity=\{initialImageEmission\}/);
+  assert.match(primitives,/intensity=\{initialLightIntensity\}/);
+  assert.match(primitives,/<meshStandardMaterial ref=\{imageMaterialRef\} map=\{texture\}/);
   assert.match(css,/@media \(max-width: 1024px\).*\.scene-navigation-target \{ display: none; \}/s);
 });
 
@@ -58,6 +72,8 @@ test("keeps heavy WebGL resources outside the initial loading boundary",async()=
   ]);
   assert.match(shell,/lazy\(\(\)=>import\("@\/src\/scene\/Experience"\)\)/);
   assert.match(experience,/lazy\(\(\)=>import\("\.\/Scene"\)/);
+  assert.match(scene,/paperAntialiasing=\{cameraSystem\.selectedTarget==="about"\}/);
+  assert.match(await readFile(new URL("../src/scene/effects/CinematicEffects.tsx",import.meta.url),"utf8"),/multisampling=\{paperAntialiasing\?RENDERING_INTENT\.postProcessing\.paperMultisampling:0\}/);
   assert.doesNotMatch(scene,/loadCertificates|loadTextures/);
   assert.match(primitives,/<CertificateGallery illuminated=\{illuminated\}/);
   assert.match(primitives,/<PosterImages\/>/);

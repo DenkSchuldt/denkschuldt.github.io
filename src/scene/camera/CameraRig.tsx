@@ -17,6 +17,7 @@ interface Props {
   directEntry: boolean;
   introVersion: number;
   skipVersion: number;
+  returnVersion:number;
   workspaceVersion: number;
   focusVersion:number;
   reducedMotion: boolean;
@@ -83,6 +84,7 @@ export function CameraRig(props: Props) {
   const initialized = useRef(false);
   const lastIntroVersion = useRef(props.introVersion);
   const lastSkipVersion = useRef(props.skipVersion);
+  const lastReturnVersion=useRef(props.returnVersion);
   const lastWorkspaceVersion = useRef(props.workspaceVersion);
   const lastFocusVersion=useRef(props.focusVersion);
   const certificatePointerAnchor = useRef({x:0,y:0});
@@ -146,6 +148,14 @@ export function CameraRig(props: Props) {
     props.stateRef.current.currentTarget=activeId.current;
     props.stateRef.current.currentShot=activeId.current;
     if(lastIntroVersion.current!==props.introVersion){lastIntroVersion.current=props.introVersion;introActive.current=true;introComplete.current=false;activeId.current="opening";const opening=tuneTarget(resolveCameraTarget("opening",size.width/size.height),props.tuning,size.width/size.height);basePosition.set(...opening.position);baseLook.set(...opening.lookAt);baseRoll.current=THREE.MathUtils.degToRad(opening.roll??0);camera.position.copy(basePosition);camera.lookAt(baseLook);camera.rotateZ(baseRoll.current);transitionStart.current=now;transitioning.current=false;return;}
+    if(lastReturnVersion.current!==props.returnVersion){
+      lastReturnVersion.current=props.returnVersion;introActive.current=false;introComplete.current=true;
+      const opening=tuneTarget(resolveCameraTarget("opening",size.width/size.height),props.tuning,size.width/size.height);
+      const distance=basePosition.distanceTo(new THREE.Vector3(...opening.position));
+      if(distance<.001){activeId.current="opening";requestedId.current="opening";activeTarget.current=opening;transitioning.current=false;}
+      else beginTransition("opening",now,props.reducedMotion?.18:THREE.MathUtils.clamp(distance*1.65,1.35,4.8));
+      return;
+    }
     if(lastSkipVersion.current!==props.skipVersion){lastSkipVersion.current=props.skipVersion;introActive.current=false;introComplete.current=true;const destination=props.requestedTarget==="opening"?INTRO_DESTINATION:props.requestedTarget;beginTransition(destination,now,props.reducedMotion?.18:.4);}
     if(lastWorkspaceVersion.current!==props.workspaceVersion){lastWorkspaceVersion.current=props.workspaceVersion;if(introComplete.current)beginTransition("workspace",now);}
     if(lastFocusVersion.current!==props.focusVersion){lastFocusVersion.current=props.focusVersion;if(introComplete.current&&!props.paused&&props.requestedTarget===requestedId.current)beginTransition(props.requestedTarget,now);}

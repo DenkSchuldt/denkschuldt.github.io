@@ -2,7 +2,7 @@ export const RENDERING_INTENT={
   renderer:{toneMapping:"ACESFilmicToneMapping",exposure:.68,outputColorSpace:"srgb",powerPreference:"high-performance",antialias:true,dpr:[1,1.6] as const},
   shadows:{enabled:true,type:"PCFShadowMap"},
   environment:{intensity:0},
-  postProcessing:{ambientOcclusionIntensity:.32,ambientOcclusionLimit:.35,vignetteDarkness:.22,vignetteLimit:.24,bloomIntensity:.08},
+  postProcessing:{ambientOcclusionIntensity:.32,ambientOcclusionLimit:.35,vignetteDarkness:.22,vignetteLimit:.24,bloomIntensity:.08,paperMultisampling:2},
   lighting:{essentialLights:["moon-key","desk-key","hemisphere-fill","drawer-rim"] as const,hemisphereDesktopFactor:.16,hemisphereMobileFactor:1.25,drawerRimFactor:.7},
 } as const;
 

@@ -20,5 +20,7 @@ export const isDrawerOpeningReturn=(from:ShotId,to:ShotId)=>from==="drawer"&&to=
 export const getShotOvershoot=(shot:ShotId,overshoot:number)=>shot==="about"||shot==="opening"||shot==="certificate-detail"?0:overshoot;
 export const getCertificateBrowseOffset=(pointerX:number,pointerY:number,anchorX:number,anchorY:number)=>[(pointerX-anchorX)*1.9,(pointerY-anchorY)*2.1] as const;
 export const getFocusDirectionForKey=(key:string):FocusDirection|null=>key==="ArrowLeft"?"left":key==="ArrowRight"?"right":key==="ArrowUp"?"up":key==="ArrowDown"?"down":null;
+export const isReturnToStartKey=(key:string)=>key==="Escape";
+export const shouldResumeFromStart=(resumeScene:string|null,currentScene:string,destination:string)=>Boolean(resumeScene)&&currentScene==="opening"&&(destination==="about"||destination===resumeScene);
 export { getAdjacentFocus, getFocusNeighbor };
 export type { FocusDirection };
