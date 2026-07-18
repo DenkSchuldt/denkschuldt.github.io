@@ -15,6 +15,7 @@ export interface SceneDefinition {
   transition:ShotTransition;
   responsive?:Partial<Record<ShotViewport,ShotFramingOverride>>;
   focusCollection?:FocusCollectionId;
+  autoAdvance?:{to:SceneId;delay:number};
 }
 
 export interface FocusItemDefinition {

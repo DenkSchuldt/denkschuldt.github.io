@@ -41,10 +41,12 @@ test("collection focus is explicit and the responsive navigation stays scene-bas
   assert.match(navigation,/onFocus=\{\(\)=>\{if\(!active\)onEnterFocus/);
   assert.match(navigation,/aria-label="Close collection"/);
   assert.doesNotMatch(navigation,/event\.key!=="Escape"/);
-  assert.match(await readFile(new URL("../src/scene/camera/useCinematicCamera.ts",import.meta.url),"utf8"),/isReturnToStartKey\(event\.key\).*system\.returnToStart\(\)/s);
+  const camera=await readFile(new URL("../src/scene/camera/useCinematicCamera.ts",import.meta.url),"utf8");
+  assert.match(camera,/isReturnToStartKey\(event\.key\).*system\.returnToStart\(\)/s);
+  assert.match(camera,/const \[visitedAutoScenes,setVisitedAutoScenes\]=useState<SceneId\[]>\(\[\]\)/);
   assert.match(navigation,/<FadingSceneName label=\{currentLabel\}\/>/);
   assert.equal((navigation.match(/<FadingSceneName /g)??[]).length,3);
-  assert.match(navigation,/const next=resumeTarget\?\?getAdjacentScene\(current,1\)/);
+  assert.match(navigation,/const next=resumeTarget\?\?getAdjacentScene\(current,1,visitedAutoScenes\)/);
   assert.match(scene,/onCertificateSelect=\{focusCertificate\}/);
   assert.match(primitives,/onPointerOver=\{\(\)=>\{if\(interactive\)setHovered\(true\);\}\}/);
   assert.doesNotMatch(primitives,/onPointerOver=\{\(\)=>\{[^}]*onSelect/);
@@ -59,6 +61,10 @@ test("collection focus is explicit and the responsive navigation stays scene-bas
   assert.match(primitives,/emissiveIntensity=\{initialImageEmission\}/);
   assert.match(primitives,/intensity=\{initialLightIntensity\}/);
   assert.match(primitives,/<meshStandardMaterial ref=\{imageMaterialRef\} map=\{texture\}/);
+  assert.match(primitives,/withSceneBasePath\("\/phone\.jpeg"\)/);
+  assert.match(primitives,/PHONE_CONTACT_URL="https:\/\/wa\.me\/\+593964198839"/);
+  assert.match(primitives,/screenLoaded&&<Suspense fallback=\{null\}><PhoneScreen active=\{active\}/);
+  assert.match(primitives,/<meshBasicMaterial ref=\{materialRef\} map=\{texture\} color="#050505" toneMapped=\{false\}/);
   assert.match(css,/@media \(max-width: 1024px\).*\.scene-navigation-target \{ display: none; \}/s);
   assert.match(css,/@media \(max-width: 640px\).*\.scene-navigation-target \{ display: grid;[^}]*border-radius: 999px/s);
   assert.match(css,/@media \(max-width: 640px\).*\.scene-navigation-target \.scene-name \{ display: none; \}/s);

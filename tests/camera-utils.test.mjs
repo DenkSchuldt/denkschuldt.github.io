@@ -2,13 +2,13 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { cinematicEase, applyReducedMotionDuration } from "../src/scene/camera/cameraEasing.ts";
 import { resolveCameraTarget, getViewportKind } from "../src/scene/camera/cameraTargets.ts";
-import { getAdjacentCameraTarget, getCertificateBrowseOffset, getFocusDirectionForKey, getShotOvershoot, isDrawerOpeningReturn, isOpeningAboutJourney, isReturnToStartKey, isTrackpadPinchOut, shouldBeginShotTransition, shouldResumeFromStart, shouldSyncRouteShot } from "../src/scene/camera/cameraNavigation.ts";
+import { allowsCanvasTapNavigation, getAdjacentCameraTarget, getCertificateBrowseOffset, getFocusDirectionForKey, getShotOvershoot, isDrawerOpeningReturn, isOpeningAboutJourney, isReturnToStartKey, isSceneReadyForAutoAdvance, isTrackpadPinchOut, shouldBeginShotTransition, shouldResumeFromStart, shouldSyncRouteShot } from "../src/scene/camera/cameraNavigation.ts";
 import { INTRO_DESTINATION, INTRO_PAN_SHOT, SHOT_REGISTRY, resolveShot } from "../src/scene/camera/shotRegistry.ts";
 import { parseScenePath, pathForShot } from "../src/scene/camera/sceneRoutes.ts";
 import { CERTIFICATES, CERTIFICATE_LAYOUT, getCertificateFocusBySlug } from "../src/scene/objects/certificates.ts";
 import { FOCUS_COLLECTIONS, getAdjacentFocus, getAdjacentScene, getFocusNeighbor, GUIDED_SCENE_IDS, locationForFocus, locationForScene, SCENE_REGISTRY } from "../src/scene/camera/sceneRegistry.ts";
 import { pathForFocus, pathForScene, resolveNavigationPath, STATIC_FOCUS_ROUTES } from "../src/scene/camera/sceneRoutes.ts";
-import { POEMS_FOLDER_LAYOUT } from "../src/scene/sceneLayout.ts";
+import { PHONE_LAYOUT, POEMS_FOLDER_LAYOUT } from "../src/scene/sceneLayout.ts";
 
 test("cinematic easing preserves exact endpoints", () => {
   assert.equal(cinematicEase(0), 0);
@@ -42,6 +42,28 @@ test("camera navigation resolves adjacent swipe targets", () => {
   assert.equal(getAdjacentCameraTarget("about", -1), "opening");
   assert.equal(getAdjacentCameraTarget("drawer", 1), "opening");
   assert.equal(getAdjacentCameraTarget("opening", -1), null);
+});
+
+test("canvas taps leave collection objects in control",()=>{
+  assert.equal(allowsCanvasTapNavigation("opening"),true);
+  assert.equal(allowsCanvasTapNavigation("about"),true);
+  assert.equal(allowsCanvasTapNavigation("certificates"),false);
+  assert.equal(allowsCanvasTapNavigation("projects"),false);
+  assert.equal(allowsCanvasTapNavigation("phone"),false);
+});
+
+test("auto Scenes advance only after their camera has settled",()=>{
+  assert.deepEqual(SCENE_REGISTRY.wall.autoAdvance,{to:"phone",delay:.18});
+  assert.equal(getAdjacentScene("projects",1),"wall");
+  assert.equal(getAdjacentScene("projects",1,["wall"]),"phone");
+  assert.equal(getAdjacentCameraTarget("projects",1,["wall"]),"phone");
+  assert.equal(getAdjacentScene("phone",-1),"projects");
+  assert.equal(getAdjacentScene("wall",-1),"projects");
+  const settled={sceneId:"wall",requestedScene:"wall",currentTarget:"wall",requestedTarget:"wall",isTransitioning:false,introComplete:true};
+  assert.equal(isSceneReadyForAutoAdvance(settled,"wall"),true);
+  assert.equal(isSceneReadyForAutoAdvance({...settled,isTransitioning:true},"wall"),false);
+  assert.equal(isSceneReadyForAutoAdvance({...settled,requestedScene:"phone"},"wall"),false);
+  assert.equal(isSceneReadyForAutoAdvance({...settled,sceneId:"projects",requestedScene:"projects",currentTarget:"projects",requestedTarget:"projects"},"projects"),false);
 });
 
 test("Escape always resolves to the Opening starting point",()=>{
@@ -194,6 +216,20 @@ test("Poems camera remains centered on and aligned with the writing portfolio",(
   const verticalDistance=framing.position[1]-framing.lookAt[1];
   assert.ok(Math.atan2(offsetLength,verticalDistance)<10*Math.PI/180);
   assert.equal(SCENE_REGISTRY.poems.cameraFocus.depthOfFieldStrength,0);
+});
+
+test("Phone framing remains centered on the device at inspection distance",()=>{
+  const framing=SCENE_REGISTRY.phone.framing;
+  assert.deepEqual(framing.lookAt,PHONE_LAYOUT.cameraTarget);
+  assert.ok(Math.hypot(...framing.lookAt.map((value,index)=>value-PHONE_LAYOUT.worldCenter[index]))<.06);
+  assert.deepEqual(framing.position,PHONE_LAYOUT.cameraPosition);
+  const delta=framing.position.map((value,index)=>value-framing.lookAt[index]);
+  const angleFromScreenNormal=Math.atan2(Math.hypot(delta[0],delta[2]),delta[1])*180/Math.PI;
+  assert.ok(angleFromScreenNormal<20);
+  assert.ok(Math.hypot(...delta)<1.7);
+  assert.equal(SCENE_REGISTRY.phone.cameraFocus.depthOfFieldStrength,0);
+  assert.deepEqual(SCENE_REGISTRY.phone.responsive.mobile.lookAt,PHONE_LAYOUT.cameraTarget);
+  assert.deepEqual(SCENE_REGISTRY.phone.responsive.tablet.lookAt,PHONE_LAYOUT.cameraTarget);
 });
 
 test("Certificates parent and representative Focus framing remain numerically stable",()=>{

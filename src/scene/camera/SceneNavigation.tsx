@@ -9,6 +9,7 @@ interface Props {
   selectedFocusCollection:FocusCollectionId|null;
   selectedFocusItem:string|null;
   resumeScene:SceneId|null;
+  visitedAutoScenes:readonly SceneId[];
   stateRef:React.MutableRefObject<{introComplete:boolean}>;
   onNavigate:(scene:SceneId)=>void;
   onEnterFocus:(collection:FocusCollectionId,item:string)=>unknown;
@@ -37,7 +38,7 @@ function FadingSceneName({label}:{label:string}){
   return <span className={`scene-name${visible?" is-visible":""}`}>{displayed}</span>;
 }
 
-export function SceneNavigation({selectedScene,selectedFocusCollection,selectedFocusItem,resumeScene,stateRef,onNavigate,onEnterFocus,onExitFocus}:Props){
+export function SceneNavigation({selectedScene,selectedFocusCollection,selectedFocusItem,resumeScene,visitedAutoScenes,stateRef,onNavigate,onEnterFocus,onExitFocus}:Props){
   const [introComplete,setIntroComplete]=useState(false);
   useEffect(()=>{
     const update=()=>setIntroComplete(stateRef.current.introComplete);
@@ -46,9 +47,9 @@ export function SceneNavigation({selectedScene,selectedFocusCollection,selectedF
     return()=>window.clearInterval(timer);
   },[stateRef]);
   const current=introComplete?selectedScene:"opening";
-  const previous=getAdjacentScene(current,-1);
+  const previous=getAdjacentScene(current,-1,visitedAutoScenes);
   const resumeTarget=introComplete&&current==="opening"?resumeScene:null;
-  const next=resumeTarget??getAdjacentScene(current,1);
+  const next=resumeTarget??getAdjacentScene(current,1,visitedAutoScenes);
   const currentLabel=current==="opening"?"":SCENE_REGISTRY[current].label;
   const collectionId=SCENE_REGISTRY[current].focusCollection??null;
   const collection=collectionId?FOCUS_COLLECTIONS[collectionId]:null;
@@ -75,6 +76,7 @@ export function SceneNavigation({selectedScene,selectedFocusCollection,selectedF
     </nav>
     {selectedFocusCollection&&<button type="button" className="collection-close" aria-label="Close collection" onClick={()=>onExitFocus()}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5"/></svg>
+      <span className="collection-close-key" aria-hidden="true">ESC</span>
     </button>}
     {collection&&collection.orderedItemIds.length>0&&<nav className="collection-tab-navigation" aria-label={`${SCENE_REGISTRY[current].label} collection`}>
       {collection.orderedItemIds.map((itemId)=>{

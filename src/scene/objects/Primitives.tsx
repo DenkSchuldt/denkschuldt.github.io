@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { PALETTE as C } from "../constants";
 import { withSceneBasePath } from "../camera/sceneRoutes";
 import { CERTIFICATES, CERTIFICATE_LAYOUT, type CertificateRecord } from "./certificates";
+import { PHONE_LAYOUT } from "../sceneLayout";
 
 const mat = { roughness: .82, metalness: 0 };
 const MACBOOK_CHASSIS_MATERIAL=new THREE.MeshStandardMaterial({color:"#55585a",roughness:.46,metalness:.24});
@@ -31,6 +32,16 @@ const IPHONE_BODY_GEOMETRY=new THREE.ExtrudeGeometry(roundedRectangleShape(.325,
 IPHONE_BODY_GEOMETRY.center();IPHONE_BODY_GEOMETRY.rotateX(-Math.PI/2);IPHONE_BODY_GEOMETRY.computeVertexNormals();
 const IPHONE_SCREEN_GEOMETRY=new THREE.ShapeGeometry(roundedRectangleShape(.299,.618,.047),2);
 IPHONE_SCREEN_GEOMETRY.rotateX(-Math.PI/2);
+const IPHONE_SCREEN_IMAGE_GEOMETRY=IPHONE_SCREEN_GEOMETRY.clone();
+{
+  const positions=IPHONE_SCREEN_IMAGE_GEOMETRY.getAttribute("position");
+  const uvs=new Float32Array(positions.count*2);
+  for(let index=0;index<positions.count;index++){
+    uvs[index*2]=positions.getX(index)/.299+.5;
+    uvs[index*2+1]=.5-positions.getZ(index)/.618;
+  }
+  IPHONE_SCREEN_IMAGE_GEOMETRY.setAttribute("uv",new THREE.BufferAttribute(uvs,2));
+}
 const IPHONE_BACK_GEOMETRY=new THREE.ShapeGeometry(roundedRectangleShape(.305,.63,.05),2);
 IPHONE_BACK_GEOMETRY.rotateX(Math.PI/2);
 const IPHONE_CAMERA_ISLAND_GEOMETRY=new THREE.ExtrudeGeometry(roundedRectangleShape(.135,.135,.03),{depth:.006,steps:1,curveSegments:2,bevelEnabled:false});
@@ -39,6 +50,8 @@ const IPHONE_DYNAMIC_ISLAND_GEOMETRY=new THREE.ShapeGeometry(roundedRectangleSha
 IPHONE_DYNAMIC_ISLAND_GEOMETRY.rotateX(-Math.PI/2);
 const IPHONE_LENS_GEOMETRY=new THREE.CylinderGeometry(.026,.026,.004,8,1,false);
 const IPHONE_FLASH_GEOMETRY=new THREE.CircleGeometry(.011,8);
+const IPHONE_SCREEN_TEXTURE_REPEAT_X=(.299/.618)/(675/1200);
+const PHONE_CONTACT_URL="https://wa.me/+593964198839";
 const ZZ_LEAF_DARK_MATERIAL=new THREE.MeshStandardMaterial({color:"#334f36",roughness:.8,metalness:0,side:THREE.DoubleSide});
 const ZZ_LEAF_LIGHT_MATERIAL=new THREE.MeshStandardMaterial({color:"#405f3d",roughness:.76,metalness:0,side:THREE.DoubleSide});
 const ZZ_POT_MATERIAL=new THREE.MeshStandardMaterial({color:"#927b67",roughness:.8,metalness:0});
@@ -269,9 +282,9 @@ export function Laptop({position,rotation}:{position:[number,number,number];rota
   </group>;
 }
 
-export function DeskObjects({coffeePosition,lampPosition,folderPosition,folderRotation,paperPosition,paperRotation,penPosition,penRotation}:{coffeePosition:[number,number,number];lampPosition:[number,number,number];folderPosition:[number,number];folderRotation:number;paperPosition:[number,number];paperRotation:number;penPosition:[number,number];penRotation:number}) { return <group position={[0,1.31,-1.5]}>
+export function DeskObjects({coffeePosition,lampPosition,folderPosition,folderRotation,paperPosition,paperRotation,penPosition,penRotation,phoneActive}:{coffeePosition:[number,number,number];lampPosition:[number,number,number];folderPosition:[number,number];folderRotation:number;paperPosition:[number,number];paperRotation:number;penPosition:[number,number];penRotation:number;phoneActive:boolean}) { return <group position={[0,1.31,-1.5]}>
   <PaperAndPen position={paperPosition} rotation={paperRotation} penPosition={penPosition} penRotation={penRotation} />
-  <Phone />
+  <Phone active={phoneActive}/>
   <PoemsPortfolio position={folderPosition} rotation={folderRotation}/>
   <Coffee position={coffeePosition}/>
   <DeskLamp position={lampPosition} />
@@ -353,16 +366,52 @@ function PoemsPortfolio({position,rotation}:{position:[number,number];rotation:n
   </group>;
 }
 
-function Phone() { return <group position={[-.55,-.047,.77]} rotation-y={THREE.MathUtils.degToRad(33)} dispose={null}>
+function PhoneScreen({active}:{active:boolean}){
+  const texture=useTexture(withSceneBasePath("/phone.jpeg"));
+  const materialRef=useRef<THREE.MeshBasicMaterial>(null);
+  const lightRef=useRef<THREE.PointLight>(null);
+  const [hovered,setHovered]=useState(false);
+  texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=8;texture.repeat.set(IPHONE_SCREEN_TEXTURE_REPEAT_X,1);texture.offset.set((1-IPHONE_SCREEN_TEXTURE_REPEAT_X)/2,0);
+  useCursor(active&&hovered);
+  useEffect(()=>{if(!active)setHovered(false);},[active]);
+  useFrame((_,delta)=>{
+    const material=materialRef.current,light=lightRef.current;
+    const easing=active?16:4.5;
+    if(material){
+      let channel=THREE.MathUtils.damp(material.color.r,active?1:0,easing,delta);
+      if(!active&&channel<.001)channel=0;
+      material.color.setRGB(channel,channel,channel);
+    }
+    if(light){
+      light.intensity=THREE.MathUtils.damp(light.intensity,active?.26:0,active?12:3.8,delta);
+      if(!active&&light.intensity<.001)light.intensity=0;
+    }
+  });
+  return <>
+    <mesh geometry={IPHONE_SCREEN_IMAGE_GEOMETRY} position={[0,.0182,0]}
+      onPointerOver={(event)=>{if(!active)return;event.stopPropagation();setHovered(true);}}
+      onPointerOut={()=>setHovered(false)}
+      onClick={(event)=>{if(!active)return;event.stopPropagation();window.open(PHONE_CONTACT_URL,"_blank","noopener,noreferrer");}}>
+      <meshBasicMaterial ref={materialRef} map={texture} color="#050505" toneMapped={false}/>
+    </mesh>
+    <pointLight ref={lightRef} position={[0,.11,0]} color="#dce7f2" intensity={0} distance={.9} decay={2}/>
+  </>;
+}
+
+function Phone({active}:{active:boolean}) {
+  const [screenLoaded,setScreenLoaded]=useState(active);
+  useEffect(()=>{if(active)setScreenLoaded(true);},[active]);
+  return <group position={PHONE_LAYOUT.localPosition} rotation-y={THREE.MathUtils.degToRad(PHONE_LAYOUT.rotationDegrees)} dispose={null}>
   <mesh geometry={IPHONE_BODY_GEOMETRY} castShadow receiveShadow>
     <primitive object={IPHONE_FRAME_MATERIAL} attach="material"/>
   </mesh>
   <mesh geometry={IPHONE_SCREEN_GEOMETRY} position={[0,.0175,0]}>
     <primitive object={IPHONE_BACK_MATERIAL} attach="material"/>
   </mesh>
-  <mesh geometry={IPHONE_DYNAMIC_ISLAND_GEOMETRY} position={[0,.0181,-.255]}>
+  <mesh geometry={IPHONE_DYNAMIC_ISLAND_GEOMETRY} position={[0,.0185,-.255]}>
     <primitive object={IPHONE_GLASS_MATERIAL} attach="material"/>
   </mesh>
+  {screenLoaded&&<Suspense fallback={null}><PhoneScreen active={active}/></Suspense>}
   <mesh geometry={IPHONE_BACK_GEOMETRY} position={[0,-.0172,0]}>
     <primitive object={IPHONE_BACK_MATERIAL} attach="material"/>
   </mesh>

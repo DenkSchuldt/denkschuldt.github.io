@@ -1,11 +1,11 @@
 import { getAdjacentFocus, getAdjacentScene, getFocusNeighbor, SCENE_REGISTRY, sceneForCameraTarget } from "./sceneRegistry.ts";
-import type { FocusDirection } from "./navigationTypes.ts";
+import type { CameraNavigationState, FocusDirection, SceneId } from "./navigationTypes.ts";
 import type { ShotId } from "./shotTypes";
 
-export function getAdjacentShot(current:ShotId,direction:-1|1):ShotId|null {
+export function getAdjacentShot(current:ShotId,direction:-1|1,visitedAutoScenes:readonly SceneId[]=[]):ShotId|null {
   if(current==="certificate-detail") return direction>0?"projects":"certificates";
   if(current==="workspace"||current==="project-detail"||current==="poem-detail"||current==="phone-qr"||current==="socials"||current==="movie-detail")return null;
-  const scene=getAdjacentScene(sceneForCameraTarget(current),direction);
+  const scene=getAdjacentScene(sceneForCameraTarget(current),direction,visitedAutoScenes);
   return scene?SCENE_REGISTRY[scene].cameraTarget:null;
 }
 
@@ -13,6 +13,11 @@ export function getAdjacentShot(current:ShotId,direction:-1|1):ShotId|null {
 export const getAdjacentCameraTarget=getAdjacentShot;
 
 export const isTrackpadPinchOut=(accumulatedDelta:number)=>accumulatedDelta>=48;
+export const allowsCanvasTapNavigation=(sceneId:SceneId)=>!SCENE_REGISTRY[sceneId].focusCollection;
+export const isSceneReadyForAutoAdvance=(state:Pick<CameraNavigationState,"sceneId"|"requestedScene"|"currentTarget"|"requestedTarget"|"isTransitioning"|"introComplete">,sceneId:SceneId)=>{
+  const scene=SCENE_REGISTRY[sceneId];
+  return Boolean(scene.autoAdvance)&&state.introComplete&&!state.isTransitioning&&state.sceneId===sceneId&&state.requestedScene===sceneId&&state.currentTarget===scene.cameraTarget&&state.requestedTarget===scene.cameraTarget;
+};
 export const shouldBeginShotTransition=(introCompleted:boolean,paused:boolean,requested:ShotId,activeRequest:ShotId)=>introCompleted&&!paused&&requested!==activeRequest;
 export const shouldSyncRouteShot=(path:string,directEntry:boolean)=>path!=="/"||directEntry;
 export const isOpeningAboutJourney=(from:ShotId,to:ShotId)=>(from==="opening"&&to==="about")||(from==="about"&&to==="opening");

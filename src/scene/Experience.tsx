@@ -11,7 +11,7 @@ import { shouldSyncRouteShot } from "./camera/cameraNavigation";
 import type { NavigationLocation,SceneId } from "./camera/navigationTypes";
 import { pathForFocus,pathForScene } from "./camera/sceneRoutes";
 import { INTRO_DESTINATION } from "./camera/shotRegistry";
-import { useCameraKeyboardNavigation,useCameraPinchNavigation,useCameraTapNavigation,useCinematicNavigation } from "./camera/useCinematicCamera";
+import { useAutoSceneNavigation,useCameraKeyboardNavigation,useCameraPinchNavigation,useCameraTapNavigation,useCinematicNavigation } from "./camera/useCinematicCamera";
 import { useSceneRouter } from "./camera/useSceneRouter";
 import type { RenderingDiagnosticsSnapshot } from "./diagnostics/RenderingDiagnostics";
 import { DEFAULT_RENDER_ISOLATION } from "./rendering/renderIsolation";
@@ -64,6 +64,7 @@ export default function Experience({initialPath="/"}:{initialPath?:string}) {
   },[resumeFromStart,goToScene]);
   useCameraKeyboardNavigation(cameraSystem,navigateScene);
   useCameraTapNavigation(cameraSystem,navigateScene);
+  useAutoSceneNavigation(cameraSystem,navigateScene);
   const goToWorkspace=useCallback(()=>{goToScene("opening","workspace");},[goToScene]);
   useCameraPinchNavigation(cameraSystem,goToWorkspace);
   useEffect(()=>{
@@ -91,7 +92,7 @@ export default function Experience({initialPath="/"}:{initialPath?:string}) {
     </Canvas>
     <div className={`experience-loading${sceneReady?" is-ready":""}`} role="status" aria-live="polite"><span>Entering workspace</span></div>
     <NavigationDebugPanel visible={cameraSystem.navigationDebug} stateRef={cameraSystem.cameraState} boundsVisible={settings.helpers} />
-    <SceneNavigation selectedScene={cameraSystem.selectedScene} selectedFocusCollection={cameraSystem.selectedFocusCollection} selectedFocusItem={cameraSystem.selectedFocusItem} resumeScene={cameraSystem.resumeScene} stateRef={cameraSystem.cameraState} onNavigate={navigateScene} onEnterFocus={cameraSystem.enterFocus} onExitFocus={cameraSystem.exitFocus} />
+    <SceneNavigation selectedScene={cameraSystem.selectedScene} selectedFocusCollection={cameraSystem.selectedFocusCollection} selectedFocusItem={cameraSystem.selectedFocusItem} resumeScene={cameraSystem.resumeScene} visitedAutoScenes={cameraSystem.visitedAutoScenes} stateRef={cameraSystem.cameraState} onNavigate={navigateScene} onEnterFocus={cameraSystem.enterFocus} onExitFocus={cameraSystem.exitFocus} />
     {process.env.NODE_ENV!=="production"&&<Suspense fallback={null}><RenderingDiagnosticsPanel snapshot={renderingDiagnostics} isolation={renderIsolation} onChange={setRenderIsolation} mobileViewport={diagnosticMobileViewport} onMobileViewportChange={setDiagnosticMobileViewport}/></Suspense>}
     <CinematicFade replayKey={cameraSystem.introVersion} skipKey={cameraSystem.skipVersion} hold={route.directEntry?.18:cameraSystem.openingHold*.55} duration={route.directEntry?1.65:cameraSystem.fadeDuration} reducedMotion={cameraSystem.reducedMotion} />
   </div>;
