@@ -36,5 +36,9 @@ export function useSceneRouter() {
   const navigateWithinScene=useCallback((path:string)=>{
     History.prototype.pushState.call(window.history,{},"",withSceneBasePath(path));
   },[]);
-  return {...route,navigate,navigateWithinScene,goToRoute:navigate};
+  const replaceWithinScene=useCallback((path:string)=>{
+    History.prototype.replaceState.call(window.history,{},"",withSceneBasePath(path));
+    setRoute(parseScenePath(path));
+  },[]);
+  return {...route,navigate,navigateWithinScene,replaceWithinScene,goToRoute:navigate};
 }

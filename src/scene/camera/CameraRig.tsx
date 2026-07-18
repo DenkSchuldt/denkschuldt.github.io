@@ -4,7 +4,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { applyReducedMotionDuration, cinematicEase, clamp01 } from "./cameraEasing";
-import { getShotOvershoot, isDrawerOpeningReturn, isOpeningAboutJourney, shouldBeginShotTransition } from "./cameraNavigation";
+import { getCertificateBrowseOffset, getShotOvershoot, isDrawerOpeningReturn, isOpeningAboutJourney, shouldBeginShotTransition } from "./cameraNavigation";
 import { INTRO_DESTINATION, INTRO_PAN_SHOT } from "./shotRegistry";
 import { getViewportKind, resolveCameraTarget, validateCameraTargets } from "./cameraTargets";
 import type { CameraTargetId, ResolvedCameraTarget } from "./cameraTypes";
@@ -28,6 +28,7 @@ interface Props {
   farClip: number;
   tuning: Record<string, any>;
   focusRef: React.MutableRefObject<number>;
+  certificateFocusRef: React.MutableRefObject<{x:number;y:number}|null>;
   stateRef: React.MutableRefObject<{currentShot:CameraTargetId;requestedShot:CameraTargetId;transitioning:boolean;introCompleted:boolean;introActive:boolean;lastVisitedShot:CameraTargetId|null;transitionProgress:number;currentTarget:CameraTargetId;requestedTarget:CameraTargetId;isTransitioning:boolean;isIntroActive:boolean;introComplete:boolean}>;
 }
 
@@ -40,11 +41,17 @@ const basePosition = new THREE.Vector3();
 const baseLook = new THREE.Vector3();
 const targetPosition = new THREE.Vector3();
 const travelDirection = new THREE.Vector3();
+const certificateBrowseOffset = new THREE.Vector2();
 
 function tuneTarget(target: ResolvedCameraTarget, tuning: Record<string, any>, aspect: number): ResolvedCameraTarget {
   const p=tuning[`${target.id}Position`], l=tuning[`${target.id}LookAt`];
   const useTunedFraming=getViewportKind(aspect)==="desktop";
   return {...target, position:useTunedFraming&&p?[p.x,p.y,p.z]:target.position, lookAt:useTunedFraming&&l?[l.x,l.y,l.z]:target.lookAt, fov:useTunedFraming?(tuning[`${target.id}Fov`]??target.fov):target.fov, duration:tuning[`${target.id}Duration`]??target.duration};
+}
+
+function applyCertificateFocus(target:ResolvedCameraTarget,focus:{x:number;y:number}|null):ResolvedCameraTarget {
+  if(target.id!=="certificate-detail"||!focus)return target;
+  return {...target,position:[target.position[0]+focus.x,target.position[1]+focus.y,target.position[2]],lookAt:[target.lookAt[0]+focus.x,target.lookAt[1]+focus.y,target.lookAt[2]]};
 }
 
 export function CameraRig(props: Props) {
@@ -68,14 +75,25 @@ export function CameraRig(props: Props) {
   const lastIntroVersion = useRef(props.introVersion);
   const lastSkipVersion = useRef(props.skipVersion);
   const lastWorkspaceVersion = useRef(props.workspaceVersion);
+  const certificatePointerAnchor = useRef({x:0,y:0});
+  const certificatePointerAnchored = useRef(false);
 
   useEffect(() => validateCameraTargets(), []);
   useEffect(() => { camera.near=props.nearClip; camera.far=props.farClip; camera.updateProjectionMatrix(); }, [camera,props.nearClip,props.farClip]);
 
   const beginTransition = (id:CameraTargetId, now:number, durationOverride?:number, waypointOverride?:THREE.Vector3Tuple) => {
+    if(activeId.current==="certificate-detail"){
+      basePosition.x+=certificateBrowseOffset.x;basePosition.y+=certificateBrowseOffset.y;
+      baseLook.x+=certificateBrowseOffset.x;baseLook.y+=certificateBrowseOffset.y;
+      certificateBrowseOffset.set(0,0);
+    }
     const aspect=size.width/size.height;
     const resolved=tuneTarget(resolveCameraTarget(id,aspect),props.tuning,aspect);
-    const next=waypointOverride?{...resolved,waypoint:waypointOverride}:resolved;
+    const hoveredCertificate=id==="certificate-detail"?props.certificateFocusRef.current:null;
+    const focus=hoveredCertificate??{x:0,y:0};
+    if(id==="certificate-detail")certificatePointerAnchored.current=false;
+    const focusedResolved=applyCertificateFocus(resolved,id==="certificate-detail"?focus:null);
+    const next=waypointOverride?{...focusedResolved,waypoint:waypointOverride}:focusedResolved;
     startPosition.copy(basePosition); startLook.copy(baseLook);
     endPosition.set(...next.position); endLook.set(...next.lookAt);
     if(next.waypoint) waypoint.set(...next.waypoint); else waypoint.lerpVectors(startPosition,endPosition,.5);
@@ -87,12 +105,13 @@ export function CameraRig(props: Props) {
     activeTarget.current=next; requestedId.current=id; transitioning.current=true;
   };
 
-  useFrame(({clock}) => {
+  useFrame(({clock,pointer},delta) => {
     const now=clock.elapsedTime;
     if(!initialized.current){
       initialized.current=true;
       const initialId=props.directEntry?props.requestedTarget:"opening";
-      const initial=tuneTarget(resolveCameraTarget(initialId,size.width/size.height),props.tuning,size.width/size.height);
+      const rawInitial=tuneTarget(resolveCameraTarget(initialId,size.width/size.height),props.tuning,size.width/size.height);
+      const initial=applyCertificateFocus(rawInitial,initialId==="certificate-detail"?props.certificateFocusRef.current:null);
       basePosition.set(...initial.position);baseLook.set(...initial.lookAt);activeTarget.current=initial;activeId.current=initialId;requestedId.current=props.requestedTarget;
       introActive.current=!props.directEntry;introComplete.current=props.directEntry;transitioning.current=false;transitionStart.current=now;
       props.focusRef.current=initial.focusDistance??props.focusRef.current;
@@ -155,6 +174,20 @@ export function CameraRig(props: Props) {
         transitioning.current=false;activeId.current=arrivedId;props.stateRef.current.currentShot=arrivedId;props.stateRef.current.lastVisitedShot=arrivedId;props.stateRef.current.transitionProgress=1;
         if(introActive.current){introActive.current=false;introComplete.current=true;requestedId.current=INTRO_DESTINATION;}
       }
+      return;
+    }
+
+    if(activeTarget.current.id==="certificate-detail"){
+      if(!certificatePointerAnchored.current){
+        certificatePointerAnchor.current={x:pointer.x,y:pointer.y};
+        certificatePointerAnchored.current=true;
+      }
+      const [horizontalTarget,verticalTarget]=getCertificateBrowseOffset(pointer.x,pointer.y,certificatePointerAnchor.current.x,certificatePointerAnchor.current.y);
+      certificateBrowseOffset.x=THREE.MathUtils.damp(certificateBrowseOffset.x,horizontalTarget,2.2,delta);
+      certificateBrowseOffset.y=THREE.MathUtils.damp(certificateBrowseOffset.y,verticalTarget,1.5,delta);
+      camera.position.set(basePosition.x+certificateBrowseOffset.x,basePosition.y+certificateBrowseOffset.y,basePosition.z);
+      camera.lookAt(baseLook.x+certificateBrowseOffset.x,baseLook.y+certificateBrowseOffset.y,baseLook.z);
+      camera.rotateZ(baseRoll.current);
       return;
     }
 

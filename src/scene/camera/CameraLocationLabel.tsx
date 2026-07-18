@@ -15,5 +15,8 @@ export function CameraLocationLabel({ stateRef }: { stateRef:React.MutableRefObj
     const timer=window.setInterval(update,120);
     return()=>window.clearInterval(timer);
   },[stateRef]);
-  return <div className="camera-location" aria-live="polite">{SHOT_REGISTRY[area].label}</div>;
+  return <div className="camera-location" aria-live="polite">
+    <span>{SHOT_REGISTRY[area].label}</span>
+    {area==="certificate-detail"&&<span className="camera-location-return"><kbd>ESC</kbd><span>Return</span></span>}
+  </div>;
 }

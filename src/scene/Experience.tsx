@@ -26,6 +26,13 @@ export default function Experience() {
       route.navigate(path,shot==="workspace"?"workspace":undefined);
     }
   },[route.navigate,route.navigateWithinScene]);
+  const navigateCertificate=useCallback((slug:string)=>{
+    const path=pathForShot("certificate-detail",slug);
+    if(!path)return;
+    if(route.shot==="certificate-detail")route.replaceWithinScene(path);
+    else route.navigate(path);
+  },[route.shot,route.navigate,route.replaceWithinScene]);
+  const exitCertificate=useCallback(()=>route.replaceWithinScene("/certificates"),[route.replaceWithinScene]);
   useCameraKeyboardNavigation(cameraSystem,navigateCamera);
   useCameraTapNavigation(cameraSystem,navigateCamera);
   const goToWorkspace=useCallback(()=>route.navigate("/","workspace"),[route.navigate]);
@@ -97,7 +104,7 @@ export default function Experience() {
   };
   return <div className="canvas-stage">
     <Canvas shadows dpr={[1, 1.6]} camera={{ position: [-0.72, 1.9, 4.82], fov: 42, near: 0.1, far: 45 }} gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: settings.exposure, powerPreference: "high-performance" }}>
-      <Suspense fallback={null}><Scene s={settings} cameraSystem={cameraSystem} goToShot={navigateCamera} /></Suspense>
+      <Suspense fallback={null}><Scene s={settings} cameraSystem={cameraSystem} certificateSlug={route.slug} onCertificateFocus={navigateCertificate} onCertificateExit={exitCertificate} /></Suspense>
     </Canvas>
     <Leva collapsed />
     <CameraLocationLabel stateRef={cameraSystem.cameraState} />

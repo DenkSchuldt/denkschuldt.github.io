@@ -2,9 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { cinematicEase, applyReducedMotionDuration } from "../src/scene/camera/cameraEasing.ts";
 import { resolveCameraTarget, getViewportKind } from "../src/scene/camera/cameraTargets.ts";
-import { getAdjacentCameraTarget, getShotOvershoot, isDrawerOpeningReturn, isOpeningAboutJourney, isTrackpadPinchOut, shouldBeginShotTransition, shouldSyncRouteShot } from "../src/scene/camera/cameraNavigation.ts";
+import { getAdjacentCameraTarget, getCertificateBrowseOffset, getShotOvershoot, isDrawerOpeningReturn, isOpeningAboutJourney, isTrackpadPinchOut, shouldBeginShotTransition, shouldSyncRouteShot } from "../src/scene/camera/cameraNavigation.ts";
 import { INTRO_DESTINATION, INTRO_PAN_SHOT, SHOT_REGISTRY, resolveShot } from "../src/scene/camera/shotRegistry.ts";
 import { parseScenePath, pathForShot } from "../src/scene/camera/sceneRoutes.ts";
+import { CERTIFICATES, getCertificateFocusBySlug } from "../src/scene/objects/certificates.ts";
 
 test("cinematic easing preserves exact endpoints", () => {
   assert.equal(cinematicEase(0), 0);
@@ -33,6 +34,8 @@ test("camera navigation resolves adjacent swipe targets", () => {
   assert.equal(getAdjacentCameraTarget("about", 1), "certificates");
   assert.equal(getAdjacentCameraTarget("certificates", 1), "projects");
   assert.equal(getAdjacentCameraTarget("projects", -1), "certificates");
+  assert.equal(getAdjacentCameraTarget("certificate-detail", 1), "projects");
+  assert.equal(getAdjacentCameraTarget("certificate-detail", -1), "certificates");
   assert.equal(getAdjacentCameraTarget("about", -1), "opening");
   assert.equal(getAdjacentCameraTarget("drawer", 1), "opening");
   assert.equal(getAdjacentCameraTarget("opening", -1), null);
@@ -71,6 +74,26 @@ test("shot registry owns routes and preserves the golden About framing", () => {
   assert.equal(resolveShot("about", .6).framing.roll, 0);
 });
 
+test("Certificates uses an unobstructed straight-on archive framing", () => {
+  const frame=resolveShot("certificates",1.8).framing;
+  assert.ok(Math.abs(frame.position[0]-frame.lookAt[0])<.1);
+  assert.equal(frame.composition,"chronological certificate archive");
+});
+
+test("Certificate inspection uses a close cursor-controlled framing", () => {
+  const frame=resolveShot("certificate-detail",1.8).framing;
+  assert.equal(frame.composition,"cursor-controlled certificate inspection");
+  assert.ok(frame.fov<resolveShot("certificates",1.8).framing.fov);
+  assert.ok(frame.position[2]<-1);
+  assert.equal(getShotOvershoot("certificate-detail",.018),0);
+});
+
+test("Certificate browsing begins without drift and spans every shelf row", () => {
+  assert.deepEqual(getCertificateBrowseOffset(-.4,.55,-.4,.55),[0,0]);
+  const [,verticalTravel]=getCertificateBrowseOffset(-.4,-.7,-.4,.55);
+  assert.ok(verticalTravel<=-2.55);
+});
+
 test("trackpad pinch-out requires deliberate accumulated movement", () => {
   assert.equal(isTrackpadPinchOut(47), false);
   assert.equal(isTrackpadPinchOut(48), true);
@@ -86,4 +109,25 @@ test("the root route does not overwrite the intro destination", () => {
   assert.equal(shouldSyncRouteShot("/", false), false);
   assert.equal(shouldSyncRouteShot("/about", false), true);
   assert.equal(shouldSyncRouteShot("/", true), true);
+});
+
+test("certificate archive preserves the supplied newest-to-oldest order", () => {
+  assert.equal(CERTIFICATES.length, 14);
+  assert.equal(CERTIFICATES[0].title, "UX Management: Strategy and Tactics");
+  assert.equal(CERTIFICATES[9].title, "Product Management");
+  assert.equal(CERTIFICATES.at(-1).title, "Data-Driven Design: Quantitative Research for UX");
+  assert.equal(new Set(CERTIFICATES.map(({image})=>image)).size, CERTIFICATES.length);
+  assert.equal(new Set(CERTIFICATES.map(({slug})=>slug)).size, CERTIFICATES.length);
+});
+
+test("certificate detail URLs restore an exact shelf focus", () => {
+  const certificate=CERTIFICATES[5];
+  const path=pathForShot("certificate-detail",certificate.slug);
+  assert.equal(path,`/certificates/${certificate.slug}`);
+  assert.equal(parseScenePath(path).slug,certificate.slug);
+  const focus=getCertificateFocusBySlug(certificate.slug);
+  assert.equal(focus.slug,certificate.slug);
+  assert.ok(Math.abs(focus.x+.275)<1e-9);
+  assert.ok(Math.abs(focus.y-.425)<1e-9);
+  assert.equal(getCertificateFocusBySlug("missing-certificate"),null);
 });
