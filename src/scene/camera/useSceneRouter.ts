@@ -5,8 +5,8 @@ import { parseScenePath, withSceneBasePath, withoutSceneBasePath } from "./scene
 
 const currentPath=()=>typeof window==="undefined"?"/":withoutSceneBasePath(window.location.pathname);
 
-export function useSceneRouter() {
-  const [route,setRoute]=useState(()=>parseScenePath(currentPath()));
+export function useSceneRouter(initialPath="/") {
+  const [route,setRoute]=useState(()=>parseScenePath(withoutSceneBasePath(initialPath)));
   useEffect(()=>{
     const sync=()=>{
       const path=currentPath();

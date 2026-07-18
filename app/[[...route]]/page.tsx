@@ -11,4 +11,7 @@ export function generateStaticParams() {
   ];
 }
 
-export default function WorldPage() { return <SceneShell/>; }
+export default async function WorldPage({params}:{params:Promise<{route?:string[]}>}) {
+  const {route=[]}=await params;
+  return <SceneShell initialPath={route.length?`/${route.join("/")}`:"/"}/>;
+}

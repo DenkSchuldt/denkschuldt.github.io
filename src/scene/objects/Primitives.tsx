@@ -1,7 +1,7 @@
 "use client";
 import { Capsule, RoundedBox, Text, useCursor, useTexture } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef, useState } from "react";
+import { Suspense,useEffect,useMemo,useRef,useState } from "react";
 import * as THREE from "three";
 import { PALETTE as C } from "../constants";
 import { withSceneBasePath } from "../camera/sceneRoutes";
@@ -66,7 +66,7 @@ function PaperAndPen({position,rotation,penPosition,penRotation}:{position:[numb
     <planeGeometry args={[.708,1.008]}/>
     <meshBasicMaterial color="#d2cec5" toneMapped={false}/>
   </mesh>
-  <Text
+  <Suspense fallback={null}><Text
     position={[-.32,.012,-.46]}
     rotation-x={-Math.PI/2}
     anchorX="left"
@@ -75,7 +75,7 @@ function PaperAndPen({position,rotation,penPosition,penRotation}:{position:[numb
     fontWeight={700}
     outlineWidth={.0012}
     outlineColor="#000000"
-    font="https://raw.githubusercontent.com/google/fonts/main/ofl/patrickhand/PatrickHand-Regular.ttf"
+    font={withSceneBasePath("/fonts/PatrickHand-Regular.ttf")}
   >About me<meshBasicMaterial color="#000000" toneMapped={false}/></Text>
   <Text
     position={[-.32,.011,-.395]}
@@ -86,7 +86,7 @@ function PaperAndPen({position,rotation,penPosition,penRotation}:{position:[numb
     fontSize={.027}
     fontWeight={400}
     lineHeight={1.18}
-    font="https://raw.githubusercontent.com/google/fonts/main/ofl/patrickhand/PatrickHand-Regular.ttf"
+    font={withSceneBasePath("/fonts/PatrickHand-Regular.ttf")}
   >{`I build products that think clearly and experiences that move with purpose.
 
 With over a decade of experience across software engineering, UX, and product strategy, I’ve worked between technology and human experience, translating complex flows into intuitive, scalable, and data-driven systems. My experience goes from hands-on development and real-time system design to redefining how a SaaS logistics platform connects technology, operations, and user experience, balancing structure with creativity and meaningful outcomes.
@@ -95,7 +95,7 @@ Beyond product development, I’ve had the honor of teaching UX/UI at ESPOL’s 
 
 Curiosity and precision guide everything I build, connecting logic and empathy to create technology that truly serves people.
 
-Hablante nativo de Español, fluent in English, and conversational in Brazilian Portuguese. Você pode me encontrar online como @DenkSchuldt.`}<meshBasicMaterial color="#000000" toneMapped={false}/></Text>
+Hablante nativo de Español, fluent in English, and conversational in Brazilian Portuguese. Você pode me encontrar online como @DenkSchuldt.`}<meshBasicMaterial color="#000000" toneMapped={false}/></Text></Suspense>
   <group position={[penPosition[0],.025,penPosition[1]]} rotation-y={THREE.MathUtils.degToRad(penRotation)}>
     <mesh rotation-z={Math.PI/2} castShadow>
       <cylinderGeometry args={[.018,.018,.52,12]}/><meshStandardMaterial color="#242526" metalness={.28} roughness={.48}/>
@@ -126,15 +126,15 @@ export function Chair() { return <group position={[1.45,.55,1.48]} rotation-y={M
   <mesh position={[0,-.82,0]} rotation-z={Math.PI/2}><cylinderGeometry args={[.035,.035,1.15,10]}/><meshStandardMaterial color={C.metal}/></mesh>
 </group> }
 
-const CERTIFICATE_IMAGES=CERTIFICATES.map(({image})=>withSceneBasePath(`/certificates/${image}`));
+const CERTIFICATE_THUMBNAILS=CERTIFICATES.map(({image})=>withSceneBasePath(`/certificates/thumbs/${image.replace(/\.[^.]+$/,".jpg")}`));
 const ACTIVE_CERTIFICATE_COLOR=new THREE.Color("#ffffff");
-const AMBIENT_CERTIFICATE_COLOR=new THREE.Color("#100f0e");
+const AMBIENT_CERTIFICATE_COLOR=new THREE.Color("#302c27");
 const ACTIVE_CERTIFICATE_PIN_COLOR=new THREE.Color("#9a7b4e");
 const AMBIENT_CERTIFICATE_PIN_COLOR=new THREE.Color("#17130f");
 const AMBIENT_CERTIFICATE_LABEL_COLOR=new THREE.Color("#0c0a08");
 const CERTIFICATE_LIGHT_RISE=.72;
 const CERTIFICATE_LIGHT_FALL=1.1;
-function CertificateCard({record,texture,index,position,rotation,illuminated,onHover}:{record:CertificateRecord;texture:THREE.Texture;index:number;position:[number,number,number];rotation:number;illuminated:boolean;onHover?:(slug:string)=>void}) {
+function CertificateCard({record,texture,index,position,rotation,illuminated,focused,onSelect}:{record:CertificateRecord;texture:THREE.Texture;index:number;position:[number,number,number];rotation:number;illuminated:boolean;focused:boolean;onSelect?:(slug:string)=>void}) {
   const ref=useRef<THREE.Group>(null);
   const imageMaterialRef=useRef<THREE.MeshBasicMaterial>(null);
   const pinMaterialRef=useRef<THREE.MeshStandardMaterial>(null);
@@ -172,7 +172,7 @@ function CertificateCard({record,texture,index,position,rotation,illuminated,onH
       }
     }
   });
-  return <group ref={ref} position={position} rotation-z={rotation} onPointerOver={()=>{if(!interactive)return;setHovered(true);onHover?.(record.slug);}} onPointerOut={()=>setHovered(false)} onClick={(event)=>{if(!interactive)return;event.stopPropagation();window.open(record.url,"_blank","noopener,noreferrer");}}>
+  return <group ref={ref} position={position} rotation-z={rotation} onPointerOver={()=>{if(interactive)setHovered(true);}} onPointerOut={()=>setHovered(false)} onClick={(event)=>{if(!interactive)return;event.stopPropagation();if(focused)window.open(record.url,"_blank","noopener,noreferrer");else onSelect?.(record.slug);}}>
     <RoundedBox args={[.51,.405,.04]} radius={.018} castShadow>
       <meshStandardMaterial color="#241f1a" metalness={.15} roughness={.58}/>
     </RoundedBox>
@@ -180,6 +180,7 @@ function CertificateCard({record,texture,index,position,rotation,illuminated,onH
       <planeGeometry args={[.455,.334]}/>
       <meshBasicMaterial ref={imageMaterialRef} map={texture} color={initialImageColor} toneMapped={false}/>
     </mesh>
+    {focused&&<Suspense fallback={null}><FullCertificateImage image={record.image}/></Suspense>}
     <mesh position={[0,.217,.014]} castShadow>
       <cylinderGeometry args={[.018,.018,.026,12]}/>
       <meshStandardMaterial ref={pinMaterialRef} color={initialPinColor} metalness={.72} roughness={.3}/>
@@ -191,22 +192,33 @@ function CertificateCard({record,texture,index,position,rotation,illuminated,onH
   </group>;
 }
 
-export function Shelf({illuminated=false,onCertificateHover}:{illuminated?:boolean;onCertificateHover?:(slug:string)=>void}) {
-  const textures=useTexture(CERTIFICATE_IMAGES);
+function FullCertificateImage({image}:{image:string}){
+  const source=useTexture(withSceneBasePath(`/certificates/${image}`));
+  const texture=useMemo(()=>{const configured=source.clone();configured.colorSpace=THREE.SRGBColorSpace;configured.anisotropy=8;configured.needsUpdate=true;return configured;},[source]);
+  useEffect(()=>()=>texture.dispose(),[texture]);
+  return <mesh position={[0,0,.024]}><planeGeometry args={[.455,.334]}/><meshBasicMaterial map={texture} toneMapped={false}/></mesh>;
+}
+
+function CertificateGallery({illuminated,focusedSlug,onCertificateSelect}:{illuminated:boolean;focusedSlug:string|null;onCertificateSelect?:(slug:string)=>void}){
+  const textures=useTexture(CERTIFICATE_THUMBNAILS);
   textures.forEach((texture)=>{texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=8;});
+  return <>{CERTIFICATE_LAYOUT.map(({index,x,y,rotation})=><CertificateCard key={CERTIFICATES[index].image} record={CERTIFICATES[index]} texture={textures[index]} index={index} position={[x,y,.35]} rotation={rotation} illuminated={illuminated} focused={focusedSlug===CERTIFICATES[index].slug} onSelect={onCertificateSelect}/>)}</>;
+}
+
+export function Shelf({illuminated=false,focusedSlug=null,onCertificateSelect}:{illuminated?:boolean;focusedSlug?:string|null;onCertificateSelect?:(slug:string)=>void}) {
   return <group position={[-3.8,2,-3.63]}>
     <mesh position={[0,0,-.31]} receiveShadow><boxGeometry args={[2.45,3.5,.08]}/><meshStandardMaterial color={C.woodEdge} roughness={.82}/></mesh>
     {[-1.7,-.85,0,.85,1.7].map(y=><mesh key={y} position={[0,y,0]} castShadow><boxGeometry args={[2.45,.1,.68]}/><meshStandardMaterial color={C.wood}/></mesh>)}
     {[-1.15,1.15].map(x=><mesh key={x} position={[x,0,0]} castShadow><boxGeometry args={[.1,3.5,.68]}/><meshStandardMaterial color={C.woodEdge}/></mesh>)}
     {[-1.275,-.425,.425,1.275].map(y=><mesh key={y} position={[0,y,.305]}><boxGeometry args={[2.15,.025,.035]}/><meshStandardMaterial color="#8b6c45" metalness={.5} roughness={.4}/></mesh>)}
-    {CERTIFICATE_LAYOUT.map(({index,x,y,rotation})=><CertificateCard key={CERTIFICATES[index].image} record={CERTIFICATES[index]} texture={textures[index]} index={index} position={[x,y,.35]} rotation={rotation} illuminated={illuminated} onHover={onCertificateHover}/>) }
+    <Suspense fallback={null}><CertificateGallery illuminated={illuminated} focusedSlug={focusedSlug} onCertificateSelect={onCertificateSelect}/></Suspense>
   </group>;
 }
 
 const WALL_IMAGES = ["arrival.jpg", "her.jpg", "interstellar.jpg", "matrix.jpg"]
   .map((image) => withSceneBasePath(`/wall/${image}`));
 
-export function Posters() {
+function PosterImages(){
   const textures = useTexture(WALL_IMAGES);
   textures.forEach((texture, index) => {
     const sourceAspect = index === 0 ? 1920 / 1200 : index === 3 ? 598 / 362 : 728 / 410;
@@ -220,15 +232,19 @@ export function Posters() {
       texture.offset.set(0, (1 - texture.repeat.y) / 2);
     }
   });
+  return <>{[-2.13,-.71,.71,2.13].map((x,i)=><mesh key={WALL_IMAGES[i]} position={[x,0,.035]}><planeGeometry args={[1.18,.67]}/><meshStandardMaterial map={textures[i]} roughness={.82} toneMapped/></mesh>)}</>;
+}
+
+export function Posters() {
   return <group position={[2.55,3,-3.84]}>
     <group position={[0,.67,.08]}>
       <RoundedBox args={[.92,.075,.12]} radius={.035} castShadow><meshStandardMaterial color="#343231" metalness={.28} roughness={.55}/></RoundedBox>
       <mesh position={[0,-.03,-.12]}><boxGeometry args={[.08,.08,.22]}/><meshStandardMaterial color="#292827" metalness={.2} roughness={.6}/></mesh>
     </group>
-    {[-2.13,-.71,.71,2.13].map((x,i)=><group key={WALL_IMAGES[i]} position={[x,0,0]}>
+    {[-2.13,-.71,.71,2.13].map((x)=><group key={x} position={[x,0,0]}>
       <mesh castShadow><boxGeometry args={[1.3,.79,.06]}/><meshStandardMaterial color="#151413" roughness={.72}/></mesh>
-      <mesh position={[0,0,.035]}><planeGeometry args={[1.18,.67]}/><meshStandardMaterial map={textures[i]} roughness={.82} toneMapped/></mesh>
     </group>)}
+    <Suspense fallback={null}><PosterImages/></Suspense>
   </group>;
 }
 

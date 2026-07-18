@@ -1,21 +1,18 @@
 "use client";
-/* eslint-disable react-hooks/refs -- Leva callbacks intentionally invoke the imperative navigation engine. */
-
-import { button, folder, useControls } from "leva";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback,useEffect,useRef,useState } from "react";
 import { createWebStoragePersistence } from "@denk/cinematic-navigation/persistence";
-import { CAMERA_TARGETS } from "./cameraTargets";
 import { getAdjacentShot, getFocusDirectionForKey, isTrackpadPinchOut } from "./cameraNavigation";
 import type { CameraNavigationState, FocusCollectionId, FocusDirection, NavigationLocation, SceneId } from "./navigationTypes";
 import { getAdjacentScene, locationForScene, SCENE_REGISTRY, sceneForCameraTarget } from "./sceneRegistry";
 import { createPortfolioNavigationEngine, fromEngineLocation, toEngineLocation } from "./portfolioEngine";
-import { SHOT_REGISTRY } from "./shotRegistry";
 import type { ShotId } from "./shotTypes";
 
 type InitialNavigation=ShotId|NavigationLocation;
 interface NavigationEngineOptions {onNavigate?:(location:NavigationLocation)=>void}
 const locationFromTarget=(target:ShotId):NavigationLocation=>({sceneId:sceneForCameraTarget(target),focusCollectionId:null,focusItemId:null,cameraTarget:target});
 const normalizeLocation=(value:InitialNavigation)=>typeof value==="string"?locationFromTarget(value):value;
+const CAMERA_DEFAULTS={pauseTransitions:false,openingDuration:13.5,openingHold:2.4,fadeDuration:3.2,transitionSpeed:1,breathingEnabled:true,breathingStrength:1,breathingSpeed:1,overshootStrength:.018,nearClip:.1,farClip:45,targetHelpers:false,navigationDebug:false};
+const DEFAULT_TUNING:Record<string,unknown>={};
 
 interface GuidedInputSystem {selectedScene:SceneId;selectedFocusCollection:FocusCollectionId|null;selectedFocusItem:string|null;focusNeighbor:(direction:FocusDirection)=>string|null;cameraState:React.MutableRefObject<{introComplete:boolean;isTransitioning?:boolean}>}
 const guidedInputDestination=(system:GuidedInputSystem,direction:-1|1)=>system.selectedFocusCollection?(direction>0?getAdjacentScene(system.selectedScene,1):system.selectedScene):getAdjacentScene(system.selectedScene,direction);
@@ -82,7 +79,7 @@ export function usePrefersReducedMotion(){
 export function useCinematicNavigation(initialValue:InitialNavigation=locationForScene("about"),directEntry=false,options:NavigationEngineOptions={}){
   const onNavigate=options.onNavigate;
   const reducedMotion=usePrefersReducedMotion();
-  const [introVersion,setIntroVersion]=useState(0),[skipVersion,setSkipVersion]=useState(0),[workspaceVersion,setWorkspaceVersion]=useState(0);
+  const [introVersion,setIntroVersion]=useState(0),[skipVersion,setSkipVersion]=useState(0);
   const [focusVersion,setFocusVersion]=useState(0);
   const routeLocation=normalizeLocation(initialValue);
   const initialRequested=directEntry?routeLocation:locationForScene("about");
@@ -122,18 +119,9 @@ export function useCinematicNavigation(initialValue:InitialNavigation=locationFo
 
   useEffect(()=>{if(requestedLocation.sceneId!=="opening")stateRef.current.lastVisitedScene=requestedLocation.sceneId;},[requestedLocation]);
 
-  const controls=useControls("Camera System",{
-    Navigation:folder({selectedTarget:{value:initialRequested.cameraTarget,options:Object.keys(SHOT_REGISTRY),onChange:(value:string)=>goToCameraTarget(value as ShotId)},replayOpening:button(()=>setIntroVersion((value)=>value+1)),skipOpening:button(()=>setSkipVersion((value)=>value+1)),returnToWorkspace:button(()=>setWorkspaceVersion((value)=>value+1)),pauseTransitions:false}),
-    Opening:folder({openingDuration:{value:13.5,min:8,max:18,step:.1},openingHold:{value:2.4,min:0,max:5,step:.1},fadeDuration:{value:3.2,min:.2,max:7,step:.1}}),
-    Motion:folder({transitionSpeed:{value:1,min:.35,max:2,step:.05},breathingEnabled:true,breathingStrength:{value:1,min:0,max:3,step:.05},breathingSpeed:{value:1,min:.25,max:2,step:.05},overshootStrength:{value:.018,min:0,max:.08,step:.002}}),
-    Lens:folder({cameraFov:{value:37,min:24,max:65,step:1},nearClip:{value:.1,min:.03,max:1,step:.01},farClip:{value:45,min:15,max:100,step:1}}),
-    Debug:folder({targetHelpers:false,navigationDebug:false}),
-  });
-  const tuningSchema=useMemo(()=>Object.fromEntries(Object.values(CAMERA_TARGETS).map((target)=>[target.label,folder({[`${target.id}Position`]:{value:{x:target.position[0],y:target.position[1],z:target.position[2]},step:.01},[`${target.id}LookAt`]:{value:{x:target.lookAt[0],y:target.lookAt[1],z:target.lookAt[2]},step:.01},[`${target.id}Fov`]:{value:target.fov,min:24,max:65,step:1},[`${target.id}Duration`]:{value:target.duration,min:.3,max:12,step:.1}},{collapsed:true})])),[]);
-  const tuning=useControls("Shot Framing",tuningSchema as never) as Record<string,unknown>;
   const resumeLastVisitedScene=()=>{const result=engine.restoreLastVisitedScene();if(!result)return null;const location=fromEngineLocation(result);requestLocation(location);onNavigate?.(location);return location.sceneId;};
 
-  return {...controls,engine,selectedTarget:requestedLocation.cameraTarget,selectedShot:requestedLocation.cameraTarget,selectedScene:requestedLocation.sceneId,selectedFocusCollection:requestedLocation.focusCollectionId,selectedFocusItem:requestedLocation.focusItemId,requestedShot:requestedLocation.cameraTarget,requestedLocation,navigateTo:goToCameraTarget,goToShot:goToCameraTarget,goToScene,enterFocus,previewFocus,exitFocus,nextScene,previousScene,nextFocus:()=>moveFocus(1),previousFocus:()=>moveFocus(-1),focusNeighbor,syncRoute,getCurrentScene:()=>stateRef.current.sceneId,getCurrentFocus:()=>stateRef.current.focusItemId,getCurrentShot:()=>stateRef.current.currentTarget,getPreviousShot:()=>getAdjacentShot(stateRef.current.currentTarget,-1),getNextShot:()=>getAdjacentShot(stateRef.current.currentTarget,1),resumeLastVisitedScene,resumeLastVisitedShot:resumeLastVisitedScene,replayIntro:()=>setIntroVersion((value)=>value+1),skipIntro:()=>setSkipVersion((value)=>value+1),cameraState:stateRef,introVersion,skipVersion,workspaceVersion,focusVersion,reducedMotion,directEntry,tuning};
+  return {...CAMERA_DEFAULTS,engine,selectedTarget:requestedLocation.cameraTarget,selectedShot:requestedLocation.cameraTarget,selectedScene:requestedLocation.sceneId,selectedFocusCollection:requestedLocation.focusCollectionId,selectedFocusItem:requestedLocation.focusItemId,requestedShot:requestedLocation.cameraTarget,requestedLocation,navigateTo:goToCameraTarget,goToShot:goToCameraTarget,goToScene,enterFocus,previewFocus,exitFocus,nextScene,previousScene,nextFocus:()=>moveFocus(1),previousFocus:()=>moveFocus(-1),focusNeighbor,syncRoute,getCurrentScene:()=>stateRef.current.sceneId,getCurrentFocus:()=>stateRef.current.focusItemId,getCurrentShot:()=>stateRef.current.currentTarget,getPreviousShot:()=>getAdjacentShot(stateRef.current.currentTarget,-1),getNextShot:()=>getAdjacentShot(stateRef.current.currentTarget,1),resumeLastVisitedScene,resumeLastVisitedShot:resumeLastVisitedScene,replayIntro:()=>setIntroVersion((value)=>value+1),skipIntro:()=>setSkipVersion((value)=>value+1),cameraState:stateRef,introVersion,skipVersion,workspaceVersion:0,focusVersion,reducedMotion,directEntry,tuning:DEFAULT_TUNING};
 }
 
 /** @deprecated Use useCinematicNavigation. */

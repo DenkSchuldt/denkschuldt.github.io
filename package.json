@@ -11,7 +11,8 @@
     "build": "npm run build:navigation && npm run build:site",
     "build:site": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext build",
     "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
-    "test": "npm run build && node --test tests/*.test.mjs",
+    "test": "npm run build && npm run test:performance && node --test tests/*.test.mjs",
+    "test:performance": "node scripts/check-performance-budget.mjs",
     "build:navigation": "tsc -p packages/cinematic-navigation/tsconfig.build.json",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern packages/cinematic-navigation/dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate"

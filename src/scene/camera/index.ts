@@ -1,9 +1,8 @@
 export { CameraRig } from "./CameraRig";
 export { CameraController } from "./CameraController";
-export { CameraLocationLabel } from "./CameraLocationLabel";
 export { ShotHelpers, CameraTargetHelpers } from "./CameraTargetHelper";
 export { CinematicFade } from "./CinematicFade";
-export { MobileCameraNavigation } from "./MobileCameraNavigation";
+export { SceneNavigation } from "./SceneNavigation";
 export { NavigationDebugPanel } from "./NavigationDebugPanel";
 export { useCinematicNavigation, useCinematicShots, useCinematicCamera, useCameraKeyboardNavigation, useCameraTapNavigation, useCameraPinchNavigation, type CinematicNavigationSystem } from "./useCinematicCamera";
 export * from "./cameraTypes";
