@@ -3,7 +3,7 @@
 import { Canvas } from "@react-three/fiber";
 import { lazy,Suspense,useCallback,useEffect,useState } from "react";
 import * as THREE from "three";
-import type { SceneSettings } from "./Scene";
+import { Scene,type SceneSettings } from "./Scene";
 import { CinematicFade } from "./camera/CinematicFade";
 import { NavigationDebugPanel } from "./camera/NavigationDebugPanel";
 import { SceneNavigation } from "./camera/SceneNavigation";
@@ -18,7 +18,6 @@ import { DEFAULT_RENDER_ISOLATION } from "./rendering/renderIsolation";
 import { RENDERING_INTENT } from "./rendering/renderingIntent";
 import { POEMS_FOLDER_LAYOUT } from "./sceneLayout";
 
-const Scene=lazy(()=>import("./Scene").then((module)=>({default:module.Scene})));
 const RenderingDiagnosticsProbe=lazy(()=>import("./diagnostics/RenderingDiagnostics").then((module)=>({default:module.RenderingDiagnosticsProbe})));
 const RenderingDiagnosticsPanel=lazy(()=>import("./diagnostics/RenderingDiagnostics").then((module)=>({default:module.RenderingDiagnosticsPanel})));
 const SETTINGS:SceneSettings={desk:19,moon:1.05,moonColor:"#91a8c2",bounce:.62,bloom:.08,fog:16.5,exposure:RENDERING_INTENT.renderer.exposure,dof:.45,focusDistance:.02,helpers:false,laptopPosition:[-.55,0,-.28],laptopRotation:-3,folderPosition:POEMS_FOLDER_LAYOUT.position,folderRotation:POEMS_FOLDER_LAYOUT.rotationDegrees,paperPosition:[-2,.518],paperRotation:12,penPosition:[.46,.05],penRotation:78,coffeePosition:[1.18,.175,-.58],plantPosition:[-2.48,1.35,-2.34],plantRotationY:-12,lampPosition:[-1.9,-.07,-.45]};

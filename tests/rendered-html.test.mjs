@@ -71,12 +71,15 @@ test("keeps heavy WebGL resources outside the initial loading boundary",async()=
     readFile(new URL("../src/scene/camera/useCinematicCamera.ts",import.meta.url),"utf8"),
   ]);
   assert.match(shell,/lazy\(\(\)=>import\("@\/src\/scene\/Experience"\)\)/);
-  assert.match(experience,/lazy\(\(\)=>import\("\.\/Scene"\)/);
+  assert.match(experience,/import \{ Scene,type SceneSettings \} from "\.\/Scene"/);
+  assert.doesNotMatch(experience,/lazy\(\(\)=>import\("\.\/Scene"\)/);
   assert.match(scene,/paperAntialiasing=\{cameraSystem\.selectedTarget==="about"\}/);
   assert.match(await readFile(new URL("../src/scene/effects/CinematicEffects.tsx",import.meta.url),"utf8"),/multisampling=\{paperAntialiasing\?RENDERING_INTENT\.postProcessing\.paperMultisampling:0\}/);
   assert.doesNotMatch(scene,/loadCertificates|loadTextures/);
   assert.match(primitives,/<CertificateGallery illuminated=\{illuminated\}/);
   assert.match(primitives,/<PosterImages\/>/);
+  assert.match(primitives,/<PortfolioPhoto materialRef=\{photoMaterialRef\}\/>/);
+  assert.match(primitives,/<Suspense fallback=\{<mesh geometry=\{PORTFOLIO_PHOTO_GEOMETRY\}/);
   assert.match(primitives,/\/certificates\/thumbs\//);
   assert.match(primitives,/\/fonts\/PatrickHand-Regular\.ttf/);
   assert.doesNotMatch(`${experience}\n${camera}`,/from "leva"/);

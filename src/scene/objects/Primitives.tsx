@@ -1,7 +1,7 @@
 "use client";
 import { Capsule, RoundedBox, Text, useCursor, useTexture } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { Suspense,useEffect,useLayoutEffect,useMemo,useRef,useState } from "react";
+import { Suspense,useEffect,useLayoutEffect,useMemo,useRef,useState,type RefObject } from "react";
 import * as THREE from "three";
 import { PALETTE as C } from "../constants";
 import { withSceneBasePath } from "../camera/sceneRoutes";
@@ -277,11 +277,17 @@ export function DeskObjects({coffeePosition,lampPosition,folderPosition,folderRo
   <DeskLamp position={lampPosition} />
 </group> }
 
-function PortfolioPolaroid(){
+function PortfolioPhoto({materialRef}:{materialRef:RefObject<THREE.MeshStandardMaterial|null>}){
   const photo=useTexture(withSceneBasePath("/pinscher.png"));
+  photo.colorSpace=THREE.SRGBColorSpace;photo.anisotropy=8;
+  return <mesh geometry={PORTFOLIO_PHOTO_GEOMETRY} position={[0,.0045,-.022]} rotation-x={-Math.PI/2}>
+    <meshStandardMaterial ref={materialRef} map={photo} emissiveMap={photo} emissive="#ffffff" emissiveIntensity={0} color="#d2c9ba" roughness={.86} metalness={0}/>
+  </mesh>;
+}
+
+function PortfolioPolaroid(){
   const [hovered,setHovered]=useState(false);
   const backingMaterialRef=useRef<THREE.MeshStandardMaterial>(null),photoMaterialRef=useRef<THREE.MeshStandardMaterial>(null);
-  photo.colorSpace=THREE.SRGBColorSpace;photo.anisotropy=8;
   useCursor(hovered);
   useFrame((_,delta)=>{
     if(backingMaterialRef.current)backingMaterialRef.current.emissiveIntensity=THREE.MathUtils.damp(backingMaterialRef.current.emissiveIntensity,hovered?.13:0,5.5,delta);
@@ -294,9 +300,9 @@ function PortfolioPolaroid(){
     <mesh geometry={PORTFOLIO_POLAROID_GEOMETRY} castShadow>
       <meshStandardMaterial ref={backingMaterialRef} color="#d8ceb9" roughness={.92} metalness={0} emissive="#fff3df" emissiveIntensity={0}/>
     </mesh>
-    <mesh geometry={PORTFOLIO_PHOTO_GEOMETRY} position={[0,.0045,-.022]} rotation-x={-Math.PI/2}>
-      <meshStandardMaterial ref={photoMaterialRef} map={photo} emissiveMap={photo} emissive="#ffffff" emissiveIntensity={0} color="#d2c9ba" roughness={.86} metalness={0}/>
-    </mesh>
+    <Suspense fallback={<mesh geometry={PORTFOLIO_PHOTO_GEOMETRY} position={[0,.0045,-.022]} rotation-x={-Math.PI/2}><meshStandardMaterial color="#272522" roughness={.9}/></mesh>}>
+      <PortfolioPhoto materialRef={photoMaterialRef}/>
+    </Suspense>
     <Suspense fallback={null}><Text position={[0,.0052,.126]} rotation-x={-Math.PI/2} fontSize={.024} letterSpacing={.012} font={withSceneBasePath("/fonts/PatrickHand-Regular.ttf")} anchorX="center" anchorY="middle">
       @misterpinscher
       <meshBasicMaterial color="#000000" toneMapped={false}/>
