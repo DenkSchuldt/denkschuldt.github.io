@@ -60,6 +60,8 @@ test("collection focus is explicit and the responsive navigation stays scene-bas
   assert.match(primitives,/intensity=\{initialLightIntensity\}/);
   assert.match(primitives,/<meshStandardMaterial ref=\{imageMaterialRef\} map=\{texture\}/);
   assert.match(css,/@media \(max-width: 1024px\).*\.scene-navigation-target \{ display: none; \}/s);
+  assert.match(css,/@media \(max-width: 640px\).*\.scene-navigation-target \{ display: grid;[^}]*border-radius: 999px/s);
+  assert.match(css,/@media \(max-width: 640px\).*\.scene-navigation-target \.scene-name \{ display: none; \}/s);
 });
 
 test("keeps heavy WebGL resources outside the initial loading boundary",async()=>{
