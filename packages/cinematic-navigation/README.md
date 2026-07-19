@@ -35,10 +35,25 @@ const engine=createCinematicEngine({
 
 engine.goToScene("gallery");
 engine.enterFocus("artworks","one");
-engine.moveFocus("right");
+  engine.moveFocus("right");
 ```
 
+Collections can set `reframeOnFocus:false` when their items are content states
+inside one stable shot (for example, pages in an overhead notebook). Entering
+or moving between those items updates the route and focus state without asking
+the camera driver to reframe. The default remains `true`, which is appropriate
+for collections such as certificates where each item is a separate inspection
+shot.
+
+Collection close/ESC behavior is configured with `exitBehavior`. The default
+`"parent"` exits to the collection's parent Scene; use `"start"` when closing
+the collection should return to the first Scene in `guidedSequence`. The latter
+is useful for collections that should take the visitor completely out of their
+focused experience.
+
 The engine emits intent and state; an injected camera driver owns interpolation. Call `updateTransition()` and `completeTransition()` as the driver advances. Redirection is explicit when a new request arrives during an active transition.
+
+Scenes may declare `revisitTransition` for a different revisit cadence and `returnTransition` for an explicit return from that Scene. The engine tracks completed Scene visits in memory, while `resolveSceneTransition(sceneId)` resolves the base, revisit, or return variant. Visit history intentionally resets when the engine is recreated.
 
 ## Subject binding
 

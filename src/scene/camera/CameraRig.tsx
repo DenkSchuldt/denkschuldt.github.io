@@ -11,6 +11,7 @@ import { getViewportKind, resolveCameraTarget, validateCameraTargets } from "./c
 import type { CameraNavigationState } from "./navigationTypes";
 import { sceneForCameraTarget } from "./sceneRegistry";
 import type { CameraTargetId, ResolvedCameraTarget } from "./cameraTypes";
+import type { ShotTransition } from "./shotTypes";
 
 interface Props {
   requestedTarget: CameraTargetId;
@@ -37,6 +38,7 @@ interface Props {
   stateRef: React.MutableRefObject<CameraNavigationState>;
   onTransitionProgress?:(progress:number)=>void;
   onTransitionComplete?:()=>void;
+  resolveSceneTransition?:(target:CameraTargetId)=>{transition:ShotTransition;revisit:boolean;variant:"base"|"revisit"|"return"}|undefined;
   onResponsiveMode?:(mode:string)=>void;
   onIntroState?:(active:boolean,completed:boolean)=>void;
 }
@@ -176,7 +178,9 @@ export function CameraRig(props: Props) {
       if(isOpeningAboutJourney(activeId.current,props.requestedTarget)||isDrawerOpeningReturn(activeId.current,props.requestedTarget)) {
         const aspect=size.width/size.height;
         const workspace=tuneTarget(resolveCameraTarget(INTRO_PAN_SHOT,aspect),props.tuning,aspect);
-        const duration=isDrawerOpeningReturn(activeId.current,props.requestedTarget)?Math.max(6.5,props.openingDuration*.5):props.openingDuration-props.openingHold;
+        const sceneTransition=props.resolveSceneTransition?.(props.requestedTarget);
+        const usesLibraryVariant=sceneTransition?.variant==="revisit"||sceneTransition?.variant==="return";
+        const duration=isDrawerOpeningReturn(activeId.current,props.requestedTarget)?Math.max(6.5,props.openingDuration*.5):usesLibraryVariant?sceneTransition.transition.duration/props.transitionSpeed:props.openingDuration-props.openingHold;
         beginTransition(props.requestedTarget,now,duration,workspace.position);
       } else beginTransition(props.requestedTarget,now);
     }

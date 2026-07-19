@@ -1,7 +1,8 @@
 export type NavigationId=string;
 export type FocusDirection="left"|"right"|"up"|"down";
+export type FocusExitBehavior="parent"|"start";
 export type TransitionStatus="idle"|"transitioning";
-export type TransitionIntent="scene"|"enter-focus"|"move-focus"|"exit-focus"|"route-sync"|"interrupt";
+export type TransitionIntent="scene"|"return"|"enter-focus"|"move-focus"|"exit-focus"|"route-sync"|"interrupt";
 
 export interface SpatialPosition {x:number;y:number;row?:number;column?:number}
 
@@ -11,6 +12,8 @@ export interface SceneRegistration<TFraming=unknown,TTransition=unknown,TRespons
   cameraTargetId:NavigationId;
   framing:TFraming;
   transition:TTransition;
+  revisitTransition?:TTransition;
+  returnTransition?:TTransition;
   responsive?:TResponsive;
   focusCollectionId?:NavigationId;
   metadata?:Readonly<Record<string,unknown>>;
@@ -31,6 +34,10 @@ export interface FocusCollectionRegistration<TFraming=unknown,TTransition=unknow
   id:NavigationId;
   sceneId:NavigationId;
   cameraTargetId:NavigationId;
+  /** Keep the parent Scene camera when changing items inside this collection. */
+  reframeOnFocus?:boolean;
+  /** Where collection close/exit resolves. `start` returns to the first guided Scene. */
+  exitBehavior?:FocusExitBehavior;
   framing:TFraming;
   transition:TTransition;
   items?:readonly FocusItemRegistration<TFraming,TTransition>[];
@@ -54,12 +61,20 @@ export interface EngineState extends NavigationLocation {
   requestedCameraTargetId:NavigationId;
   previousFocusItemId:null|NavigationId;
   lastVisitedSceneId:null|NavigationId;
+  visitedSceneIds:readonly NavigationId[];
   transitionStatus:TransitionStatus;
   transitionIntent:null|TransitionIntent;
   transitionProgress:number;
   responsiveMode:string;
   introActive:boolean;
   introCompleted:boolean;
+}
+
+export interface SceneTransitionResolution<TTransition=unknown> {
+  sceneId:NavigationId;
+  transition:TTransition;
+  revisit:boolean;
+  variant:"base"|"revisit"|"return";
 }
 
 export interface NavigationRequest extends NavigationLocation {
@@ -101,6 +116,7 @@ export interface CinematicEngine<TFraming=unknown,TTransition=unknown,TResponsiv
   registerFocusItem(collectionId:NavigationId,item:FocusItemRegistration<TFraming,TTransition>):()=>void;
   unregisterFocusItem(collectionId:NavigationId,itemId:NavigationId):void;
   goToScene(sceneId:NavigationId,cameraTargetId?:NavigationId):NavigationLocation|null;
+  returnToScene(sceneId:NavigationId,cameraTargetId?:NavigationId):NavigationLocation|null;
   nextScene():NavigationLocation|null;
   previousScene():NavigationLocation|null;
   enterFocus(collectionId:NavigationId,itemId:NavigationId):NavigationLocation|null;
@@ -115,6 +131,7 @@ export interface CinematicEngine<TFraming=unknown,TTransition=unknown,TResponsiv
   setIntroState(active:boolean,completed:boolean):void;
   restoreLastVisitedScene():NavigationLocation|null;
   getScene(sceneId:NavigationId):SceneRegistration<TFraming,TTransition,TResponsive>|undefined;
+  resolveSceneTransition(sceneId:NavigationId):SceneTransitionResolution<TTransition>|undefined;
   getFocusCollection(collectionId:NavigationId):FocusCollectionRegistration<TFraming,TTransition>|undefined;
   getFocusItem(collectionId:NavigationId,itemId:NavigationId):FocusItemRegistration<TFraming,TTransition>|undefined;
   getState():Readonly<EngineState>;

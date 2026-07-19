@@ -8,11 +8,11 @@ type PortfolioResponsive=Partial<Record<ShotViewport,ShotFramingOverride>>;
 export type PortfolioNavigationEngine=CinematicEngine<ShotFraming,ShotTransition,PortfolioResponsive>;
 
 const scenes=Object.values(SCENE_REGISTRY).map((scene):SceneRegistration<ShotFraming,ShotTransition,PortfolioResponsive>=>({
-  id:scene.id,subjectId:scene.subject,cameraTargetId:scene.cameraTarget,framing:scene.framing,transition:scene.transition,responsive:scene.responsive,focusCollectionId:scene.focusCollection,metadata:{label:scene.label,route:scene.route,cameraFocus:scene.cameraFocus},
+  id:scene.id,subjectId:scene.subject,cameraTargetId:scene.cameraTarget,framing:scene.framing,transition:scene.transition,revisitTransition:scene.revisitTransition,returnTransition:scene.returnTransition,responsive:scene.responsive,focusCollectionId:scene.focusCollection,metadata:{label:scene.label,route:scene.route,cameraFocus:scene.cameraFocus},
 }));
 
 const collections=Object.values(FOCUS_COLLECTIONS).map((collection):FocusCollectionRegistration<ShotFraming,ShotTransition>=>({
-  id:collection.id,sceneId:collection.sceneId,cameraTargetId:collection.cameraTarget,framing:collection.defaultFraming,transition:collection.transition,orderedItemIds:collection.orderedItemIds,allowDynamicItems:collection.allowDynamicItems,metadata:{routePattern:collection.routePattern,cameraFocus:collection.cameraFocus},
+  id:collection.id,sceneId:collection.sceneId,cameraTargetId:collection.cameraTarget,reframeOnFocus:collection.reframeOnFocus,exitBehavior:collection.exitBehavior,framing:collection.defaultFraming,transition:collection.transition,orderedItemIds:collection.orderedItemIds,allowDynamicItems:collection.allowDynamicItems,metadata:{routePattern:collection.routePattern,cameraFocus:collection.cameraFocus},
   items:Object.values(collection.items).map((item)=>({id:item.id,subjectId:item.subject,cameraTargetId:item.cameraTarget,framing:item.framing,transition:item.transition,neighbors:item.neighbors,spatial:item.metadata?.spatial as {x:number;y:number;row?:number;column?:number}|undefined,metadata:{...item.metadata,label:item.label,slug:item.slug,route:item.route,cameraFocus:item.cameraFocus}})),
 }));
 

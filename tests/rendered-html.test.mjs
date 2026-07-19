@@ -14,7 +14,7 @@ test("server-renders the cinematic experience shell",async()=>{
   assert.equal(response.status,200);
   assert.match(response.headers.get("content-type")??"",/^text\/html\b/i);
   const html=await response.text();
-  assert.match(html,/<title>Cinematic Playground<\/title>/i);
+  assert.match(html,/<title>Denny K\. Schuldt<\/title>/i);
   assert.match(html,/class="experience-shell"/);
   assert.match(html,/<canvas/);
   assert.match(html,/class="scene-navigation"/);
@@ -98,7 +98,7 @@ test("keeps the cinematic shell and fallback scoped",async()=>{
   assert.match(shell,/<Experience initialPath=\{initialPath\}\/>/);
   assert.match(shell,/className="grain"/);
   assert.match(shell,/className="fallback"/);
-  assert.match(layout,/title:\s*"Cinematic Playground"/);
+  assert.match(layout,/title:\s*"Denny K\. Schuldt"/);
   assert.match(css,/\.experience-shell\s*\{[^}]*position:\s*fixed/);
   assert.match(css,/\.fallback\s*\{[^}]*clip-path:\s*inset\(50%\)/);
   assert.match(css,/canvas\s*\{\s*touch-action:\s*none/);

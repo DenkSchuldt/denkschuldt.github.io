@@ -4,7 +4,7 @@ import { createContext, createElement, useContext, useEffect, useSyncExternalSto
 import type { CinematicEngine, EngineState, FocusCollectionRegistration, FocusItemRegistration, SceneRegistration } from "../core/index.js";
 
 const EngineContext=createContext<CinematicEngine|undefined>(undefined);
-const serverSnapshot:EngineState={sceneId:"",focusCollectionId:null,focusItemId:null,cameraTargetId:"",requestedSceneId:"",requestedFocusCollectionId:null,requestedFocusItemId:null,requestedCameraTargetId:"",previousFocusItemId:null,lastVisitedSceneId:null,transitionStatus:"idle",transitionIntent:null,transitionProgress:1,responsiveMode:"desktop",introActive:false,introCompleted:true};
+const serverSnapshot:EngineState={sceneId:"",focusCollectionId:null,focusItemId:null,cameraTargetId:"",requestedSceneId:"",requestedFocusCollectionId:null,requestedFocusItemId:null,requestedCameraTargetId:"",previousFocusItemId:null,lastVisitedSceneId:null,visitedSceneIds:[],transitionStatus:"idle",transitionIntent:null,transitionProgress:1,responsiveMode:"desktop",introActive:false,introCompleted:true};
 
 export function CinematicEngineProvider({engine,children}:PropsWithChildren<{engine:CinematicEngine}>){return createElement(EngineContext.Provider,{value:engine},children);}
 export function useCinematicEngine(){const engine=useContext(EngineContext);if(!engine)throw new Error("useCinematicEngine must be used inside CinematicEngineProvider.");return engine;}

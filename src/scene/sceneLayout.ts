@@ -4,6 +4,20 @@ export const POEMS_FOLDER_LAYOUT={
   worldCenter:[1.35,1.2775,-1.18] as [number,number,number],
 } as const;
 
+const POEMS_ROTATION_RADIANS=POEMS_FOLDER_LAYOUT.rotationDegrees*Math.PI/180;
+export const POEMS_PAGE_LAYOUT={
+  worldCenter:[
+    POEMS_FOLDER_LAYOUT.worldCenter[0]+Math.cos(POEMS_ROTATION_RADIANS)*.43,
+    POEMS_FOLDER_LAYOUT.worldCenter[1]+.03,
+    POEMS_FOLDER_LAYOUT.worldCenter[2]-Math.sin(POEMS_ROTATION_RADIANS)*.43,
+  ] as [number,number,number],
+  mobileReadingTarget:[
+    POEMS_FOLDER_LAYOUT.worldCenter[0]+Math.cos(POEMS_ROTATION_RADIANS)*.4,
+    POEMS_FOLDER_LAYOUT.worldCenter[1]+.03,
+    POEMS_FOLDER_LAYOUT.worldCenter[2]-Math.sin(POEMS_ROTATION_RADIANS)*.4,
+  ] as [number,number,number],
+} as const;
+
 export const PHONE_LAYOUT={
   localPosition:[-.55,-.047,.77] as [number,number,number],
   rotationDegrees:33,
@@ -15,10 +29,17 @@ export const PHONE_LAYOUT={
 } as const;
 
 export function poemsAlignedCameraPosition(height:number,groundDistance:number):[number,number,number]{
-  const angle=POEMS_FOLDER_LAYOUT.rotationDegrees*Math.PI/180;
   return [
-    POEMS_FOLDER_LAYOUT.worldCenter[0]+Math.sin(angle)*groundDistance,
+    POEMS_FOLDER_LAYOUT.worldCenter[0]+Math.sin(POEMS_ROTATION_RADIANS)*groundDistance,
     height,
-    POEMS_FOLDER_LAYOUT.worldCenter[2]+Math.cos(angle)*groundDistance,
+    POEMS_FOLDER_LAYOUT.worldCenter[2]+Math.cos(POEMS_ROTATION_RADIANS)*groundDistance,
+  ];
+}
+
+export function poemsPageCameraPosition(height:number,groundDistance:number):[number,number,number]{
+  return [
+    POEMS_PAGE_LAYOUT.mobileReadingTarget[0]+Math.sin(POEMS_ROTATION_RADIANS)*groundDistance,
+    height,
+    POEMS_PAGE_LAYOUT.mobileReadingTarget[2]+Math.cos(POEMS_ROTATION_RADIANS)*groundDistance,
   ];
 }

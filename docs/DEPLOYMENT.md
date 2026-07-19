@@ -127,6 +127,43 @@ git status --short --branch
 
 El árbol debe quedar limpio y sincronizado con `origin/revamp`.
 
+## Publicar poemas
+
+Los poemas viven en `public/poems` dentro de la rama `revamp`. Cada poema debe
+tener esta estructura:
+
+```text
+public/poems/YYYY-MM-DD/
+  poem.md
+  image.jpg
+```
+
+Ambos archivos son obligatorios. `image.*` acepta `avif`, `gif`, `jpg`, `jpeg`,
+`png` o `webp`. La carpeta define la fecha y el orden; la aplicación muestra
+primero la fecha más reciente. El frontmatter de `poem.md` debe incluir un
+`slug:` único y estable y un `lang:` válido. Ese valor genera `/poems/:slug`,
+además de la página HTML y metadata Open Graph utilizadas al compartir el
+enlace.
+
+Publicación desde `revamp`:
+
+```sh
+git add public/poems
+git commit -m "Add poem YYYY-MM-DD"
+git push origin revamp
+```
+
+El build descubre automáticamente las carpetas válidas y genera un manifiesto
+liviano, las rutas estáticas, previews, JSON-LD, `sitemap.xml`, un feed Atom,
+`llms.txt` y `robots.txt`. El cuerpo no se incluye en el manifiesto: el cliente
+carga el `poem.md` activo y precarga solamente sus vecinos. Como GitHub Pages no
+ejecuta un servidor, cada poema nuevo requiere build y deploy para que su URL y
+preview existan.
+
+La publicación mantiene el copyright del autor. Indexación y descubrimiento no
+equivalen a una licencia para copiar, redistribuir, traducir o crear obras
+derivadas; cualquier licencia de reutilización debe elegirse explícitamente.
+
 ## Diagnóstico de fallos conocidos
 
 ### `npm ci` indica que `package.json` y `package-lock.json` no coinciden
@@ -203,4 +240,3 @@ handoff esperado producido por el grupo de concurrencia `pages`.
 - [ ] `/hidden/` responde 200.
 - [ ] Una ruta interna de `/hidden` responde 200.
 - [ ] Working tree limpio.
-

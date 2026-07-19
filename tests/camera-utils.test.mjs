@@ -8,7 +8,7 @@ import { parseScenePath, pathForShot } from "../src/scene/camera/sceneRoutes.ts"
 import { CERTIFICATES, CERTIFICATE_LAYOUT, getCertificateFocusBySlug } from "../src/scene/objects/certificates.ts";
 import { FOCUS_COLLECTIONS, getAdjacentFocus, getAdjacentScene, getFocusNeighbor, GUIDED_SCENE_IDS, locationForFocus, locationForScene, SCENE_REGISTRY } from "../src/scene/camera/sceneRegistry.ts";
 import { pathForFocus, pathForScene, resolveNavigationPath, STATIC_FOCUS_ROUTES } from "../src/scene/camera/sceneRoutes.ts";
-import { PHONE_LAYOUT, POEMS_FOLDER_LAYOUT } from "../src/scene/sceneLayout.ts";
+import { PHONE_LAYOUT, POEMS_FOLDER_LAYOUT, POEMS_PAGE_LAYOUT } from "../src/scene/sceneLayout.ts";
 
 test("cinematic easing preserves exact endpoints", () => {
   assert.equal(cinematicEase(0), 0);
@@ -199,6 +199,8 @@ test("Scene definitions own camera framing without changing About",()=>{
   assert.equal(SCENE_REGISTRY.about.responsive.mobile.roll,0);
   assert.equal(SCENE_REGISTRY.about.responsive.tablet,undefined);
   assert.equal(SCENE_REGISTRY.about.transition.duration,4.3);
+  assert.equal(SCENE_REGISTRY.about.revisitTransition.duration,4.8);
+  assert.equal(SCENE_REGISTRY.about.returnTransition.duration,4.8);
   assert.equal(SCENE_REGISTRY.about.cameraFocus.depthOfFieldStrength,0);
 });
 
@@ -216,6 +218,13 @@ test("Poems camera remains centered on and aligned with the writing portfolio",(
   const verticalDistance=framing.position[1]-framing.lookAt[1];
   assert.ok(Math.atan2(offsetLength,verticalDistance)<10*Math.PI/180);
   assert.equal(SCENE_REGISTRY.poems.cameraFocus.depthOfFieldStrength,0);
+  assert.equal(locationForFocus("poems","a-poet-lives").cameraTarget,"poems");
+  const mobile=resolveShot("poems",.6).framing;
+  assert.equal(mobile.roll,undefined);
+  assert.equal(mobile.fov,37);
+  assert.deepEqual(mobile.lookAt,POEMS_PAGE_LAYOUT.mobileReadingTarget);
+  assert.equal(mobile.composition,"single readable poem page with notebook spine context");
+  assert.ok(mobile.position[1]<SCENE_REGISTRY.poems.responsive.tablet.position[1]);
 });
 
 test("Phone framing remains centered on the device at inspection distance",()=>{

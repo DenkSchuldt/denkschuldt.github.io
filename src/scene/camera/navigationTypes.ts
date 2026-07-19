@@ -1,3 +1,4 @@
+import type { FocusExitBehavior } from "@denk/cinematic-navigation";
 import type { ShotFocus, ShotFraming, ShotFramingOverride, ShotId, ShotTransition, ShotViewport } from "./shotTypes.ts";
 
 export type SceneId="opening"|"about"|"certificates"|"projects"|"wall"|"phone"|"poems"|"drawer";
@@ -13,6 +14,8 @@ export interface SceneDefinition {
   framing:ShotFraming;
   cameraFocus:ShotFocus;
   transition:ShotTransition;
+  revisitTransition?:ShotTransition;
+  returnTransition?:ShotTransition;
   responsive?:Partial<Record<ShotViewport,ShotFramingOverride>>;
   focusCollection?:FocusCollectionId;
   autoAdvance?:{to:SceneId;delay:number};
@@ -37,6 +40,8 @@ export interface FocusCollectionDefinition {
   sceneId:SceneId;
   routePattern:string;
   cameraTarget:ShotId;
+  reframeOnFocus?:boolean;
+  exitBehavior?:FocusExitBehavior;
   defaultFraming:ShotFraming;
   cameraFocus:ShotFocus;
   transition:ShotTransition;

@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import { lazy,Suspense,useCallback,useEffect,useState } from "react";
+import { lazy,Suspense,useCallback,useEffect,useMemo,useState } from "react";
 import * as THREE from "three";
 import { Scene,type SceneSettings } from "./Scene";
 import { CinematicFade } from "./camera/CinematicFade";
@@ -17,6 +17,8 @@ import type { RenderingDiagnosticsSnapshot } from "./diagnostics/RenderingDiagno
 import { DEFAULT_RENDER_ISOLATION } from "./rendering/renderIsolation";
 import { RENDERING_INTENT } from "./rendering/renderingIntent";
 import { POEMS_FOLDER_LAYOUT } from "./sceneLayout";
+import { usePoems } from "./content/usePoems";
+import { FOCUS_COLLECTIONS } from "./camera/sceneRegistry";
 
 const RenderingDiagnosticsProbe=lazy(()=>import("./diagnostics/RenderingDiagnostics").then((module)=>({default:module.RenderingDiagnosticsProbe})));
 const RenderingDiagnosticsPanel=lazy(()=>import("./diagnostics/RenderingDiagnostics").then((module)=>({default:module.RenderingDiagnosticsPanel})));
@@ -53,7 +55,19 @@ export default function Experience({initialPath="/"}:{initialPath?:string}) {
     else routeNavigate(path);
   },[routeFocusCollection,routeScene,routeNavigate,navigateWithinScene,replaceWithinScene]);
   const cameraSystem=useCinematicNavigation(route,route.directEntry,{onNavigate:commitNavigation});
+  const poemsContent=usePoems(cameraSystem.selectedScene==="poems"?(routeFocusCollection==="poems"?route.slug??"":""):null);
+  const poemNavigationKey=poemsContent.poems.map(({slug,title,date,imageUrl})=>`${slug}\u0000${title}\u0000${date}\u0000${imageUrl??""}`).join("\u0001");
+  const poemNavigationItems=useMemo(()=>poemsContent.poems.map(({slug,title,date,imageUrl})=>({slug,title,date,imageUrl})),[poemNavigationKey]);
   const {syncRoute,goToScene,resumeFromStart,cameraState,introVersion}=cameraSystem;
+  useEffect(()=>{
+    const collection=FOCUS_COLLECTIONS.poems;
+    const unregister=poemNavigationItems.map((poem,index)=>cameraSystem.engine.registerFocusItem("poems",{
+      id:poem.slug,subjectId:`poem:${poem.slug}`,cameraTargetId:"poem-detail",framing:collection.defaultFraming,transition:collection.transition,
+      neighbors:{left:poemNavigationItems[index-1]?.slug,right:poemNavigationItems[index+1]?.slug},
+      spatial:{x:index,y:0,column:index,row:0},metadata:{label:poem.title,route:`/poems/${poem.slug}`,date:poem.date,imageUrl:poem.imageUrl},
+    }));
+    return()=>unregister.forEach((dispose)=>dispose());
+  },[cameraSystem.engine,poemNavigationItems]);
   useEffect(()=>{
     if(!shouldSyncRouteShot(route.path,route.directEntry)) return;
     syncRoute({sceneId:route.sceneId,focusCollectionId:route.focusCollectionId,focusItemId:route.focusItemId,cameraTarget:route.cameraTarget});
@@ -87,7 +101,7 @@ export default function Experience({initialPath="/"}:{initialPath?:string}) {
   const settings=SETTINGS;
   return <div className={`canvas-stage${diagnosticMobileViewport?" diagnostic-mobile-viewport":""}`}>
     <Canvas shadows={renderIsolation.shadows} dpr={RENDERING_INTENT.renderer.dpr} camera={{ position: [-0.72, 1.9, 4.82], fov: 42, near: 0.1, far: 45 }} gl={{ antialias: RENDERING_INTENT.renderer.antialias, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: settings.exposure, powerPreference: RENDERING_INTENT.renderer.powerPreference }}>
-      <Suspense fallback={null}><Scene s={settings} cameraSystem={cameraSystem} certificateSlug={route.slug} renderIsolation={renderIsolation} onReady={onSceneReady}/></Suspense>
+      <Suspense fallback={null}><Scene s={settings} cameraSystem={cameraSystem} certificateSlug={route.slug} poemsContent={poemsContent} renderIsolation={renderIsolation} onReady={onSceneReady}/></Suspense>
       {process.env.NODE_ENV!=="production"&&<Suspense fallback={null}><RenderingDiagnosticsProbe settings={settings} isolation={renderIsolation} stateRef={cameraSystem.cameraState} onSnapshot={setRenderingDiagnostics}/></Suspense>}
     </Canvas>
     <div className={`experience-loading${sceneReady?" is-ready":""}`} role="status" aria-live="polite"><span>Entering workspace</span></div>
