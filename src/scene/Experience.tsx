@@ -164,7 +164,11 @@ export default function Experience({initialPath="/"}:{initialPath?:string}) {
   return <CinematicRuntimeProvider runtime={runtime}>
     <PortfolioRuntimeDeclaration cameraSystem={cameraSystem}/>
     <div className={`canvas-stage${diagnosticMobileViewport?" diagnostic-mobile-viewport":""}${poemReaderOpen?" poem-reader-open":""}`}>
-    <Canvas shadows={renderIsolation.shadows} dpr={RENDERING_INTENT.renderer.dpr} camera={{ position: [-0.72, 1.9, 4.82], fov: 42, near: 0.1, far: 45 }} gl={{ antialias: RENDERING_INTENT.renderer.antialias, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: settings.exposure, powerPreference: RENDERING_INTENT.renderer.powerPreference }}>
+    {/* Use the explicit PCF mode instead of Canvas' boolean default. The
+        boolean form selects THREE.PCFSoftShadowMap, which is deprecated in
+        the installed Three.js version and gets re-applied whenever the
+        experience re-renders. */}
+    <Canvas shadows={renderIsolation.shadows ? "percentage" : false} dpr={RENDERING_INTENT.renderer.dpr} camera={{ position: [-0.72, 1.9, 4.82], fov: 42, near: 0.1, far: 45 }} gl={{ antialias: RENDERING_INTENT.renderer.antialias, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: settings.exposure, powerPreference: RENDERING_INTENT.renderer.powerPreference }}>
       <CinematicRuntimeProvider runtime={runtime}>
         <RuntimeFrameBridge runtime={runtime} paused={poemReaderOpen}/>
         <Suspense fallback={null}><Scene s={settings} cameraSystem={cameraSystem} certificateSlug={route.slug} poemsContent={poemsContent} onPoemRead={openPoemReader} renderIsolation={renderIsolation} onReady={onSceneReady}/></Suspense>
