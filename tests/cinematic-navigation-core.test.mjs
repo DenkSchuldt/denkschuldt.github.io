@@ -63,6 +63,20 @@ test("static Focus collections keep the parent camera while changing items",()=>
   assert.equal(engine.getState().transitionStatus,"idle");
 });
 
+test("clearing a static focus keeps the parent camera stable",()=>{
+  const calls=[];
+  const engine=createEngine({
+    cameraDriver:{start:(request)=>calls.push(["start",request.cameraTargetId]),redirect:(request)=>calls.push(["redirect",request.cameraTargetId]),cancel:()=>{}},
+    focusCollections:[{id:"cards",sceneId:"two",cameraTargetId:"camera:detail",reframeOnFocus:false,framing:{},transition:{},orderedItemIds:["a"],items:[item("a",0,0)]}],
+    initialLocation:{sceneId:"two",focusCollectionId:null,focusItemId:null,cameraTargetId:"camera:two"},
+  });
+  engine.enterFocus("cards","a");
+  calls.length=0;
+  assert.deepEqual(engine.syncLocation({sceneId:"two",focusCollectionId:null,focusItemId:null,cameraTargetId:"camera:two"}),{sceneId:"two",focusCollectionId:null,focusItemId:null,cameraTargetId:"camera:two"});
+  assert.equal(calls.length,0);
+  assert.equal(engine.getState().transitionStatus,"idle");
+});
+
 test("explicit neighbors win and spatial fallback selects the closest candidate",()=>{
   const engine=createCinematicEngine({scenes:[scene("gallery")],focusCollections:[{id:"art",sceneId:"gallery",cameraTargetId:"detail",framing:{},transition:{},items:[item("origin",0,0,{right:"far"}),item("near",1,0),item("far",3,0),item("upper",.1,2)]}],initialLocation:{sceneId:"gallery",focusCollectionId:null,focusItemId:null,cameraTargetId:"camera:gallery"}});
   engine.enterFocus("art","origin");assert.equal(engine.moveFocus("right").focusItemId,"far");

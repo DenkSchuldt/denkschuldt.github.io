@@ -8,6 +8,7 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; }
 .canvas-stage { position: absolute; inset: 0; width: 100%; height: 100%; }
 .canvas-stage.diagnostic-mobile-viewport { inset: 0 auto auto 0; width: 390px; height: 720px; }
 .canvas-stage > div:first-child, .canvas-stage canvas { width: 100% !important; height: 100% !important; }
+.canvas-stage.poem-reader-open > canvas, .canvas-stage.poem-reader-open > div:first-child { pointer-events: none; }
 .grain { position: fixed; inset: 0; pointer-events: none; opacity: .018; z-index: 5; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.75'/%3E%3C/svg%3E"); background-size: 180px 180px; animation: grain .45s steps(2) infinite; }
 .opening-curtain { position: fixed; inset: 0; z-index: 10; pointer-events: none; background: #030303; animation: reveal 3.8s cubic-bezier(.65,0,.35,1) forwards; }
 .cinematic-fade { position: fixed; inset: 0; z-index: 20; pointer-events: none; background: #020202; transition-property: opacity; transition-timing-function: cubic-bezier(.65,0,.35,1); }
@@ -26,12 +27,13 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; }
 .camera-location { grid-column: 2; min-width: 9rem; justify-self: center; overflow: hidden; pointer-events: none; color: rgba(244,239,229,.64); text-align: center; white-space: nowrap; }
 .scene-name { display: block; opacity: 0; filter: blur(2px); transform: translateY(1px); transition: opacity .55s cubic-bezier(.65,0,.35,1),filter .55s cubic-bezier(.65,0,.35,1),transform .65s cubic-bezier(.22,1,.36,1); }
 .scene-name.is-visible { opacity: 1; filter: blur(0); transform: translateY(0); }
-.collection-close { position: fixed; top: max(24px,env(safe-area-inset-top)); left: max(28px,env(safe-area-inset-left)); z-index: 45; display: grid; width: 42px; height: 42px; padding: 0; place-items: center; border: 1px solid rgba(238,233,223,.2); border-radius: 999px; color: rgba(244,239,229,.78); background: rgba(8,8,8,.18); box-shadow: inset 0 1px 0 rgba(255,255,255,.035),0 8px 26px rgba(0,0,0,.18); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); cursor: pointer; transition: color .3s ease, border-color .3s ease, background .3s ease, transform .3s cubic-bezier(.22,1,.36,1); animation: control-in .6s cubic-bezier(.22,1,.36,1) both; }
-.collection-close:hover { color: #fffdf8; border-color: rgba(238,233,223,.38); background: rgba(18,18,17,.28); transform: scale(1.04); }
+.collection-close { position: fixed; top: max(24px,env(safe-area-inset-top)); left: max(28px,env(safe-area-inset-left)); z-index: 45; display: inline-flex; width: auto; min-width: 42px; height: 42px; align-items: center; gap: 9px; padding: 0 10px 0 11px; border: 1px solid rgba(238,233,223,.24); border-radius: 999px; color: rgba(244,239,229,.82); background: rgba(8,8,8,.22); box-shadow: inset 0 1px 0 rgba(255,255,255,.035),0 8px 26px rgba(0,0,0,.18); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); cursor: pointer; transition: color .3s ease, border-color .3s ease, background .3s ease, transform .3s cubic-bezier(.22,1,.36,1); animation: control-in .6s cubic-bezier(.22,1,.36,1) both; }
+.collection-close:hover { color: #fffdf8; border-color: rgba(238,233,223,.42); background: rgba(18,18,17,.3); transform: translateY(-1px); }
 .collection-close:active { transform: scale(.94); }
-.collection-close svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.45; stroke-linecap: round; }
-.collection-close-key { position: absolute; top: 50%; left: calc(100% + 11px); color: rgba(244,239,229,.46); font: 500 8px/1 ui-sans-serif,system-ui,sans-serif; letter-spacing: .18em; text-shadow: 0 1px 12px rgba(0,0,0,.72); transform: translateY(-50%); transition: color .3s ease; }
-.collection-close:hover .collection-close-key { color: rgba(255,253,248,.68); }
+.collection-close svg { width: 18px; height: 18px; flex: 0 0 18px; fill: none; stroke: currentColor; stroke-width: 1.45; stroke-linecap: round; stroke-linejoin: round; }
+.collection-close-label { font: 500 9px/1 ui-sans-serif,system-ui,sans-serif; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+.collection-close-key { padding: 4px 5px 3px; border: 1px solid rgba(244,239,229,.22); border-radius: 5px; color: rgba(244,239,229,.54); font: 500 8px/1 ui-sans-serif,system-ui,sans-serif; letter-spacing: .12em; transition: color .3s ease,border-color .3s ease; }
+.collection-close:hover .collection-close-key { color: rgba(255,253,248,.8); border-color: rgba(255,253,248,.4); }
 .collection-tab-navigation { position: fixed; top: max(25px,env(safe-area-inset-top)); left: 50%; z-index: 14; display: flex; max-width: min(70vw,760px); transform: translateX(-50%); pointer-events: none; }
 .collection-tab-navigation button { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; border: 0; opacity: 0; pointer-events: none; white-space: nowrap; clip-path: inset(50%); }
 .collection-tab-navigation button:focus-visible { position: static; width: auto; height: auto; padding: 9px 13px; overflow: visible; border: 1px solid rgba(238,233,223,.2); border-radius: 999px; color: rgba(244,239,229,.88); background: rgba(8,8,8,.42); opacity: 1; pointer-events: auto; clip-path: none; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); font: 500 9px/1 ui-sans-serif,system-ui,sans-serif; letter-spacing: .14em; text-transform: uppercase; }
@@ -47,11 +49,85 @@ body { font-family: ui-sans-serif, system-ui, sans-serif; }
 .rendering-diagnostics fieldset { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; margin: 0 0 9px; border: 1px solid rgba(255,255,255,.12); }
 .rendering-diagnostics label { display: flex; align-items: center; gap: 5px; }
 .rendering-diagnostics pre { margin: 0; white-space: pre-wrap; word-break: break-word; }
-@media (max-width: 1024px) { .scene-navigation { display: flex; justify-content: center; bottom: max(22px,env(safe-area-inset-bottom)); padding: 0 20px; } .scene-navigation-target { display: none; } .camera-location { font-size: 9px; letter-spacing: .18em; } .collection-close { top: max(18px,env(safe-area-inset-top)); left: max(18px,env(safe-area-inset-left)); } .collection-close-key { display: none; } .collection-tab-navigation { top: max(20px,env(safe-area-inset-top)); max-width: calc(100vw - 120px); } }
+@media (max-width: 1024px) { .scene-navigation { display: flex; justify-content: center; bottom: max(22px,env(safe-area-inset-bottom)); padding: 0 20px; } .scene-navigation-target { display: none; } .camera-location { font-size: 9px; letter-spacing: .18em; } .collection-close { top: max(18px,env(safe-area-inset-top)); left: max(18px,env(safe-area-inset-left)); } .collection-tab-navigation { top: max(20px,env(safe-area-inset-top)); max-width: calc(100vw - 120px); } .poem-reader-header { padding-left: 96px; } }
+@media (max-width: 420px) { .collection-close { gap: 7px; padding-right: 8px; padding-left: 9px; } .collection-close-label { font-size: 8px; letter-spacing: .1em; } .collection-close-key { padding: 4px 4px 3px; font-size: 7px; } }
 @media (max-width: 640px) { .scene-navigation { display: grid; grid-template-columns: 42px minmax(0,1fr) 42px; gap: 14px; padding: 0 max(18px,env(safe-area-inset-right)) 0 max(18px,env(safe-area-inset-left)); } .scene-navigation-target { display: grid; width: 42px; min-height: 42px; padding: 0; place-items: center; border: 1px solid rgba(238,233,223,.22); border-radius: 999px; color: rgba(244,239,229,.72); background: rgba(12,12,12,.16); box-shadow: inset 0 1px 0 rgba(255,255,255,.025),0 8px 24px rgba(0,0,0,.14); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); } .scene-navigation-target .scene-name { display: none; } .scene-navigation-target svg { width: 18px; height: 18px; } .scene-navigation-previous { justify-self: start; } .scene-navigation-next { justify-self: end; } .camera-location { grid-column: 2; min-width: 0; } }
 @media (prefers-reduced-motion: reduce) { .scene-name { transition-duration: .01ms; } }
 .fallback { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .poem-share-preview { position: fixed; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: pre-line; }
+.poem-reader { position: fixed; inset: 0; z-index: 60; color: #201b17; background: #e9e1d5; isolation: isolate; }
+.poem-reader-backdrop { position: absolute; inset: 0; background: radial-gradient(circle at 50% 12%,rgba(255,255,255,.52),transparent 44%),linear-gradient(110deg,#ddd2c3,#f1ece4 48%,#ded3c5); opacity: .96; }
+.poem-reader::after { position: absolute; inset: 0; z-index: 3; background: radial-gradient(ellipse at 50% 44%,rgba(181,59,69,.22),transparent 62%); content: ""; opacity: 0; pointer-events: none; }
+.poem-reader.is-love-feedback::after { animation: poem-warm-hug .9s ease-out both; }
+.poem-reader-shell { position: relative; z-index: 2; display: grid; grid-template-rows: 52px 1fr 52px; width: min(100%,980px); height: 100%; margin: 0 auto; padding: 0 clamp(22px,6vw,84px); animation: poem-reader-shell-in .34s cubic-bezier(.22,1,.36,1) both; }
+.poem-reader-header, .poem-reader-footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 52px; box-sizing: border-box; color: rgba(49,40,33,.64); font: 500 10px/1.2 ui-sans-serif,system-ui,sans-serif; letter-spacing: .16em; text-transform: uppercase; }
+.poem-reader-header { border-bottom: 1px solid rgba(65,50,40,.16); }
+.poem-reader-kicker { margin: 0; }
+.poem-reader-mobile-close { display: none; }
+.poem-reader-close, .poem-reader-share, .poem-reader-footer button { border: 0; color: inherit; background: transparent; font: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; transition: color .25s ease,opacity .25s ease; }
+.poem-reader-close { position: fixed; top: max(14px,env(safe-area-inset-top)); left: max(14px,env(safe-area-inset-left)); z-index: 3; display: grid; width: 34px; height: 34px; padding: 0; place-items: center; border: 1px solid rgba(49,40,33,.52); border-radius: 50%; color: #201b17; background: rgba(49,40,33,.08); }
+.poem-reader-close svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-width: 2; }
+.poem-reader-header-actions { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+.poem-reader-share { margin-left: 0; }
+.poem-reader-love { position: relative; display: grid; width: 32px; height: 32px; padding: 0; place-items: center; border: 0; color: inherit; background: transparent; cursor: pointer; }
+.poem-reader-love svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.35; transition: fill .28s ease,transform .28s cubic-bezier(.22,1,.36,1),stroke-width .28s ease; }
+.poem-reader-love.is-loved { color: #b53b45; }
+.poem-reader-love.is-loved svg { fill: currentColor; stroke-width: 1.1; }
+.poem-reader-love:disabled { cursor: default; opacity: .35; }
+.poem-reader-love:not(:disabled):hover svg { transform: scale(1.1); }
+.poem-reader-love.is-animating svg { animation: poem-heart-pop .68s cubic-bezier(.22,1,.36,1) both; }
+.poem-reader-love.is-animating::after { position: absolute; inset: 3px; border: 1px solid currentColor; border-radius: 50%; content: ""; opacity: 0; animation: poem-heart-ring .68s ease-out both; pointer-events: none; }
+.poem-reader-comment { position: relative; display: grid; width: 32px; height: 32px; padding: 0; place-items: center; border: 0; color: inherit; background: transparent; cursor: pointer; transition: color .25s ease,opacity .25s ease,transform .25s cubic-bezier(.22,1,.36,1); }
+.poem-reader-comment svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.35; }
+.poem-reader-comment:hover:not(:disabled) { color: #17120f; transform: translateY(-1px); }
+.poem-reader-comment:disabled { cursor: default; opacity: .35; }
+.poem-reader-comment.is-sending { opacity: 1; color: #8c4d3d; }
+.poem-reader-comment.is-sending svg { animation: poem-heart-pop .68s cubic-bezier(.22,1,.36,1) both; }
+.poem-reader-comment.is-sending::after { position: absolute; inset: 3px; border: 1px solid currentColor; border-radius: 50%; content: ""; opacity: 0; animation: poem-heart-ring .68s ease-out both; pointer-events: none; }
+.poem-reader-close:hover, .poem-reader-share:hover, .poem-reader-footer button:not(:disabled):hover { color: #17120f; }
+.poem-reader-content { width: 100vw; margin-left: calc(50% - 50vw); padding: clamp(100px,14vh,150px) clamp(22px,6vw,84px) 70px; overflow: auto; outline: none; scrollbar-width: thin; scrollbar-color: rgba(62,48,38,.35) transparent; }
+.poem-reader-content:focus, .poem-reader-content:focus-visible, .poem-reader-body:focus { outline: none; }
+.poem-reader-column { width: min(100%,700px); margin: 0 auto; }
+.poem-reader-date { margin: 0 0 18px; color: rgba(60,48,39,.58); font: 500 11px/1.4 ui-sans-serif,system-ui,sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+.poem-reader-content h1 { margin: 0; color: #211a15; font: 500 clamp(34px,6vw,62px)/1.04 Georgia,"Times New Roman",serif; letter-spacing: -.025em; }
+.poem-reader-rule { width: 54px; height: 1px; margin: 28px 0 42px; background: rgba(58,43,33,.5); }
+.poem-reader-body { color: #2a211b; font: 400 clamp(18px,2.2vw,23px)/1.7 Georgia,"Times New Roman",serif; }
+.poem-reader-body p { margin: 0 0 1.5em; white-space: pre-line; }
+.poem-reader-image { display: block; width: min(100%,560px); height: auto; margin: 48px auto 12px; border-radius: 2px; box-shadow: 0 16px 45px rgba(48,35,25,.18); }
+.poem-reader-status { color: rgba(42,33,27,.64); font: 16px/1.6 Georgia,"Times New Roman",serif; }
+.poem-reader-footer { justify-content: center; gap: clamp(22px,8vw,100px); border-top: 1px solid rgba(65,50,40,.16); }
+.poem-reader-footer button:disabled { cursor: default; opacity: .28; }
+.poem-reader-footer span { min-width: 64px; color: rgba(49,40,33,.5); text-align: center; }
+.poem-comment-dialog { z-index: 80; color: #2a211b; font-family: ui-sans-serif,system-ui,sans-serif; }
+.poem-comment-dialog .dnk-dialog-content-wrapper { box-sizing: border-box; width: 480px; min-width: 480px; padding: 28px 0; }
+.poem-comment-dialog .dnk-dialog-content-wrapper .dnk-dialog-content { width: 480px; min-width: 480px; border: 1px solid rgba(65,50,40,.18); border-radius: 10px; background: #f3ece1; box-shadow: 0 24px 70px rgba(24,17,12,.32); }
+.poem-comment-dialog .dnk-dialog-header { padding: 24px 28px 8px; color: #211a15; font: 500 25px/1.15 Georgia,"Times New Roman",serif; letter-spacing: -.018em; }
+.poem-comment-dialog .dnk-dialog-close { top: 14px; right: 14px; width: 30px; height: 30px; border: 1px solid rgba(49,40,33,.28); background: rgba(49,40,33,.06); box-shadow: none; }
+.poem-comment-dialog .dnk-dialog-close:hover { background: rgba(49,40,33,.14); }
+.poem-comment-dialog .dnk-dialog-close img { width: 12px; height: 12px; }
+.poem-comment-dialog .dnk-dialog-content-wrapper .dnk-dialog-body { min-width: 480px; padding: 12px 28px 26px; }
+.poem-comment-dialog .dnk-dialog-body-buttons { gap: 10px; padding-top: 20px; }
+.poem-comment-dialog .dnk-dialog-body-buttons button { min-height: 36px; padding: 9px 15px; border: 1px solid rgba(65,50,40,.28); border-radius: 999px; color: #2a211b; background: transparent; font: 500 10px/1 ui-sans-serif,system-ui,sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+.poem-comment-dialog .dnk-dialog-body-buttons .dnk-btn-primary { border-color: #2a211b; color: #f3ece1; background: #2a211b; }
+.poem-comment-dialog .dnk-dialog-body-buttons .dnk-btn-primary:disabled { border-color: rgba(65,50,40,.16); color: rgba(60,48,39,.38); background: rgba(65,50,40,.08); box-shadow: none; cursor: default; }
+.poem-comment-dialog.is-sending { pointer-events: none; animation: poem-comment-backdrop-fade .72s ease-out both; }
+.poem-comment-dialog.is-sending .dnk-dialog-content-wrapper { pointer-events: none; animation: poem-comment-send .72s cubic-bezier(.22,1,.36,1) both; }
+.poem-comment-form { display: grid; gap: 10px; }
+.poem-comment-form label { color: rgba(60,48,39,.74); font: 500 10px/1.3 ui-sans-serif,system-ui,sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+.poem-comment-form textarea { width: 100%; min-height: 132px; resize: vertical; padding: 12px 13px; border: 1px solid rgba(65,50,40,.24); border-radius: 8px; outline: none; color: #2a211b; background: rgba(255,255,255,.48); font: 17px/1.5 Georgia,"Times New Roman",serif; }
+.poem-comment-form textarea:focus { border-color: rgba(65,50,40,.62); box-shadow: 0 0 0 3px rgba(65,50,40,.08); }
+.poem-comment-form textarea::placeholder { color: rgba(60,48,39,.45); }
+.poem-comment-status { margin: 0; color: rgba(60,48,39,.58); font: 11px/1.45 ui-sans-serif,system-ui,sans-serif; }
+.poem-comment-status { color: #6d4738; }
+@keyframes poem-reader-shell-in { from { transform: translateY(10px) scale(.992); } to { transform: translateY(0) scale(1); } }
+@keyframes poem-heart-pop { 0% { transform: scale(.76) rotate(-8deg); } 38% { transform: scale(1.25) rotate(4deg); } 68% { transform: scale(.94) rotate(-1deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes poem-heart-ring { 0% { transform: scale(.45); opacity: .55; } 100% { transform: scale(1.65); opacity: 0; } }
+@keyframes poem-warm-hug { 0% { opacity: 0; transform: scale(.975); } 24% { opacity: .92; transform: scale(1); } 58% { opacity: .46; transform: scale(1.008); } 100% { opacity: 0; transform: scale(1); } }
+@keyframes poem-comment-send { 0% { opacity: 1; transform: translate(0,0) scale(1); } 52% { opacity: .94; transform: translate(calc(var(--comment-send-x,0px) * .58),calc(var(--comment-send-y,0px) * .58)) scale(.58); } 100% { opacity: 0; transform: translate(var(--comment-send-x,0px),var(--comment-send-y,0px)) scale(var(--comment-send-scale,.1)); } }
+@keyframes poem-comment-backdrop-fade { 0% { background-color: rgba(0,0,0,.6); } 100% { background-color: rgba(0,0,0,0); } }
+@media (max-width: 1024px) { .poem-reader-close { display: none; } .poem-reader-header { padding-left: 0; justify-content: flex-start; gap: 12px; } .poem-reader-mobile-close { display: grid; flex: 0 0 34px; width: 34px; height: 34px; padding: 0; place-items: center; border: 1px solid rgba(49,40,33,.52); border-radius: 50%; color: #201b17; background: rgba(49,40,33,.08); cursor: pointer; } .poem-reader-mobile-close svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-width: 2; } .poem-reader-kicker { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } }
+@media (max-width: 640px) { .poem-reader-shell { padding-right: 20px; padding-left: 20px; } .poem-reader-content { padding-top: 72px; padding-right: 32px; padding-bottom: 40px; padding-left: 32px; } .poem-reader-header, .poem-reader-footer { font-size: 9px; } .poem-reader-body { font-size: 19px; line-height: 1.62; } .poem-comment-dialog .dnk-dialog-content-wrapper { width: min(480px,calc(100vw - 36px)); min-width: min(480px,calc(100vw - 36px)); padding: 18px 0; } .poem-comment-dialog .dnk-dialog-content-wrapper .dnk-dialog-content { width: min(480px,calc(100vw - 36px)); min-width: min(480px,calc(100vw - 36px)); } .poem-comment-dialog .dnk-dialog-content-wrapper .dnk-dialog-body { min-width: min(480px,calc(100vw - 36px)); } .poem-comment-dialog .dnk-dialog-header { padding: 21px 22px 8px; font-size: 22px; } .poem-comment-dialog .dnk-dialog-body { padding: 12px 22px 22px; } }
+@media (prefers-reduced-motion: reduce) { .scene-name { transition-duration: .01ms; } .poem-reader-shell, .poem-reader-love.is-animating svg, .poem-reader-love.is-animating::after, .poem-reader.is-love-feedback::after, .poem-reader-comment.is-sending svg, .poem-reader-comment.is-sending::after, .poem-comment-dialog.is-sending, .poem-comment-dialog.is-sending .dnk-dialog-content-wrapper { animation: none; } }
 @keyframes reveal { 0%,22% { opacity: 1 } 100% { opacity: 0 } }
 @keyframes grain { 0% { background-position: 0 0 } 25% { background-position: 1px -1px } 50% { background-position: -1px 1px } 75% { background-position: 1px 1px } }
 @keyframes control-in { from { opacity: 0; transform: scale(.92) } to { opacity: 1; transform: scale(1) } }

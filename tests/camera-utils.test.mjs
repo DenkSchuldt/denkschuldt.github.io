@@ -180,6 +180,14 @@ test("certificate detail URLs restore an exact shelf focus", () => {
   assert.equal(getCertificateFocusBySlug("missing-certificate"),null);
 });
 
+test("dynamic poem URLs restore the requested poem focus", () => {
+  const route=parseScenePath("/poems/the-strategy-of-the-mystery");
+  assert.equal(route.focusCollectionId,"poems");
+  assert.equal(route.focusItemId,"the-strategy-of-the-mystery");
+  assert.equal(route.slug,"the-strategy-of-the-mystery");
+  assert.equal(route.shot,"poems");
+});
+
 test("guided Scenes preserve the cinematic order and Drawer loop",()=>{
   assert.deepEqual(GUIDED_SCENE_IDS,["opening","about","certificates","projects","wall","phone","poems","drawer"]);
   for(let index=0;index<GUIDED_SCENE_IDS.length-1;index++)assert.equal(getAdjacentScene(GUIDED_SCENE_IDS[index],1),GUIDED_SCENE_IDS[index+1]);

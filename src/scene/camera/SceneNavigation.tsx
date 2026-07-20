@@ -74,8 +74,9 @@ export function SceneNavigation({selectedScene,selectedFocusCollection,selectedF
         <FadingSceneName label={next?SCENE_REGISTRY[next].label:""}/><Arrow direction="right"/>
       </button>
     </nav>
-    {selectedFocusCollection&&<button type="button" className="collection-close" aria-label="Close collection" onClick={()=>onExitFocus()}>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5"/></svg>
+    {selectedFocusCollection&&<button type="button" className="collection-close" aria-label={`Exit ${collection?.label??"collection"} collection`} aria-keyshortcuts="Escape" title={`Exit ${collection?.label??"collection"} collection (ESC)`} onClick={()=>onExitFocus()}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg>
+      <span className="collection-close-label">Exit {collection?.label??"collection"}</span>
       <span className="collection-close-key" aria-hidden="true">ESC</span>
     </button>}
     {collection&&collection.orderedItemIds.length>0&&<nav className="collection-tab-navigation" aria-label={`${SCENE_REGISTRY[current].label} collection`}>

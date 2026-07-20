@@ -14,7 +14,7 @@ const CinematicEffects=lazy(()=>import("./effects/CinematicEffects"));
 
 export interface SceneSettings { desk:number; moon:number; moonColor:string; bounce:number; bloom:number; fog:number; exposure:number; dof:number; focusDistance:number; helpers:boolean; laptopPosition:[number,number,number]; laptopRotation:number; folderPosition:[number,number]; folderRotation:number; paperPosition:[number,number]; paperRotation:number; penPosition:[number,number]; penRotation:number; coffeePosition:[number,number,number]; plantPosition:[number,number,number]; plantRotationY:number; lampPosition:[number,number,number] }
 
-export function Scene({s,cameraSystem,certificateSlug,poemsContent,renderIsolation=DEFAULT_RENDER_ISOLATION,onReady}:{s:SceneSettings;cameraSystem:CinematicNavigationSystem;certificateSlug?:string;poemsContent:PoemsContentState;renderIsolation?:RenderIsolationState;onReady?:()=>void}) {
+export function Scene({s,cameraSystem,certificateSlug,poemsContent,onPoemRead,renderIsolation=DEFAULT_RENDER_ISOLATION,onReady}:{s:SceneSettings;cameraSystem:CinematicNavigationSystem;certificateSlug?:string;poemsContent:PoemsContentState;onPoemRead:()=>void;renderIsolation?:RenderIsolationState;onReady?:()=>void}) {
   const focusRef=useRef(s.focusDistance);
   const [effectsReady,setEffectsReady]=useState(false);
   const certificateFocusRef=useRef<CertificateFocus|null>(getCertificateFocusBySlug(certificateSlug));
@@ -22,7 +22,6 @@ export function Scene({s,cameraSystem,certificateSlug,poemsContent,renderIsolati
     certificateFocusRef.current=getCertificateFocusBySlug(slug);
     cameraSystem.enterFocus("certificates",slug);
   };
-  const focusPoem=(slug:string)=>cameraSystem.enterFocus("poems",slug);
   useEffect(()=>{if(cameraSystem.selectedFocusCollection!=="certificates")certificateFocusRef.current=null;},[cameraSystem.selectedFocusCollection]);
   useLayoutEffect(()=>{
     if(cameraSystem.selectedFocusCollection!=="certificates")return;
@@ -34,7 +33,7 @@ export function Scene({s,cameraSystem,certificateSlug,poemsContent,renderIsolati
   <fog attach="fog" args={["#111216", 7, s.fog]} />
   <Lighting desk={s.desk} moon={s.moon} moonColor={s.moonColor} bounce={s.bounce} fillEnabled={renderIsolation.fillLighting} shadowsEnabled={renderIsolation.shadows} />
   <CameraController system={cameraSystem} focusRef={focusRef} certificateFocusRef={certificateFocusRef} />
-  <Room /><Desk /><Laptop position={s.laptopPosition} rotation={s.laptopRotation} /><DeskObjects coffeePosition={s.coffeePosition} lampPosition={s.lampPosition} folderPosition={s.folderPosition} folderRotation={s.folderRotation} paperPosition={s.paperPosition} paperRotation={s.paperRotation} penPosition={s.penPosition} penRotation={s.penRotation} phoneActive={cameraSystem.selectedScene==="phone"} poemsActive={cameraSystem.selectedScene==="poems"} poemsContent={poemsContent} activePoemSlug={cameraSystem.selectedFocusCollection==="poems"?cameraSystem.selectedFocusItem:null} onPoemSelect={focusPoem} /><Chair /><Shelf illuminated={cameraSystem.selectedScene==="certificates"} focusedSlug={cameraSystem.selectedFocusCollection==="certificates"?cameraSystem.selectedFocusItem:null} onCertificateSelect={focusCertificate} /><Posters/><Plant position={s.plantPosition} rotationY={s.plantRotationY} />
+  <Room /><Desk /><Laptop position={s.laptopPosition} rotation={s.laptopRotation} /><DeskObjects coffeePosition={s.coffeePosition} lampPosition={s.lampPosition} folderPosition={s.folderPosition} folderRotation={s.folderRotation} paperPosition={s.paperPosition} paperRotation={s.paperRotation} penPosition={s.penPosition} penRotation={s.penRotation} phoneActive={cameraSystem.selectedScene==="phone"} poemsActive={cameraSystem.selectedScene==="poems"} poemsContent={poemsContent} activePoemSlug={cameraSystem.selectedFocusCollection==="poems"?cameraSystem.selectedFocusItem:null} onPoemRead={onPoemRead} /><Chair /><Shelf illuminated={cameraSystem.selectedScene==="certificates"} focusedSlug={cameraSystem.selectedFocusCollection==="certificates"?cameraSystem.selectedFocusItem:null} onCertificateSelect={focusCertificate} /><Posters/><Plant position={s.plantPosition} rotationY={s.plantRotationY} />
   <DebugHelpers visible={s.helpers} />
   {effectsReady&&<Suspense fallback={null}><CinematicEffects s={s} focusRef={focusRef} readingMode={cameraSystem.selectedScene==="about"||cameraSystem.selectedScene==="certificates"||cameraSystem.cameraState.current.introActive} paperAntialiasing={cameraSystem.selectedTarget==="about"} isolation={renderIsolation}/></Suspense>}
 </>; }

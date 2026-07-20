@@ -53,6 +53,18 @@ focused experience.
 
 The engine emits intent and state; an injected camera driver owns interpolation. Call `updateTransition()` and `completeTransition()` as the driver advances. Redirection is explicit when a new request arrives during an active transition.
 
+## Runtime lifecycle
+
+`createCinematicRuntime(engine)` consumes the engine's state and derives lifecycle phases for persistent world nodes, Scenes, Focus Collections, and Focus Items. It does not create a second navigation model. Register update work with the runtime scheduler so sleeping nodes stop receiving frame callbacks:
+
+```ts
+const runtime=createCinematicRuntime(engine);
+runtime.registerNode({id:"collection:art",scope:"collection",sceneId:"gallery",collectionId:"art"});
+runtime.registerTask({id:"art-light",nodeId:"collection:art",update:({delta})=>updateLight(delta)});
+```
+
+The React entry point provides `CinematicRuntimeProvider`, `useRuntimeNode`, `useRuntimeTask`, and `RuntimeBoundary`. The R3F entry point provides `RuntimeFrameBridge`, which is the single render-loop bridge for scheduler work. Persistent nodes remain mounted; lazy nodes can be disposed while sleeping and remounted when their Scene or Focus becomes relevant.
+
 Scenes may declare `revisitTransition` for a different revisit cadence and `returnTransition` for an explicit return from that Scene. The engine tracks completed Scene visits in memory, while `resolveSceneTransition(sceneId)` resolves the base, revisit, or return variant. Visit history intentionally resets when the engine is recreated.
 
 ## Subject binding

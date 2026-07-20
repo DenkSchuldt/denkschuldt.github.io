@@ -10,7 +10,7 @@ export interface PoemsContentState {
   error:string|null;
 }
 
-export function usePoems(activeSlug:string|null):PoemsContentState {
+export function usePoems(activeSlug:string|null,enabled=false):PoemsContentState {
   const [state,setState]=useState<PoemsContentState>({poems:[],loading:true,error:null});
   const loadingSlugs=useRef(new Set<string>());
   useEffect(()=>{
@@ -19,7 +19,7 @@ export function usePoems(activeSlug:string|null):PoemsContentState {
     return()=>{active=false;};
   },[]);
   useEffect(()=>{
-    if(activeSlug===null||!state.poems.length)return;
+    if(!enabled||!state.poems.length)return;
     const requestedIndex=activeSlug?state.poems.findIndex(({slug})=>slug===activeSlug):0;
     const index=requestedIndex>=0?requestedIndex:0;
     const targets=[index,index-1,index+1].map((target)=>state.poems[target]).filter((poem):poem is PoemRecord=>Boolean(poem&&!poem.body&&!loadingSlugs.current.has(poem.slug)));
@@ -37,6 +37,6 @@ export function usePoems(activeSlug:string|null):PoemsContentState {
       setState((current)=>({...current,error:error??current.error,poems:current.poems.map((candidate)=>loaded.get(candidate.slug)??candidate)}));
     });
     return()=>{active=false;};
-  },[activeSlug,state.poems]);
+  },[activeSlug,enabled,state.poems]);
   return state;
 }

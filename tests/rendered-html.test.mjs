@@ -39,7 +39,8 @@ test("collection focus is explicit and the responsive navigation stays scene-bas
     readFile(new URL("../app/globals.css",import.meta.url),"utf8"),
   ]);
   assert.match(navigation,/onFocus=\{\(\)=>\{if\(!active\)onEnterFocus/);
-  assert.match(navigation,/aria-label="Close collection"/);
+  assert.match(navigation,/aria-label=\{`Exit \$\{collection\?\.label\?\?"collection"\} collection`\}/);
+  assert.match(navigation,/aria-keyshortcuts="Escape"/);
   assert.doesNotMatch(navigation,/event\.key!=="Escape"/);
   const camera=await readFile(new URL("../src/scene/camera/useCinematicCamera.ts",import.meta.url),"utf8");
   assert.match(camera,/isReturnToStartKey\(event\.key\).*system\.returnToStart\(\)/s);

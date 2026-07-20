@@ -1,7 +1,8 @@
 "use client";
 import { Capsule, RoundedBox, Text, useCursor, useTexture } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { Suspense,useEffect,useLayoutEffect,useMemo,useRef,useState,type RefObject } from "react";
+import { useRuntimeSnapshot, useRuntimeTask } from "@denk/cinematic-navigation/react";
+import { Suspense,useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState,type RefObject } from "react";
 import * as THREE from "three";
 import { PALETTE as C } from "../constants";
 import { withSceneBasePath } from "../camera/sceneRoutes";
@@ -137,8 +138,6 @@ const PORTFOLIO_LEATHER_MATERIAL=new THREE.MeshStandardMaterial({color:"#38231a"
 const PORTFOLIO_LINING_MATERIAL=new THREE.MeshStandardMaterial({color:"#211b18",roughness:.92,metalness:0});
 const PORTFOLIO_PAPER_MATERIAL=new THREE.MeshStandardMaterial({color:"#d8ceb9",roughness:.92,metalness:0});
 const PORTFOLIO_METAL_MATERIAL=new THREE.MeshStandardMaterial({color:"#7a7771",roughness:.38,metalness:.72});
-const PORTFOLIO_TURNED_PAGE_DIM_COLOR=new THREE.Color("#15110d");
-const PORTFOLIO_TURNED_PAGE_ACTIVE_COLOR=new THREE.Color("#e6dcc7");
 const PORTFOLIO_COVER_GEOMETRY=new THREE.ExtrudeGeometry(roundedRectangleShape(.84,.78,.055),{depth:.045,steps:1,curveSegments:2,bevelEnabled:true,bevelSegments:1,bevelSize:.01,bevelThickness:.01});
 PORTFOLIO_COVER_GEOMETRY.center();PORTFOLIO_COVER_GEOMETRY.rotateX(-Math.PI/2);PORTFOLIO_COVER_GEOMETRY.computeVertexNormals();
 const PORTFOLIO_LINING_GEOMETRY=new THREE.ShapeGeometry(roundedRectangleShape(.77,.71,.045),1);
@@ -148,6 +147,7 @@ PORTFOLIO_POCKET_GEOMETRY.center();PORTFOLIO_POCKET_GEOMETRY.rotateX(-Math.PI/2)
 const PORTFOLIO_PAGE_GEOMETRY=new THREE.ExtrudeGeometry(roundedRectangleShape(.72,.7,.025),{depth:.007,steps:1,curveSegments:2,bevelEnabled:true,bevelSegments:1,bevelSize:.003,bevelThickness:.003});
 PORTFOLIO_PAGE_GEOMETRY.center();PORTFOLIO_PAGE_GEOMETRY.rotateX(-Math.PI/2);PORTFOLIO_PAGE_GEOMETRY.computeVertexNormals();
 const PORTFOLIO_PAGE_SURFACE_GEOMETRY=new THREE.PlaneGeometry(.704,.682);
+const POEM_READ_CUE_GEOMETRY=new THREE.ShapeGeometry(roundedRectangleShape(.28,.08,.04),8);
 const PORTFOLIO_RING_GEOMETRY=new THREE.TorusGeometry(.032,.007,4,8,Math.PI*1.75);
 // Small washers make the paper-to-ring connection legible at the close reading shot.
 // They sit on the top sheet only; the real binding is carried by the low-poly torus rings.
@@ -163,7 +163,6 @@ const PORTFOLIO_POLAROID_GEOMETRY=new THREE.BoxGeometry(.34,.008,.4);
 const PORTFOLIO_PHOTO_GEOMETRY=new THREE.PlaneGeometry(.27,.285);
 const PORTFOLIO_SLOT_GEOMETRY=new THREE.BoxGeometry(.32,.01,.045);
 const PORTFOLIO_PULL_GEOMETRY=new THREE.BoxGeometry(.06,.012,.026);
-const PORTFOLIO_PAGE_TURN_GEOMETRY=new THREE.PlaneGeometry(.2,.15);
 const ARCHITECTURAL_WOOD_MATERIAL=new THREE.MeshStandardMaterial({color:"#39271d",roughness:.78,metalness:0,vertexColors:true});
 const ARCHITECTURAL_PANEL_GEOMETRY=new THREE.BoxGeometry(1,1,1);
 const ARCHITECTURAL_BASEBOARD_GEOMETRY=(()=>{
@@ -291,10 +290,10 @@ export function Laptop({position,rotation}:{position:[number,number,number];rota
   </group>;
 }
 
-export function DeskObjects({coffeePosition,lampPosition,folderPosition,folderRotation,paperPosition,paperRotation,penPosition,penRotation,phoneActive,poemsActive,poemsContent,activePoemSlug,onPoemSelect}:{coffeePosition:[number,number,number];lampPosition:[number,number,number];folderPosition:[number,number];folderRotation:number;paperPosition:[number,number];paperRotation:number;penPosition:[number,number];penRotation:number;phoneActive:boolean;poemsActive:boolean;poemsContent:PoemsContentState;activePoemSlug:string|null;onPoemSelect:(slug:string)=>unknown}) { return <group position={[0,1.31,-1.5]}>
+export function DeskObjects({coffeePosition,lampPosition,folderPosition,folderRotation,paperPosition,paperRotation,penPosition,penRotation,phoneActive,poemsActive,poemsContent,activePoemSlug,onPoemRead}:{coffeePosition:[number,number,number];lampPosition:[number,number,number];folderPosition:[number,number];folderRotation:number;paperPosition:[number,number];paperRotation:number;penPosition:[number,number];penRotation:number;phoneActive:boolean;poemsActive:boolean;poemsContent:PoemsContentState;activePoemSlug:string|null;onPoemRead:()=>void}) { return <group position={[0,1.31,-1.5]}>
   <PaperAndPen position={paperPosition} rotation={paperRotation} penPosition={penPosition} penRotation={penRotation} />
   <Phone active={phoneActive}/>
-  <PoemsPortfolio position={folderPosition} rotation={folderRotation} active={poemsActive} poemsContent={poemsContent} activePoemSlug={activePoemSlug} onPoemSelect={onPoemSelect}/>
+  <PoemsPortfolio position={folderPosition} rotation={folderRotation} active={poemsActive} poemsContent={poemsContent} activePoemSlug={activePoemSlug} onRead={onPoemRead}/>
   <Coffee position={coffeePosition}/>
   <DeskLamp position={lampPosition} />
 </group> }
@@ -307,18 +306,20 @@ function PortfolioPhoto({materialRef}:{materialRef:RefObject<THREE.MeshStandardM
   </mesh>;
 }
 
-function PortfolioPolaroid(){
+function PortfolioPolaroid({active}:{active:boolean}){
   const [hovered,setHovered]=useState(false);
   const backingMaterialRef=useRef<THREE.MeshStandardMaterial>(null),photoMaterialRef=useRef<THREE.MeshStandardMaterial>(null);
-  useCursor(hovered);
-  useFrame((_,delta)=>{
-    if(backingMaterialRef.current)backingMaterialRef.current.emissiveIntensity=THREE.MathUtils.damp(backingMaterialRef.current.emissiveIntensity,hovered?.13:0,5.5,delta);
-    if(photoMaterialRef.current)photoMaterialRef.current.emissiveIntensity=THREE.MathUtils.damp(photoMaterialRef.current.emissiveIntensity,hovered?.15:0,5.5,delta);
-  });
+  const update=useCallback(({delta}:{delta:number})=>{
+    const target=active&&hovered;
+    if(backingMaterialRef.current)backingMaterialRef.current.emissiveIntensity=THREE.MathUtils.damp(backingMaterialRef.current.emissiveIntensity,target?.13:0,5.5,delta);
+    if(photoMaterialRef.current)photoMaterialRef.current.emissiveIntensity=THREE.MathUtils.damp(photoMaterialRef.current.emissiveIntensity,target?.15:0,5.5,delta);
+  },[active,hovered]);
+  useRuntimeTask({id:"task:poems-polaroid",nodeId:"collection:poems",priority:20,update});
+  useCursor(active&&hovered);
   return <group position={[-.445,.045,.045]} rotation-y={.09}
-    onPointerOver={(event)=>{event.stopPropagation();setHovered(true);}}
+    onPointerOver={(event)=>{if(!active)return;event.stopPropagation();setHovered(true);}}
     onPointerOut={()=>setHovered(false)}
-    onClick={(event)=>{event.stopPropagation();window.open("https://www.instagram.com/misterpinscher/","_blank","noopener,noreferrer");}}>
+    onClick={(event)=>{if(!active)return;event.stopPropagation();window.open("https://www.instagram.com/misterpinscher/","_blank","noopener,noreferrer");}}>
     <mesh geometry={PORTFOLIO_POLAROID_GEOMETRY} castShadow>
       <meshStandardMaterial ref={backingMaterialRef} color="#d8ceb9" roughness={.92} metalness={0} emissive="#fff3df" emissiveIntensity={0}/>
     </mesh>
@@ -332,251 +333,106 @@ function PortfolioPolaroid(){
   </group>;
 }
 
-const POEM_PAGE_FONT_SIZE=28;
-const POEM_PAGE_BODY_TOP=184;
-const POEM_PAGE_BODY_HEIGHT=820;
+const POEM_PREVIEW_FONT_SIZE=34;
 
-interface PoemPage {poem:PoemRecord;poemIndex:number;pageIndex:number;pageNumber:number;body:string;}
-
-function wrapPoemLines(context:CanvasRenderingContext2D,body:string,fontSize:number,maxWidth:number){
-  context.font=`${fontSize}px Georgia, "Times New Roman", serif`;
-  const wrapped:string[]=[];
-  for(const sourceLine of body.split("\n")){
-    const words=sourceLine.trim().split(/\s+/).filter(Boolean);
-    if(!words.length){wrapped.push("");continue;}
-    let line="";
-    for(const word of words){
-      const candidate=line?`${line} ${word}`:word;
-      if(line&&context.measureText(candidate).width>maxWidth){wrapped.push(line);line=word;}
-      else line=candidate;
-    }
-    if(line)wrapped.push(line);
-  }
-  return wrapped;
-}
-
-function paginatePoem(poem:PoemRecord,poemIndex:number):PoemPage[]{
-  const canvas=document.createElement("canvas");
-  const context=canvas.getContext("2d");
-  if(!context)return [{poem,poemIndex,pageIndex:0,pageNumber:1,body:poem.body}];
-  const lines=wrapPoemLines(context,poem.body,POEM_PAGE_FONT_SIZE,868);
-  const lineHeight=POEM_PAGE_FONT_SIZE*1.18;
-  const blankLineHeight=POEM_PAGE_FONT_SIZE*.62;
-  const linesPerPage=Math.max(1,Math.floor(POEM_PAGE_BODY_HEIGHT/lineHeight));
-  const pages:PoemPage[]=[];
-  let cursor=0,pageIndex=0;
-  while(cursor<lines.length||pageIndex===0){
-    let height=0,end=cursor;
-    while(end<lines.length){
-      const nextHeight=height+(lines[end]?lineHeight:blankLineHeight);
-      if(end>cursor&&nextHeight>POEM_PAGE_BODY_HEIGHT)break;
-      height=nextHeight;end+=1;
-    }
-    if(end===cursor)end=Math.min(cursor+linesPerPage,lines.length);
-    pages.push({poem,poemIndex,pageIndex,pageNumber:pageIndex+1,body:lines.slice(cursor,end).join("\n")});
-    cursor=end;pageIndex+=1;
-  }
-  return pages;
-}
-
-function createPoemPageTexture(page:PoemPage|null){
+function createPoemPreviewTexture(poem:PoemRecord|null){
   const canvas=document.createElement("canvas");canvas.width=1024;canvas.height=1160;
   const context=canvas.getContext("2d");if(!context)return null;
   context.fillStyle="#eee4cf";context.fillRect(0,0,canvas.width,canvas.height);
-  context.textBaseline="top";context.fillStyle="#17130f";context.font='600 62px Georgia, "Times New Roman", serif';
-  context.fillText(page?.poem.title??"Poems",78,72,868);
+  context.textBaseline="top";context.fillStyle="#17130f";context.font='600 72px Georgia, "Times New Roman", serif';
+  context.fillText(poem?.title??"Poems",78,72,868);
   context.fillStyle="#332a23";context.fillRect(78,150,54,2);
-  if(page?.body){
-    context.font=`${POEM_PAGE_FONT_SIZE}px Georgia, "Times New Roman", serif`;context.fillStyle="#211a15";
-    let y=POEM_PAGE_BODY_TOP;
-    for(const line of page.body.split("\n")){if(!line){y+=POEM_PAGE_FONT_SIZE*.62;continue;}context.fillText(line,78,y);y+=POEM_PAGE_FONT_SIZE*1.18;}
+  if(poem?.body){
+    context.font=`${POEM_PREVIEW_FONT_SIZE}px Georgia, "Times New Roman", serif`;context.fillStyle="#211a15";
+    const paragraphs=poem.body.split(/\n{2,}/).map((paragraph)=>paragraph.replace(/\s+/g," ").trim()).filter(Boolean);
+    const lines:string[]=[];
+    for(const paragraph of paragraphs){
+      const words=paragraph.split(" ");let line="";
+      for(const word of words){
+        const candidate=line?`${line} ${word}`:word;
+        if(line&&context.measureText(candidate).width>868){lines.push(line);line=word;}
+        else line=candidate;
+      }
+      if(line)lines.push(line);
+      lines.push("");
+    }
+    if(lines.at(-1)==="")lines.pop();
+    const visibleLines=lines.slice(0,8);
+    if(lines.length>visibleLines.length&&visibleLines.length)visibleLines[visibleLines.length-1]=`${visibleLines[visibleLines.length-1].replace(/[.…]+$/g,"")}…`;
+    visibleLines.forEach((line,index)=>context.fillText(line,78,190+index*POEM_PREVIEW_FONT_SIZE*1.3));
+  } else {
+    context.fillStyle="#6f6257";context.font='27px Georgia, "Times New Roman", serif';context.fillText("Select a poem to read",78,194);
   }
-  if(page){
-    context.textAlign="right";context.fillStyle="#706356";context.font='22px Georgia, "Times New Roman", serif';
-    context.fillText(`${page.poem.date}  ·  ${page.pageNumber}`,946,1090);
+  if(poem){
+    context.textAlign="right";context.textBaseline="top";context.fillStyle="#706356";context.font='24px Georgia, "Times New Roman", serif';
+    context.fillText(`${poem.date}  ·  Click to read`,946,1090);
   }
   const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=8;texture.needsUpdate=true;return texture;
 }
 
-function usePoemPageTexture(page:PoemPage|null){
+function usePoemPreviewTexture(poem:PoemRecord|null){
   const [texture,setTexture]=useState<THREE.CanvasTexture|null>(null);
   useEffect(()=>{
-    const next=createPoemPageTexture(page);setTexture(next);
+    const next=createPoemPreviewTexture(poem);setTexture(next);
     return()=>next?.dispose();
-  },[page?.poem.slug,page?.pageIndex,page?.body]);
+  },[poem?.slug,poem?.title,poem?.body,poem?.date]);
   return texture;
 }
 
-function PoemPageTurn({position,label,onSelect}:{position:[number,number,number];label:string;onSelect:()=>void}){
-  const [hovered,setHovered]=useState(false);
-  useCursor(hovered);
-  return <group position={position}
-    onPointerOver={(event)=>{event.stopPropagation();setHovered(true);}}
-    onPointerOut={()=>setHovered(false)}
-    onClick={(event)=>{event.stopPropagation();onSelect();}}>
-    <mesh geometry={PORTFOLIO_PAGE_TURN_GEOMETRY} rotation-x={-Math.PI/2}>
-      <meshBasicMaterial transparent opacity={0} depthWrite={false}/>
+function PoemReadCue({active,hovered,onHover,onRead}:{active:boolean;hovered:boolean;onHover:(value:boolean)=>void;onRead:()=>void}){
+  const groupRef=useRef<THREE.Group>(null),backgroundRef=useRef<THREE.MeshBasicMaterial>(null),labelRef=useRef<THREE.MeshBasicMaterial>(null);
+  useRuntimeTask({id:"task:poems-read-cue",nodeId:"collection:poems",priority:6,update:({delta})=>{
+    const group=groupRef.current,background=backgroundRef.current,label=labelRef.current;
+    if(group){const target=active?(hovered?1.08:1):.92;group.scale.x=THREE.MathUtils.damp(group.scale.x,target,7,delta);group.scale.y=THREE.MathUtils.damp(group.scale.y,target,7,delta);}
+    if(background)background.opacity=THREE.MathUtils.damp(background.opacity,active?(hovered?.98:.88):0,6,delta);
+    if(label)label.opacity=THREE.MathUtils.damp(label.opacity,active?(hovered?1:.92):0,6,delta);
+  }});
+  return <group ref={groupRef} visible={active} position={[.395,.078,.205]} rotation-x={-Math.PI/2}
+    onPointerOver={(event)=>{event.stopPropagation();onHover(true);}}
+    onPointerOut={()=>onHover(false)}
+    onClick={(event)=>{event.stopPropagation();onRead();}}>
+    <mesh geometry={POEM_READ_CUE_GEOMETRY}>
+      <meshBasicMaterial ref={backgroundRef} color="#2b211b" transparent opacity={0} depthWrite={false}/>
     </mesh>
-    <Suspense fallback={null}><Text rotation-x={-Math.PI/2} position={[0,.001,0]} fontSize={.042} font={withSceneBasePath("/fonts/PatrickHand-Regular.ttf")} anchorX="center" anchorY="middle">
-      {label}<meshBasicMaterial color={hovered?"#17120f":"#51473d"} toneMapped={false}/>
-    </Text></Suspense>
+    <Text position={[0,0,.004]} fontSize={.022} letterSpacing={.045} anchorX="center" anchorY="middle">
+      READ POEMS
+      <meshBasicMaterial ref={labelRef} color="#f4ecdf" transparent opacity={0} depthWrite={false}/>
+    </Text>
   </group>;
 }
 
-interface PortfolioPageTurnState {page:PoemPage;direction:-1|1;complete:boolean;}
-
-function PortfolioPoemPage({poem,index,active,onCurrent,previous,next,onSelect}:{poem:PoemRecord|null;index:number;active:boolean;onCurrent?:()=>void;previous?:{poem:PoemRecord;index:number};next?:{poem:PoemRecord;index:number};onSelect:(page:PoemPage)=>void}){
-  const pages=useMemo(()=>poem?paginatePoem(poem,index):[],[poem?.slug,poem?.body,index]);
-  const previousPages=useMemo(()=>previous?paginatePoem(previous.poem,previous.index):[],[previous?.poem.slug,previous?.poem.body,previous?.index]);
-  const nextPages=useMemo(()=>next?paginatePoem(next.poem,next.index):[],[next?.poem.slug,next?.poem.body,next?.index]);
-  const [pageIndex,setPageIndex]=useState(0);
-  const currentPage=pages[Math.min(pageIndex,Math.max(0,pages.length-1))]??null;
-  const previousPage=currentPage?.pageIndex&&currentPage.pageIndex>0?pages[currentPage.pageIndex-1]:previousPages.at(-1);
-  const nextPage=currentPage&&currentPage.pageIndex+1<pages.length?pages[currentPage.pageIndex+1]:nextPages[0];
-  const texture=usePoemPageTexture(currentPage);
-  const [turn,setTurn]=useState<PortfolioPageTurnState|null>(null);
-  const targetTexture=usePoemPageTexture(turn?.page??null);
-  const materialRef=useRef<THREE.MeshBasicMaterial>(null),turningMaterialRef=useRef<THREE.MeshBasicMaterial>(null),turningBackMaterialRef=useRef<THREE.MeshBasicMaterial>(null),turningPageRef=useRef<THREE.Group>(null);
-  const turnProgressRef=useRef(0),turnFinishedRef=useRef(false);
-  useEffect(()=>{setPageIndex(0);},[poem?.slug]);
-  // A small grid gives the active sheet enough vertices to flex without cloth
-  // simulation. The inactive page stack remains instanced and untouched.
-  const turningGeometry=useMemo(()=>new THREE.PlaneGeometry(.704,.682,12,6),[]);
-  const originalTurningPositions=useMemo(()=>Float32Array.from(turningGeometry.getAttribute("position").array as ArrayLike<number>),[turningGeometry]);
-  useEffect(()=>()=>turningGeometry.dispose(),[turningGeometry]);
-  useEffect(()=>{
-    if(turn?.complete&&poem?.slug===turn.page.poem.slug){setTurn(null);turnProgressRef.current=0;turnFinishedRef.current=false;}
-  },[poem?.slug,turn]);
-  useFrame((_,delta)=>{
-    if(materialRef.current){
-      const channel=THREE.MathUtils.damp(materialRef.current.color.r,active?1:.018,3.2,delta);
-      materialRef.current.color.setRGB(channel,channel,channel);
-    }
-    // The moving sheet uses MeshBasicMaterial so its texture remains legible
-    // while turning. It therefore needs the same scene-activity dimming as
-    // the resting page; otherwise a turned page stays bright after leaving
-    // the Poems scene.
-    if(turningMaterialRef.current){
-      const channel=THREE.MathUtils.damp(turningMaterialRef.current.color.r,active?1:.018,3.2,delta);
-      turningMaterialRef.current.color.setRGB(channel,channel,channel);
-    }
-    if(turningBackMaterialRef.current){
-      const target=active?PORTFOLIO_TURNED_PAGE_ACTIVE_COLOR:PORTFOLIO_TURNED_PAGE_DIM_COLOR;
-      turningBackMaterialRef.current.color.lerp(target,1-Math.exp(-3.2*delta));
-    }
-    if(!turn||turn.complete||!turningPageRef.current)return;
-    turnProgressRef.current=Math.min(1,turnProgressRef.current+delta/1.28);
-    const progress=turnProgressRef.current;
-    // The page does not rotate as one rigid card. Instead, a soft crease
-    // travels from the free edge to the rings, like the fold used by a
-    // physical page-turn: the already-folded part follows the turn while the
-    // remaining part stays on the desk until the crease reaches it.
-    const travelProgress=THREE.MathUtils.clamp((progress-.07)/.93,0,1);
-    const sweepEased=travelProgress<.5
-      ?4*travelProgress*travelProgress*travelProgress
-      :1-Math.pow(-2*travelProgress+2,3)/2;
-    const turnAngle=(turn.direction===1?-1:1)*Math.PI*sweepEased;
-    turningPageRef.current.rotation.y=0;
-    const positions=turningGeometry.getAttribute("position") as THREE.BufferAttribute;
-    const liftPhase=THREE.MathUtils.clamp(progress/.22,0,1);
-    const liftEnvelope=liftPhase*liftPhase*(3-2*liftPhase);
-    const creaseWidth=.17;
-    // Keep the crease just ahead of the visible fold. This makes the outer
-    // corner peel first, then lets the fold line sweep across the sheet.
-    const creasePosition=1.12-travelProgress*1.3;
-    for(let vertex=0;vertex<positions.count;vertex++){
-      const offset=vertex*3;
-      const u=originalTurningPositions[offset]/.704+.5;
-      const v=originalTurningPositions[offset+1]/.682+.5;
-      const fromLeft=turn.direction===-1;
-      const travel=fromLeft?1-u:u;
-      // A small diagonal bias prevents a perfectly straight, mechanical fold.
-      // The two outside corners lead by a few millimetres, while the rings
-      // remain the fixed hinge throughout.
-      const diagonalLead=(v-.5)*.085*(.35+.65*travelProgress);
-      const foldTravel=THREE.MathUtils.clamp(travel+diagonalLead,0,1);
-      const foldMask=THREE.MathUtils.smoothstep(
-        foldTravel,
-        creasePosition-creaseWidth,
-        creasePosition+creaseWidth,
-      );
-      const creaseDistance=Math.abs(foldTravel-creasePosition)/creaseWidth;
-      const creaseCurl=Math.max(0,1-creaseDistance);
-      const foldLift=.034*Math.sin(Math.PI*travelProgress)*Math.pow(travel,.82)*foldMask;
-      const creaseLift=.065*Math.sin((Math.PI*.5)*creaseCurl)*Math.sin(Math.PI*travelProgress);
-      const crossBend=.018*creaseCurl*(v-.5)*Math.sin(Math.PI*travelProgress);
-      const localAngle=turnAngle*foldMask;
-      const relativeX=originalTurningPositions[offset]+(fromLeft?-.352:.352);
-      const normalOffset=foldLift+creaseLift;
-      const rotatedX=relativeX*Math.cos(localAngle)+normalOffset*Math.sin(localAngle);
-      const rotatedZ=-relativeX*Math.sin(localAngle)+normalOffset*Math.cos(localAngle);
-      positions.setX(vertex,(fromLeft?.352:-.352)+rotatedX);
-      positions.setY(vertex,originalTurningPositions[offset+1]+crossBend);
-      positions.setZ(vertex,rotatedZ);
-    }
-    positions.needsUpdate=true;
-    // Do not hand control back to the static page until its canvas texture is
-    // ready. This removes the one-frame white/black flash that otherwise
-    // reads as a bounce at the end of the turn.
-    if(progress>=1&&targetTexture&&!turnFinishedRef.current){
-      turnFinishedRef.current=true;
-      if(turn.page.poem.slug===poem?.slug){
-        setPageIndex(turn.page.pageIndex);
-        setTurn(null);
-        turnProgressRef.current=0;
-        turnFinishedRef.current=false;
-      }else{
-        setTurn((current)=>current?{...current,complete:true}:current);
-        onSelect(turn.page);
-      }
-    }
-  });
-  const beginTurn=(target:PoemPage|undefined,direction:-1|1)=>{
-    if(!target)return;
-    if(turn)return;
-    turnProgressRef.current=0;turnFinishedRef.current=false;
-    setTurn({page:target,direction,complete:false});
-  };
-  // The right-hand page is always the reading surface. Moving forward flips
-  // the current poem away from it and reveals the next poem underneath. When
-  // moving backward, the sheet coming from the left is the blank reverse of
-  // the stack; the previous poem is already underneath on the right. Keeping
-  // that distinction prevents a poem from appearing on the wrong face before
-  // it lands.
-  // Keep the currently visible poem on its original side for the whole
-  // physical turn. The parent route/poem update swaps in the destination
-  // texture only after `onSelect` fires at the end of the animation.
-  const baseTexture=texture;
-  const movingTexture=turn?.direction===1?texture:null;
+function PortfolioPoemPreview({poem,active,onRead}:{poem:PoemRecord|null;active:boolean;onRead:()=>void}){
+  const texture=usePoemPreviewTexture(poem);
+  const materialRef=useRef<THREE.MeshBasicMaterial>(null);
+  const [hovered,setHovered]=useState(false);
+  useCursor(active&&hovered);
+  useRuntimeTask({id:"task:poems-preview",nodeId:"collection:poems",priority:5,update:({delta})=>{
+    if(!materialRef.current)return;
+    // The generated canvas texture is asynchronous. Keep the preview dark
+    // until it exists so a newly-mounted active page never flashes white.
+    const channel=THREE.MathUtils.damp(materialRef.current.color.r,active&&texture?1:.018,3.2,delta);
+    materialRef.current.color.setRGB(channel,channel,channel);
+  }},[active,texture]);
   return <>
-    {(index>0||(currentPage?.pageIndex??0)>0)&&<mesh geometry={PORTFOLIO_PAGE_SURFACE_GEOMETRY} position={[-.309,.071,0]} rotation-x={-Math.PI/2} castShadow receiveShadow>
-      <meshBasicMaterial color="#e6dcc7" side={THREE.DoubleSide} toneMapped={false}/>
-    </mesh>}
-    <mesh geometry={PORTFOLIO_PAGE_SURFACE_GEOMETRY} position={[.395,.071,0]} rotation-x={-Math.PI/2} onClick={(event)=>{event.stopPropagation();onCurrent?.();}}>
-      <meshBasicMaterial ref={materialRef} map={baseTexture} color={active?"#ffffff":"#242424"} toneMapped={false}/>
+    <mesh geometry={PORTFOLIO_PAGE_SURFACE_GEOMETRY} position={[.395,.071,0]} rotation-x={-Math.PI/2}
+      onPointerOver={(event)=>{if(!active)return;event.stopPropagation();setHovered(true);}}
+      onPointerOut={()=>setHovered(false)}
+      onClick={(event)=>{if(!active)return;event.stopPropagation();onRead();}}>
+      <meshBasicMaterial ref={materialRef} map={texture} color={active&&texture?"#ffffff":"#242424"} toneMapped={false}/>
     </mesh>
-    {turn&&<group ref={turningPageRef} position={[.043,.074,0]} rotation-y={0}>
-      <mesh geometry={turningGeometry} position={[turn.direction===-1?-.352:.352,0,0]} rotation-x={-Math.PI/2} castShadow receiveShadow>
-        {/* White keeps the texture's own color intact while the sheet moves. */}
-        <meshBasicMaterial ref={turningMaterialRef} map={movingTexture} color="#ffffff" side={THREE.FrontSide} toneMapped={false}/>
-      </mesh>
-      <mesh geometry={turningGeometry} position={[turn.direction===-1?-.352:.352,-.001,0]} rotation-x={-Math.PI/2} castShadow receiveShadow>
-        <meshBasicMaterial ref={turningBackMaterialRef} color="#e6dcc7" side={THREE.BackSide} toneMapped={false}/>
-      </mesh>
-    </group>}
-    {!turn&&previousPage&&<PoemPageTurn position={[-.7,.081,.05]} label="‹" onSelect={()=>beginTurn(previousPage,-1)}/>}
-    {!turn&&nextPage&&<PoemPageTurn position={[.7,.081,.05]} label="›" onSelect={()=>beginTurn(nextPage,1)}/>}
+    <PoemReadCue active={active} hovered={hovered} onHover={setHovered} onRead={onRead}/>
   </>;
 }
 
-function PoemsPortfolio({position,rotation,active,poemsContent,activePoemSlug,onPoemSelect}:{position:[number,number];rotation:number;active:boolean;poemsContent:PoemsContentState;activePoemSlug:string|null;onPoemSelect:(slug:string)=>unknown}){
+function PoemsPortfolio({position,rotation,active,poemsContent,activePoemSlug,onRead}:{position:[number,number];rotation:number;active:boolean;poemsContent:PoemsContentState;activePoemSlug:string|null;onRead:()=>void}){
   const coversRef=useRef<THREE.InstancedMesh>(null),liningsRef=useRef<THREE.InstancedMesh>(null),pagesRef=useRef<THREE.InstancedMesh>(null);
   const ringsRef=useRef<THREE.InstancedMesh>(null),eyeletsRef=useRef<THREE.InstancedMesh>(null),stitchesRef=useRef<THREE.InstancedMesh>(null);
   const readingLightRef=useRef<THREE.PointLight>(null);
   const requestedIndex=activePoemSlug?poemsContent.poems.findIndex(({slug})=>slug===activePoemSlug):-1;
   const activeIndex=requestedIndex>=0?requestedIndex:0;
   const activePoem=poemsContent.poems[activeIndex]??null;
-  useFrame((_,delta)=>{if(readingLightRef.current)readingLightRef.current.intensity=THREE.MathUtils.damp(readingLightRef.current.intensity,active?4.5:0,3.2,delta);});
+  const updateReadingLight=useCallback(({delta}:{delta:number})=>{if(readingLightRef.current)readingLightRef.current.intensity=THREE.MathUtils.damp(readingLightRef.current.intensity,active?4.5:0,3.2,delta);},[active]);
+  useRuntimeTask({id:"task:poems-reading-light",nodeId:"collection:poems",priority:10,update:updateReadingLight});
   useLayoutEffect(()=>{
     const covers=coversRef.current,linings=liningsRef.current,pages=pagesRef.current,rings=ringsRef.current,eyelets=eyeletsRef.current,stitches=stitchesRef.current;
     if(!covers||!linings||!pages||!rings||!eyelets||!stitches)return;
@@ -611,11 +467,11 @@ function PoemsPortfolio({position,rotation,active,poemsContent,activePoemSlug,on
     <instancedMesh ref={coversRef} args={[PORTFOLIO_COVER_GEOMETRY,PORTFOLIO_LEATHER_MATERIAL,2]} castShadow receiveShadow/>
     <instancedMesh ref={liningsRef} args={[PORTFOLIO_LINING_GEOMETRY,PORTFOLIO_LINING_MATERIAL,2]}/>
     <mesh geometry={PORTFOLIO_POCKET_GEOMETRY} position={[-.43,.027,.055]} castShadow><primitive object={PORTFOLIO_LEATHER_MATERIAL} attach="material"/></mesh>
-    <PortfolioPolaroid/>
+    <PortfolioPolaroid active={active}/>
     <mesh geometry={PORTFOLIO_SLOT_GEOMETRY} position={[-.48,.043,.13]}><primitive object={PORTFOLIO_LEATHER_MATERIAL} attach="material"/></mesh>
     <mesh geometry={PORTFOLIO_PEN_LOOP_GEOMETRY} position={[-.075,.06,.12]} rotation-x={Math.PI/2}><primitive object={PORTFOLIO_LEATHER_MATERIAL} attach="material"/></mesh>
-    <instancedMesh ref={pagesRef} args={[PORTFOLIO_PAGE_GEOMETRY,PORTFOLIO_PAPER_MATERIAL,6]} castShadow onClick={(event)=>{event.stopPropagation();if(activePoem)onPoemSelect(activePoem.slug);}}/>
-    <PortfolioPoemPage poem={activePoem} index={activeIndex} active={active} onCurrent={activePoem?()=>onPoemSelect(activePoem.slug):undefined} previous={activeIndex>0?{poem:poemsContent.poems[activeIndex-1],index:activeIndex-1}:undefined} next={activeIndex<poemsContent.poems.length-1?{poem:poemsContent.poems[activeIndex+1],index:activeIndex+1}:undefined} onSelect={(selectedPage)=>onPoemSelect(selectedPage.poem.slug)}/>
+    <instancedMesh ref={pagesRef} args={[PORTFOLIO_PAGE_GEOMETRY,PORTFOLIO_PAPER_MATERIAL,6]} castShadow/>
+    <PortfolioPoemPreview poem={activePoem} active={active} onRead={onRead}/>
     <pointLight ref={readingLightRef} position={[.43,.62,.02]} color="#ffd39a" intensity={0} distance={1.4} decay={2}/>
     <instancedMesh ref={ringsRef} args={[PORTFOLIO_RING_GEOMETRY,PORTFOLIO_METAL_MATERIAL,6]} castShadow/>
     <instancedMesh ref={eyeletsRef} args={[PORTFOLIO_EYELET_GEOMETRY,PORTFOLIO_METAL_MATERIAL,6]} castShadow/>
@@ -634,7 +490,17 @@ function PhoneScreen({active}:{active:boolean}){
   texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=8;texture.repeat.set(IPHONE_SCREEN_TEXTURE_REPEAT_X,1);texture.offset.set((1-IPHONE_SCREEN_TEXTURE_REPEAT_X)/2,0);
   useCursor(active&&hovered);
   useEffect(()=>{if(!active)setHovered(false);},[active]);
-  useFrame((_,delta)=>{
+  useEffect(()=>{
+    // The phone collection can sleep as soon as focus leaves the scene. Set
+    // the visual state here as well as in the runtime task so a sleeping node
+    // cannot leave the last screen glow behind.
+    if(materialRef.current){
+      const channel=active?1:0;
+      materialRef.current.color.setRGB(channel,channel,channel);
+    }
+    if(lightRef.current)lightRef.current.intensity=active?.26:0;
+  },[active]);
+  const updateScreen=useCallback(({delta}:{delta:number})=>{
     const material=materialRef.current,light=lightRef.current;
     const easing=16;
     if(material){
@@ -646,7 +512,8 @@ function PhoneScreen({active}:{active:boolean}){
       light.intensity=THREE.MathUtils.damp(light.intensity,active?.26:0,12,delta);
       if(!active&&light.intensity<.001)light.intensity=0;
     }
-  });
+  },[active]);
+  useRuntimeTask({id:"task:phone-screen",nodeId:"collection:phone",priority:10,update:updateScreen});
   return <>
     <mesh geometry={IPHONE_SCREEN_IMAGE_GEOMETRY} position={[0,.0182,0]}
       onPointerOver={(event)=>{if(!active)return;event.stopPropagation();setHovered(true);}}
@@ -812,8 +679,7 @@ function CoffeeSteam(){
   const refs=useRef<THREE.Sprite[]>([]);
   const materials=useMemo(()=>Array.from({length:3},()=>new THREE.SpriteMaterial({map:STEAM_TEXTURE,color:"#d7d0c7",transparent:true,opacity:0,depthWrite:false,toneMapped:false})),[]);
   useEffect(()=>()=>materials.forEach((material)=>material.dispose()),[materials]);
-  useFrame(({clock})=>{
-    const elapsed=clock.elapsedTime;
+  const update=useCallback(({elapsed}:{elapsed:number})=>{
     refs.current.forEach((sprite,index)=>{
       const speed=[.135,.112,.096][index],phase=[.08,.43,.71][index];
       const cycle=(elapsed*speed+phase)%1,drift=Math.sin(elapsed*(.43+index*.07)+index*1.9+Math.sin(elapsed*.17+index))*.027;
@@ -822,7 +688,8 @@ function CoffeeSteam(){
       sprite.material.opacity=Math.pow(Math.sin(Math.PI*cycle),1.4)*(.045+index*.006);
       sprite.material.rotation=Math.sin(elapsed*.29+index*2.1)*.16;
     });
-  });
+  },[]);
+  useRuntimeTask({id:"task:coffee-steam",nodeId:"world",priority:30,update});
   return <>{materials.map((material,index)=><sprite key={index} ref={(sprite)=>{if(sprite)refs.current[index]=sprite;}}><primitive object={material} attach="material"/></sprite>)}</>;
 }
 
@@ -881,7 +748,7 @@ const CERTIFICATE_LIGHT_RISE=.44;
 const CERTIFICATE_LIGHT_FALL=1.1;
 const FRAME_WOOD=["#36241a","#251c18","#463022"] as const;
 
-function CertificateCard({record,texture,index,position,rotation,tiltY,baseScale,illuminated,focused,onSelect}:{record:CertificateRecord;texture:THREE.Texture;index:number;position:[number,number,number];rotation:number;tiltY:number;baseScale:number;illuminated:boolean;focused:boolean;onSelect?:(slug:string)=>void}) {
+function CertificateCard({record,texture,index,position,rotation,tiltY,baseScale,illuminated,focused,runtimeUpdates,onSelect}:{record:CertificateRecord;texture:THREE.Texture;index:number;position:[number,number,number];rotation:number;tiltY:number;baseScale:number;illuminated:boolean;focused:boolean;runtimeUpdates:boolean;onSelect?:(slug:string)=>void}) {
   const ref=useRef<THREE.Group>(null);
   const imageMaterialRef=useRef<THREE.MeshStandardMaterial>(null);
   const labelMaterialRef=useRef<THREE.MeshStandardMaterial>(null);
@@ -894,6 +761,7 @@ function CertificateCard({record,texture,index,position,rotation,tiltY,baseScale
   const interactive=illuminated;
   useCursor(hovered&&interactive);
   useFrame((_,delta)=>{
+    if(!runtimeUpdates&&!hovered)return;
     if(!ref.current)return;
     const activeHover=hovered&&interactive;
     const scale=THREE.MathUtils.damp(ref.current.scale.x,baseScale*(activeHover?1.065:1),6.5,delta);
@@ -942,8 +810,9 @@ function FullCertificateImage({image}:{image:string}){
 
 function CertificateGallery({illuminated,focusedSlug,onCertificateSelect}:{illuminated:boolean;focusedSlug:string|null;onCertificateSelect?:(slug:string)=>void}){
   const textures=useTexture(CERTIFICATE_THUMBNAILS);
+  const runtimeUpdates=useRuntimeSnapshot((snapshot)=>snapshot.nodes.find((node)=>node.id==="collection:certificates")?.updates??true);
   textures.forEach((texture)=>{texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=8;});
-  return <>{CERTIFICATE_LAYOUT.map(({index,x,y,rotation,tiltY,scale,depth})=><CertificateCard key={CERTIFICATES[index].image} record={CERTIFICATES[index]} texture={textures[index]} index={index} position={[x,y,depth]} rotation={rotation} tiltY={tiltY} baseScale={scale} illuminated={illuminated} focused={focusedSlug===CERTIFICATES[index].slug} onSelect={onCertificateSelect}/>)}</>;
+  return <>{CERTIFICATE_LAYOUT.map(({index,x,y,rotation,tiltY,scale,depth})=><CertificateCard key={CERTIFICATES[index].image} record={CERTIFICATES[index]} texture={textures[index]} index={index} position={[x,y,depth]} rotation={rotation} tiltY={tiltY} baseScale={scale} illuminated={illuminated} focused={focusedSlug===CERTIFICATES[index].slug} runtimeUpdates={runtimeUpdates} onSelect={onCertificateSelect}/>)}</>;
 }
 
 function ShelfPracticalLighting({illuminated}:{illuminated:boolean}){
@@ -951,11 +820,12 @@ function ShelfPracticalLighting({illuminated}:{illuminated:boolean}){
   const ledRefs=useRef<THREE.MeshStandardMaterial[]>([]);
   const [initialLightIntensity]=useState(()=>illuminated?2.35:.01);
   const [initialStripEmission]=useState(()=>illuminated?.018:0);
-  useFrame((_,delta)=>{
+  const updateShelfLighting=useCallback(({delta}:{delta:number})=>{
     const easing=illuminated?.4:.72;
     lightRefs.current.forEach((light)=>{light.intensity=THREE.MathUtils.damp(light.intensity,illuminated?2.35:.01,easing,delta);});
     ledRefs.current.forEach((material)=>{material.emissiveIntensity=THREE.MathUtils.damp(material.emissiveIntensity,illuminated?.018:0,easing,delta);});
-  });
+  },[illuminated]);
+  useRuntimeTask({id:"task:certificates-shelf-lighting",nodeId:"collection:certificates",priority:10,update:updateShelfLighting});
   return <>
     {[1.717,.827,-.063,-.953].map((y,rowIndex)=><group key={y} position={[0,y,0]}>
       <mesh position={[0,0,.335]}>

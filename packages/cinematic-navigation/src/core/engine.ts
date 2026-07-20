@@ -55,7 +55,12 @@ export function createCinematicEngine<TFraming=unknown,TTransition=unknown,TResp
     const navigationRequest:NavigationRequest={...resolvedLocation,intent};
     const wasTransitioning=state.transitionStatus==="transitioning";
     const collection=resolvedLocation.focusCollectionId?collections.get(resolvedLocation.focusCollectionId):undefined;
-    const cameraIsStable=collection?.reframeOnFocus===false&&state.sceneId===resolvedLocation.sceneId&&state.requestedSceneId===resolvedLocation.sceneId;
+    const sameCameraDestination=state.sceneId===resolvedLocation.sceneId&&state.requestedSceneId===resolvedLocation.sceneId&&state.requestedCameraTargetId===resolvedLocation.cameraTargetId;
+    // Clearing a focus overlay must not replay a camera transition when the
+    // parent scene already owns the same shot. Reframing collections still
+    // transition when their focus item changes; static collections remain
+    // stable as before.
+    const cameraIsStable=sameCameraDestination&&(!resolvedLocation.focusCollectionId||collection?.reframeOnFocus===false);
     state={...state,requestedSceneId:resolvedLocation.sceneId,requestedFocusCollectionId:resolvedLocation.focusCollectionId,requestedFocusItemId:resolvedLocation.focusItemId,requestedCameraTargetId:resolvedLocation.cameraTargetId,previousFocusItemId:state.requestedFocusItemId,transitionStatus:cameraIsStable?"idle":"transitioning",transitionIntent:cameraIsStable?null:intent,transitionProgress:cameraIsStable?1:0};
     if(resolvedLocation.sceneId!==guided[0]){state={...state,lastVisitedSceneId:resolvedLocation.sceneId};configuration.persistence?.write(persistenceKey,resolvedLocation.sceneId);}
     if(!cameraIsStable){if(wasTransitioning)configuration.cameraDriver?.redirect(navigationRequest);else configuration.cameraDriver?.start(navigationRequest);}

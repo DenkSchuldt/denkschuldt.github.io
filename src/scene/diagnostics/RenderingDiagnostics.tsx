@@ -19,6 +19,7 @@ export interface RenderingDiagnosticsSnapshot {
   shadows:{enabled:boolean;type:string};
   postProcessing:{active:boolean;effects:string[];multisampling:number;aoIntensity:number;vignetteDarkness:number;bloomIntensity:number};
   camera:{position:[number,number,number];target:[number,number,number]};
+  performance:{drawCalls:number;triangles:number;shadowCasters:number;gpuResources:number};
   isolation:RenderIsolationState;
   mobilePerformanceAdaptations:string[];
 }
@@ -35,7 +36,9 @@ export function RenderingDiagnosticsProbe({settings,isolation,stateRef,onSnapsho
     const context=gl.getContext();
     const attributes=context.getContextAttributes();
     const lights:RenderingDiagnosticsSnapshot["lights"]=[];
+    let shadowCasters=0;
     scene.traverse((object)=>{
+      if(object.castShadow)shadowCasters+=1;
       const light=object as THREE.Light&{isLight?:boolean;distance?:number;decay?:number;shadow?:{mapSize?:THREE.Vector2;bias?:number;normalBias?:number}};
       if(!light.isLight||!light.visible)return;
       lights.push({name:light.name||"unnamed",type:light.type,intensity:round(light.intensity),color:`#${light.color.getHexString()}`,position:[round(light.position.x),round(light.position.y),round(light.position.z)],distance:typeof light.distance==="number"?round(light.distance):null,decay:typeof light.decay==="number"?round(light.decay):null,castShadow:light.castShadow,shadowMapSize:light.shadow?.mapSize?[light.shadow.mapSize.x,light.shadow.mapSize.y]:null,bias:typeof light.shadow?.bias==="number"?light.shadow.bias:null,normalBias:typeof light.shadow?.normalBias==="number"?light.shadow.normalBias:null});
@@ -51,6 +54,7 @@ export function RenderingDiagnosticsProbe({settings,isolation,stateRef,onSnapsho
       shadows:{enabled:gl.shadowMap.enabled,type:shadowTypeName(gl.shadowMap.type)},
       postProcessing:{active:isolation.postProcessing,effects,multisampling:isolation.postProcessing&&stateRef.current.requestedTarget==="about"?RENDERING_INTENT.postProcessing.paperMultisampling:0,aoIntensity:isolation.postProcessing&&isolation.ambientOcclusion?RENDERING_INTENT.postProcessing.ambientOcclusionIntensity:0,vignetteDarkness:isolation.postProcessing&&isolation.vignette?RENDERING_INTENT.postProcessing.vignetteDarkness:0,bloomIntensity:isolation.postProcessing&&isolation.bloom?settings.bloom:0},
       camera:{position:[round(camera.position.x),round(camera.position.y),round(camera.position.z)],target:stateRef.current.cameraLookAt.map(round) as [number,number,number]},
+      performance:{drawCalls:gl.info.render.calls,triangles:gl.info.render.triangles,shadowCasters,gpuResources:gl.info.memory.geometries+gl.info.memory.textures},
       isolation,
       mobilePerformanceAdaptations:[],
     });

@@ -21,6 +21,10 @@ The framework-free state engine lives in `packages/cinematic-navigation`. The po
 - `useCinematicCamera.ts` is the application compatibility hook exposing `goToScene`, `enterFocus`, `exitFocus`, `nextScene`, `previousScene`, `nextFocus`, `previousFocus`, `focusNeighbor`, and `resumeLastVisitedScene`.
 - `shotRegistry.ts` is a compatibility adapter for the camera animation layer. Application code should use Scene/Focus commands instead of Shot IDs.
 
+## Runtime lifecycle
+
+The reusable package also exposes `createCinematicRuntime`. It subscribes to the navigation engine and derives lifecycle state for the persistent world, Scenes, Focus Collections, and Focus Items without introducing a second navigation model. `RuntimeFrameBridge` owns the single scheduler tick in R3F; scene-specific work registers tasks against a runtime node and therefore stops when that node sleeps. The portfolio declares its world, scene, collection, and focused-item nodes in `Experience.tsx` and keeps navigation, routes, camera transitions, and persistence in the existing engine.
+
 ## Adding content
 
 1. Register a Scene in `SCENE_REGISTRY`.
