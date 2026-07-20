@@ -5,10 +5,11 @@ Este repositorio publica dos versiones en un solo sitio de GitHub Pages:
 - `master` se publica en `https://denkschuldt.github.io/`.
 - `revamp` se publica en `https://denkschuldt.github.io/hidden/`.
 
-El workflow responsable es `.github/workflows/pages.yml`. Un push a cualquiera
-de las ramas inicia directamente el build y deployment. El workflow hace
-checkout de ambas ramas, compila cada versión, coloca el resultado de `revamp`
-dentro de `site/hidden` y publica un único artefacto de Pages.
+El workflow responsable es `.github/workflows/pages.yml`. Un push a `revamp`
+inicia un workflow corto que despacha el deployment protegido desde `master`.
+El workflow de `master` hace checkout de ambas ramas, compila cada versión,
+coloca el resultado de `revamp` dentro de `site/hidden` y publica un único
+artefacto de Pages.
 
 ## Regla principal
 
@@ -61,9 +62,15 @@ generados de `dist`.
 
 ## Cómo funciona el workflow
 
-Después del push aparece un único run que compila `master` y `revamp` y luego
-publica Pages. Ya no hay un job intermedio que deba despachar otro workflow,
-por lo que un push a `revamp` no depende de un segundo run en `master`.
+Después del push aparecen normalmente dos runs:
+
+1. Un run `push` de `revamp` ejecuta `trigger-master-deployment`.
+2. Ese job despacha un run `workflow_dispatch` sobre `master`.
+
+Debido a `concurrency: group: pages`, el run corto de `revamp` puede aparecer
+como `cancelled` cuando comienza el run de `master`. Esto es esperado y no es un
+fallo de deployment. El run que debe terminar con `success` es el
+`workflow_dispatch` de `master`.
 
 Con GitHub CLI:
 
@@ -216,12 +223,11 @@ La API pública permite consultar estado, pasos y annotations, pero GitHub puede
 responder `403` al solicitar los logs completos sin autenticación. En ese caso,
 usar GitHub CLI autenticado o abrir el job con una sesión de GitHub iniciada.
 
-### Un run aparece en cola
+### El run de `revamp` aparece cancelado
 
-Revisar primero si el run tiene un job asignado a un runner. Si permanece en
-`queued` sin `runner_name`, es una espera del runner hospedado de GitHub, no un
-fallo del build. Un nuevo push cancela el run anterior por `concurrency: group:
-pages` y crea un run directo con los jobs `build` y `deploy`.
+Antes de tratarlo como error, comprobar si existe un run más reciente de tipo
+`workflow_dispatch` sobre `master`. Si ese run está activo, la cancelación es el
+handoff esperado producido por el grupo de concurrencia `pages`.
 
 ## Checklist de cierre
 
