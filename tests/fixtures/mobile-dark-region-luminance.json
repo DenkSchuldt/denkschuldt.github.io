@@ -1,0 +1,14 @@
+{
+  "scene": "drawer",
+  "viewport": [390, 720],
+  "region": [24, 310, 350, 300],
+  "darkPixelThreshold": 8,
+  "before": {
+    "mean": 3.1524,
+    "crushedRatio": 0.9707
+  },
+  "after": {
+    "mean": 3.9456,
+    "crushedRatio": 0.9673
+  }
+}
