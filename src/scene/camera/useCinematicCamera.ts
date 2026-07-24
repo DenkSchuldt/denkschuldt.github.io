@@ -11,20 +11,39 @@ type InitialNavigation=ShotId|NavigationLocation;
 interface NavigationEngineOptions {onNavigate?:(location:NavigationLocation)=>void}
 const locationFromTarget=(target:ShotId):NavigationLocation=>({sceneId:sceneForCameraTarget(target),focusCollectionId:null,focusItemId:null,cameraTarget:target});
 const normalizeLocation=(value:InitialNavigation)=>typeof value==="string"?locationFromTarget(value):value;
-const CAMERA_DEFAULTS={pauseTransitions:false,openingDuration:13.5,openingHold:2.4,fadeDuration:3.2,transitionSpeed:1,breathingEnabled:true,breathingStrength:1,breathingSpeed:1,overshootStrength:.018,nearClip:.1,farClip:45,targetHelpers:false,navigationDebug:false};
+const CAMERA_DEFAULTS={pauseTransitions:false,openingDuration:13.5,openingHold:2.4,fadeDuration:3.2,transitionSpeed:1,aboutTransitionSpeed:1.2,openingAboutTransitionSpeed:1.7,breathingEnabled:true,breathingStrength:1,breathingSpeed:1,overshootStrength:.018,nearClip:.1,farClip:45,targetHelpers:false,navigationDebug:false};
 const DEFAULT_TUNING:Record<string,unknown>={};
 
-interface GuidedInputSystem {selectedScene:SceneId;selectedFocusCollection:FocusCollectionId|null;selectedFocusItem:string|null;visitedAutoScenes:readonly SceneId[];markAutoSceneVisited:(sceneId:SceneId)=>void;focusNeighbor:(direction:FocusDirection)=>string|null;returnToStart:()=>unknown;cameraState:React.MutableRefObject<{introComplete:boolean;isTransitioning?:boolean}>}
-const guidedInputDestination=(system:GuidedInputSystem,direction:-1|1)=>system.selectedFocusCollection?(direction>0?getAdjacentScene(system.selectedScene,1,system.visitedAutoScenes):system.selectedScene):getAdjacentScene(system.selectedScene,direction,system.visitedAutoScenes);
+interface GuidedInputSystem {selectedScene:SceneId;selectedFocusCollection:FocusCollectionId|null;selectedFocusItem:string|null;resumeScene:SceneId|null;nextScene:()=>SceneId|null;exitFocus:()=>unknown;visitedAutoScenes:readonly SceneId[];markAutoSceneVisited:(sceneId:SceneId)=>void;focusNeighbor:(direction:FocusDirection)=>string|null;returnToStart:()=>unknown;cameraState:React.MutableRefObject<{introComplete:boolean;isTransitioning?:boolean}>}
+const guidedInputDestination=(system:GuidedInputSystem,direction:-1|1)=>{
+  // ESC deliberately parks the camera at Opening. The first forward input
+  // must consume that checkpoint instead of blindly taking the normal
+  // Opening -> About route.
+  if(direction>0&&system.selectedScene==="opening"&&system.resumeScene)return system.resumeScene;
+  return system.selectedFocusCollection?(direction>0?getAdjacentScene(system.selectedScene,1,system.visitedAutoScenes):system.selectedScene):getAdjacentScene(system.selectedScene,direction,system.visitedAutoScenes);
+};
 
 export function useCameraKeyboardNavigation(system:GuidedInputSystem,navigateTo:(scene:SceneId)=>void){
   useEffect(()=>{
     const onKeyDown=(event:KeyboardEvent)=>{
       if(event.metaKey||event.ctrlKey||event.altKey)return;
-      if(isReturnToStartKey(event.key)){event.preventDefault();system.returnToStart();return;}
+      if(isReturnToStartKey(event.key)){
+        event.preventDefault();
+        // Certificates are browsed as a detail overlay over the parent shelf.
+        // ESC closes that detail in place so the user can continue through
+        // the guided scenes without being sent back to Opening.
+        if(system.selectedFocusCollection==="certificates"){system.exitFocus();return;}
+        system.returnToStart();
+        return;
+      }
       if(!system.cameraState.current.introComplete)return;
       const element=event.target as HTMLElement|null;
       if(element?.matches("input, textarea, select, button, [contenteditable='true']"))return;
+      if(event.code==="Space"){
+        event.preventDefault();
+        system.nextScene();
+        return;
+      }
       const focusDirection=getFocusDirectionForKey(event.key);
       if(system.selectedFocusCollection&&system.selectedFocusItem&&focusDirection){event.preventDefault();system.focusNeighbor(focusDirection);return;}
       const direction=event.key==="ArrowRight"||event.key==="ArrowDown"||event.code==="Space"?1:event.key==="ArrowLeft"||event.key==="ArrowUp"?-1:0;
@@ -100,7 +119,7 @@ export function usePrefersReducedMotion(){
 export function useCinematicNavigation(initialValue:InitialNavigation=locationForScene("about"),directEntry=false,options:NavigationEngineOptions={}){
   const onNavigate=options.onNavigate;
   const reducedMotion=usePrefersReducedMotion();
-  const [introVersion,setIntroVersion]=useState(0),[skipVersion,setSkipVersion]=useState(0),[returnVersion,setReturnVersion]=useState(0);
+  const [introVersion,setIntroVersion]=useState(0),[skipVersion,setSkipVersion]=useState(0),[returnVersion,setReturnVersion]=useState(0),[resumeVersion,setResumeVersion]=useState(0);
   const [focusVersion,setFocusVersion]=useState(0);
   const [resumeScene,setResumeScene]=useState<SceneId|null>(null);
   const [visitedAutoScenes,setVisitedAutoScenes]=useState<SceneId[]>([]);
@@ -131,13 +150,30 @@ export function useCinematicNavigation(initialValue:InitialNavigation=locationFo
     const continuousPointerFocus=stateRef.current.requestedFocusCollection===collectionId&&stateRef.current.requestedCameraTarget===result.cameraTargetId;
     const location=fromEngineLocation(result);requestLocation(location,!continuousPointerFocus&&shouldReframeFocus(location));onNavigate?.(location);return location;
   },[engine,requestLocation,onNavigate,shouldReframeFocus]);
-  const exitFocus=useCallback(()=>{const result=engine.exitFocus();if(!result)return null;const location=fromEngineLocation(result);requestLocation(location);onNavigate?.(location);return location;},[engine,requestLocation,onNavigate]);
+  const exitFocus=useCallback(()=>{
+    const certificateDetailActive=requestedLocation.sceneId==="certificates"&&(requestedLocation.focusCollectionId==="certificates"||stateRef.current.requestedFocusCollection==="certificates"||Boolean(stateRef.current.requestedFocusItem));
+    const result=certificateDetailActive?engine.goToScene("certificates"):engine.exitFocus();
+    if(!result)return null;
+    const location=fromEngineLocation(result);
+    requestLocation(location);
+    onNavigate?.(location);
+    return location;
+  },[engine,requestedLocation.sceneId,requestedLocation.focusCollectionId,requestLocation,onNavigate,stateRef]);
   const goToCameraTarget=useCallback((target:ShotId)=>{
     const location=target==="certificate-detail"&&stateRef.current.requestedFocusCollection==="certificates"?{...requestedLocation,cameraTarget:target}:locationFromTarget(target);
     engine.syncLocation(toEngineLocation(location));requestLocation(location);
   },[engine,requestLocation,requestedLocation]);
   const syncRoute=useCallback((location:NavigationLocation)=>{const result=engine.syncLocation(toEngineLocation(location));if(result){const resolved=fromEngineLocation(result);requestLocation(resolved,shouldReframeFocus(resolved));}},[engine,requestLocation,shouldReframeFocus]);
-  const nextScene=useCallback(()=>{const scene=getAdjacentScene(requestedLocation.sceneId,1,visitedAutoScenes);return scene?goToScene(scene)?.sceneId??null:null;},[requestedLocation.sceneId,visitedAutoScenes,goToScene]);
+  const nextScene=useCallback(()=>{
+    if(requestedLocation.sceneId==="opening"&&resumeScene){
+      const checkpoint=resumeScene;
+      setResumeScene(null);
+      setResumeVersion((value)=>value+1);
+      return goToScene(checkpoint)?.sceneId??null;
+    }
+    const scene=getAdjacentScene(requestedLocation.sceneId,1,visitedAutoScenes);
+    return scene?goToScene(scene)?.sceneId??null:null;
+  },[requestedLocation.sceneId,resumeScene,visitedAutoScenes,goToScene]);
   const previousScene=useCallback(()=>{const scene=getAdjacentScene(requestedLocation.sceneId,-1,visitedAutoScenes);return scene?goToScene(scene)?.sceneId??null:null;},[requestedLocation.sceneId,visitedAutoScenes,goToScene]);
   const moveFocus=useCallback((direction:-1|1)=>{const result=engine.moveFocus(direction);if(!result)return null;const location=fromEngineLocation(result);requestLocation(location,shouldReframeFocus(location));onNavigate?.(location);return location.focusItemId;},[engine,requestLocation,onNavigate,shouldReframeFocus]);
   const focusNeighbor=useCallback((direction:FocusDirection)=>{const result=engine.moveFocus(direction);if(!result)return null;const location=fromEngineLocation(result);requestLocation(location,shouldReframeFocus(location));onNavigate?.(location);return location.focusItemId;},[engine,requestLocation,onNavigate,shouldReframeFocus]);
@@ -146,6 +182,10 @@ export function useCinematicNavigation(initialValue:InitialNavigation=locationFo
 
   const resumeLastVisitedScene=useCallback(()=>{const result=engine.restoreLastVisitedScene();if(!result)return null;const location=fromEngineLocation(result);requestLocation(location);onNavigate?.(location);return location.sceneId;},[engine,requestLocation,onNavigate]);
   const returnToStart=useCallback(()=>{
+    // A certificate detail is an overlay over the shelf, not a separate
+    // guided destination. Treat every return request (including stale or
+    // competing ESC handlers) as a detail close while it is active.
+    if(requestedLocation.focusCollectionId==="certificates")return exitFocus();
     const interruptsIntro=!stateRef.current.introComplete;
     setResumeScene(requestedLocation.sceneId==="opening"?stateRef.current.lastVisitedScene:requestedLocation.sceneId);
     const engineResult=engine.returnToScene("opening");
@@ -153,10 +193,10 @@ export function useCinematicNavigation(initialValue:InitialNavigation=locationFo
     if(result){requestLocation(result);onNavigate?.(result);}
     if(interruptsIntro)setReturnVersion((value)=>value+1);
     return result;
-  },[requestedLocation.sceneId,engine,requestLocation,onNavigate]);
-  const resumeFromStart=useCallback((destination:SceneId)=>{if(!shouldResumeFromStart(resumeScene,requestedLocation.sceneId,destination)||!resumeScene)return null;const checkpoint=resumeScene;setResumeScene(null);const result=goToScene(checkpoint);return result?.sceneId??null;},[resumeScene,requestedLocation.sceneId,goToScene]);
+  },[requestedLocation.focusCollectionId,requestedLocation.sceneId,engine,requestLocation,onNavigate,exitFocus]);
+  const resumeFromStart=useCallback((destination:SceneId)=>{if(!shouldResumeFromStart(resumeScene,requestedLocation.sceneId,destination)||!resumeScene)return null;const checkpoint=resumeScene;setResumeScene(null);setResumeVersion((value)=>value+1);const result=goToScene(checkpoint);return result?.sceneId??null;},[resumeScene,requestedLocation.sceneId,goToScene]);
 
-  return {...CAMERA_DEFAULTS,engine,selectedTarget:requestedLocation.cameraTarget,selectedShot:requestedLocation.cameraTarget,selectedScene:requestedLocation.sceneId,selectedFocusCollection:requestedLocation.focusCollectionId,selectedFocusItem:requestedLocation.focusItemId,requestedShot:requestedLocation.cameraTarget,requestedLocation,visitedAutoScenes,markAutoSceneVisited,navigateTo:goToCameraTarget,goToShot:goToCameraTarget,goToScene,enterFocus,previewFocus,exitFocus,nextScene,previousScene,nextFocus:()=>moveFocus(1),previousFocus:()=>moveFocus(-1),focusNeighbor,syncRoute,getCurrentScene:()=>stateRef.current.sceneId,getCurrentFocus:()=>stateRef.current.focusItemId,getCurrentShot:()=>stateRef.current.currentTarget,getPreviousShot:()=>getAdjacentShot(stateRef.current.currentTarget,-1,visitedAutoScenes),getNextShot:()=>getAdjacentShot(stateRef.current.currentTarget,1,visitedAutoScenes),returnToStart,resumeFromStart,resumeScene,resumeLastVisitedScene,resumeLastVisitedShot:resumeLastVisitedScene,replayIntro:()=>setIntroVersion((value)=>value+1),skipIntro:()=>setSkipVersion((value)=>value+1),cameraState:stateRef,introVersion,skipVersion,returnVersion,workspaceVersion:0,focusVersion,reducedMotion,directEntry,tuning:DEFAULT_TUNING};
+  return {...CAMERA_DEFAULTS,engine,selectedTarget:requestedLocation.cameraTarget,selectedShot:requestedLocation.cameraTarget,selectedScene:requestedLocation.sceneId,selectedFocusCollection:requestedLocation.focusCollectionId,selectedFocusItem:requestedLocation.focusItemId,requestedShot:requestedLocation.cameraTarget,requestedLocation,visitedAutoScenes,markAutoSceneVisited,navigateTo:goToCameraTarget,goToShot:goToCameraTarget,goToScene,enterFocus,previewFocus,exitFocus,nextScene,previousScene,nextFocus:()=>moveFocus(1),previousFocus:()=>moveFocus(-1),focusNeighbor,syncRoute,getCurrentScene:()=>stateRef.current.sceneId,getCurrentFocus:()=>stateRef.current.focusItemId,getCurrentShot:()=>stateRef.current.currentTarget,getPreviousShot:()=>getAdjacentShot(stateRef.current.currentTarget,-1,visitedAutoScenes),getNextShot:()=>getAdjacentShot(stateRef.current.currentTarget,1,visitedAutoScenes),returnToStart,resumeFromStart,resumeScene,resumeLastVisitedScene,resumeLastVisitedShot:resumeLastVisitedScene,replayIntro:()=>setIntroVersion((value)=>value+1),skipIntro:()=>setSkipVersion((value)=>value+1),cameraState:stateRef,introVersion,skipVersion,returnVersion,resumeVersion,workspaceVersion:0,focusVersion,reducedMotion,directEntry,tuning:DEFAULT_TUNING};
 }
 
 /** @deprecated Use useCinematicNavigation. */

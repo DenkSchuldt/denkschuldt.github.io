@@ -1,8 +1,8 @@
 "use client";
 import { Capsule, RoundedBox, Text, useCursor, useTexture } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useRuntimeSnapshot, useRuntimeTask } from "@denk/cinematic-navigation/react";
-import { Suspense,useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState,type RefObject } from "react";
+import { RuntimeBoundary, useRuntimeSnapshot, useRuntimeTask } from "@denk/cinematic-navigation/react";
+import { Suspense,useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState,type MutableRefObject,type RefObject } from "react";
 import * as THREE from "three";
 import { PALETTE as C } from "../constants";
 import { withSceneBasePath } from "../camera/sceneRoutes";
@@ -53,8 +53,11 @@ const IPHONE_DYNAMIC_ISLAND_GEOMETRY=new THREE.ShapeGeometry(roundedRectangleSha
 IPHONE_DYNAMIC_ISLAND_GEOMETRY.rotateX(-Math.PI/2);
 const IPHONE_LENS_GEOMETRY=new THREE.CylinderGeometry(.026,.026,.004,8,1,false);
 const IPHONE_FLASH_GEOMETRY=new THREE.CircleGeometry(.011,8);
+const IPHONE_WHATSAPP_BUTTON_GEOMETRY=new THREE.ShapeGeometry(roundedRectangleShape(.22,.052,.018),2);
+IPHONE_WHATSAPP_BUTTON_GEOMETRY.rotateX(-Math.PI/2);
+const IPHONE_WHATSAPP_BUTTON_MATERIAL=new THREE.MeshBasicMaterial({color:"#25d366",toneMapped:false});
 const IPHONE_SCREEN_TEXTURE_REPEAT_X=(.299/.618)/(675/1200);
-const PHONE_CONTACT_URL="https://wa.me/+593964198839";
+const PHONE_CONTACT_URL="https://wa.me/+593964198839?text=Hello%20from%20your%20website%21";
 const ZZ_LEAF_DARK_MATERIAL=new THREE.MeshStandardMaterial({color:"#334f36",roughness:.8,metalness:0,side:THREE.DoubleSide});
 const ZZ_LEAF_LIGHT_MATERIAL=new THREE.MeshStandardMaterial({color:"#405f3d",roughness:.76,metalness:0,side:THREE.DoubleSide});
 const ZZ_POT_MATERIAL=new THREE.MeshStandardMaterial({color:"#927b67",roughness:.8,metalness:0});
@@ -263,7 +266,7 @@ function Drawer() { return <group position={[1.72,.68,0]}>
   {[.86,.62].map((y)=><group key={y}><mesh position={[0,y-.68,.87]}><boxGeometry args={[1.37,.19,.04]}/><meshStandardMaterial color={C.wood}/></mesh><mesh position={[0,y-.68,.91]}><boxGeometry args={[.28,.035,.05]}/><meshStandardMaterial color={C.metal} metalness={.8}/></mesh></group>)}
 </group> }
 
-export function Laptop({position,rotation}:{position:[number,number,number];rotation:number}) {
+export function Laptop({position,rotation,screenRef}:{position:[number,number,number];rotation:number;screenRef?:MutableRefObject<THREE.Mesh|null>}) {
   const bodyGeometry=useMacBookShellGeometry(1.72,1.04,.044,.075,.006);
   const lidGeometry=useMacBookShellGeometry(1.7,.99,.022,.07,.005);
   return <group position={[position[0],1.24+position[1],-1.5+position[2]]} rotation-y={THREE.MathUtils.degToRad(rotation)} dispose={null}>
@@ -283,7 +286,7 @@ export function Laptop({position,rotation}:{position:[number,number,number];rota
       <mesh geometry={lidGeometry} position={[0,.495,0]} castShadow>
         <primitive object={MACBOOK_CHASSIS_MATERIAL} attach="material"/>
       </mesh>
-      <mesh geometry={MACBOOK_PLANE_GEOMETRY} scale={[1.57,.86,1]} position={[0,.495,.017]}>
+      <mesh ref={screenRef} geometry={MACBOOK_PLANE_GEOMETRY} scale={[1.57,.86,1]} position={[0,.495,.017]}>
         <primitive object={MACBOOK_DARK_MATERIAL} attach="material"/>
       </mesh>
     </group>
@@ -521,6 +524,20 @@ function PhoneScreen({active}:{active:boolean}){
       onClick={(event)=>{if(!active)return;event.stopPropagation();window.open(PHONE_CONTACT_URL,"_blank","noopener,noreferrer");}}>
       <meshBasicMaterial ref={materialRef} map={texture} color="#050505" toneMapped={false}/>
     </mesh>
+    {active&&<group
+      position={[0,.022,.245]}
+      onPointerOver={(event)=>{event.stopPropagation();setHovered(true);}}
+      onPointerOut={()=>setHovered(false)}
+      onClick={(event)=>{event.stopPropagation();window.open(PHONE_CONTACT_URL,"_blank","noopener,noreferrer");}}
+    >
+      <mesh geometry={IPHONE_WHATSAPP_BUTTON_GEOMETRY}>
+        <primitive object={IPHONE_WHATSAPP_BUTTON_MATERIAL} attach="material"/>
+      </mesh>
+      <Suspense fallback={null}><Text position={[0,.004,0]} rotation-x={-Math.PI/2} fontSize={.015} anchorX="center" anchorY="middle">
+        Open WhatsApp
+        <meshBasicMaterial color="#ffffff" toneMapped={false}/>
+      </Text></Suspense>
+    </group>}
     <pointLight ref={lightRef} position={[0,.11,0]} color="#dce7f2" intensity={0} distance={.9} decay={2}/>
   </>;
 }
@@ -538,7 +555,7 @@ function Phone({active}:{active:boolean}) {
   <mesh geometry={IPHONE_DYNAMIC_ISLAND_GEOMETRY} position={[0,.0185,-.255]}>
     <primitive object={IPHONE_GLASS_MATERIAL} attach="material"/>
   </mesh>
-  {screenLoaded&&<Suspense fallback={null}><PhoneScreen active={active}/></Suspense>}
+  <RuntimeBoundary node={{id:"collection:phone",scope:"collection",sceneId:"phone",collectionId:"phone",mountPolicy:"lazy",retainOnSleep:false}}>{screenLoaded&&<Suspense fallback={null}><PhoneScreen active={active}/></Suspense>}</RuntimeBoundary>
   <mesh geometry={IPHONE_BACK_GEOMETRY} position={[0,-.0172,0]}>
     <primitive object={IPHONE_BACK_MATERIAL} attach="material"/>
   </mesh>
@@ -748,7 +765,7 @@ const CERTIFICATE_LIGHT_RISE=.44;
 const CERTIFICATE_LIGHT_FALL=1.1;
 const FRAME_WOOD=["#36241a","#251c18","#463022"] as const;
 
-function CertificateCard({record,texture,index,position,rotation,tiltY,baseScale,illuminated,focused,runtimeUpdates,onSelect}:{record:CertificateRecord;texture:THREE.Texture;index:number;position:[number,number,number];rotation:number;tiltY:number;baseScale:number;illuminated:boolean;focused:boolean;runtimeUpdates:boolean;onSelect?:(slug:string)=>void}) {
+function CertificateCard({record,texture,index,position,rotation,tiltY,baseScale,illuminated,runtimeUpdates,onSelect}:{record:CertificateRecord;texture:THREE.Texture;index:number;position:[number,number,number];rotation:number;tiltY:number;baseScale:number;illuminated:boolean;runtimeUpdates:boolean;onSelect?:(slug:string)=>void}) {
   const ref=useRef<THREE.Group>(null);
   const imageMaterialRef=useRef<THREE.MeshStandardMaterial>(null);
   const labelMaterialRef=useRef<THREE.MeshStandardMaterial>(null);
@@ -782,7 +799,7 @@ function CertificateCard({record,texture,index,position,rotation,tiltY,baseScale
       }
     }
   });
-  return <group ref={ref} position={position} rotation={[0,tiltY,rotation]} scale={baseScale} onPointerOver={()=>{if(interactive)setHovered(true);}} onPointerOut={()=>setHovered(false)} onClick={(event)=>{if(!interactive)return;event.stopPropagation();if(focused)window.open(record.url,"_blank","noopener,noreferrer");else onSelect?.(record.slug);}}>
+  return <group ref={ref} position={position} rotation={[0,tiltY,rotation]} scale={baseScale} onPointerOver={()=>{if(interactive)setHovered(true);}} onPointerOut={()=>setHovered(false)} onClick={(event)=>{if(!interactive)return;event.stopPropagation();onSelect?.(record.slug);}}>
     <RoundedBox args={[.482,.354,.035]} radius={.012} castShadow>
       <meshStandardMaterial color={frameColor} metalness={index%3===1?.22:.06} roughness={index%3===1?.46:.64}/>
     </RoundedBox>
@@ -793,7 +810,6 @@ function CertificateCard({record,texture,index,position,rotation,tiltY,baseScale
       <planeGeometry args={[.428,.308]}/>
       <meshStandardMaterial ref={imageMaterialRef} map={texture} emissiveMap={texture} emissive="#ffffff" emissiveIntensity={initialImageEmission} color={initialImageColor} roughness={.92} metalness={0}/>
     </mesh>
-    {focused&&<Suspense fallback={null}><FullCertificateImage image={record.image}/></Suspense>}
     <mesh position={[-.196,-.169,.026]}>
       <boxGeometry args={[.048,.009,.005]}/>
       <meshStandardMaterial ref={labelMaterialRef} color={initialLabelColor} metalness={.32} roughness={.52}/>
@@ -801,18 +817,11 @@ function CertificateCard({record,texture,index,position,rotation,tiltY,baseScale
   </group>;
 }
 
-function FullCertificateImage({image}:{image:string}){
-  const source=useTexture(withSceneBasePath(`/certificates/${image}`));
-  const texture=useMemo(()=>{const configured=source.clone();configured.colorSpace=THREE.SRGBColorSpace;configured.anisotropy=8;configured.needsUpdate=true;return configured;},[source]);
-  useEffect(()=>()=>texture.dispose(),[texture]);
-  return <mesh position={[0,0,.034]}><planeGeometry args={[.428,.308]}/><meshStandardMaterial map={texture} emissiveMap={texture} emissive="#ffffff" emissiveIntensity={.32} color={ACTIVE_CERTIFICATE_COLOR} roughness={.92} metalness={0}/></mesh>;
-}
-
-function CertificateGallery({illuminated,focusedSlug,onCertificateSelect}:{illuminated:boolean;focusedSlug:string|null;onCertificateSelect?:(slug:string)=>void}){
+function CertificateGallery({illuminated,onCertificateSelect}:{illuminated:boolean;onCertificateSelect?:(slug:string)=>void}){
   const textures=useTexture(CERTIFICATE_THUMBNAILS);
   const runtimeUpdates=useRuntimeSnapshot((snapshot)=>snapshot.nodes.find((node)=>node.id==="collection:certificates")?.updates??true);
   textures.forEach((texture)=>{texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=8;});
-  return <>{CERTIFICATE_LAYOUT.map(({index,x,y,rotation,tiltY,scale,depth})=><CertificateCard key={CERTIFICATES[index].image} record={CERTIFICATES[index]} texture={textures[index]} index={index} position={[x,y,depth]} rotation={rotation} tiltY={tiltY} baseScale={scale} illuminated={illuminated} focused={focusedSlug===CERTIFICATES[index].slug} runtimeUpdates={runtimeUpdates} onSelect={onCertificateSelect}/>)}</>;
+  return <>{CERTIFICATE_LAYOUT.map(({index,x,y,rotation,tiltY,scale,depth})=><CertificateCard key={CERTIFICATES[index].image} record={CERTIFICATES[index]} texture={textures[index]} index={index} position={[x,y,depth]} rotation={rotation} tiltY={tiltY} baseScale={scale} illuminated={illuminated} runtimeUpdates={runtimeUpdates} onSelect={onCertificateSelect}/>)}</>;
 }
 
 function ShelfPracticalLighting({illuminated}:{illuminated:boolean}){
@@ -855,7 +864,7 @@ function ShelfDecor(){return <>
   </group>
 </>}
 
-export function Shelf({illuminated=false,focusedSlug=null,onCertificateSelect}:{illuminated?:boolean;focusedSlug?:string|null;onCertificateSelect?:(slug:string)=>void}) {
+export function Shelf({illuminated=false,onCertificateSelect}:{illuminated?:boolean;onCertificateSelect?:(slug:string)=>void}) {
   return <group position={[-3.8,2,-3.63]}>
     <group position={[.07,0,.08]} rotation-y={THREE.MathUtils.degToRad(6)}>
       {[1.29,.43,-.43,-1.29].map((y,index)=><RoundedBox key={y} args={[2.36,.69,.075]} radius={.018} position={[0,y,-.315]} receiveShadow><meshStandardMaterial color={["#30231d","#382820","#2b211c","#35261e"][index]} roughness={.78-index*.025}/></RoundedBox>)}
@@ -866,7 +875,9 @@ export function Shelf({illuminated=false,focusedSlug=null,onCertificateSelect}:{
       <ShelfPracticalLighting illuminated={illuminated}/>
       <ShelfDecor/>
     </group>
-    <Suspense fallback={null}><CertificateGallery illuminated={illuminated} focusedSlug={focusedSlug} onCertificateSelect={onCertificateSelect}/></Suspense>
+    {/* Thumbnails are the ambient shelf artwork. Full-size certificate images
+        are rendered by the HTML gallery, not as a second 3D card texture. */}
+    <Suspense fallback={null}><CertificateGallery illuminated={illuminated} onCertificateSelect={onCertificateSelect}/></Suspense>
   </group>;
 }
 
@@ -899,6 +910,7 @@ export function Posters() {
     {[-2.13,-.71,.71,2.13].map((x)=><group key={x} position={[x,0,0]}>
       <mesh castShadow><boxGeometry args={[1.3,.79,.06]}/><meshStandardMaterial color="#151413" roughness={.72}/></mesh>
     </group>)}
+    {/* Wall images are part of the room's persistent visual composition. */}
     <Suspense fallback={null}><PosterImages/></Suspense>
   </group>;
 }

@@ -107,6 +107,7 @@ export interface CinematicEngineConfiguration<TFraming=unknown,TTransition=unkno
 }
 
 export type EngineListener=()=>void;
+export type SceneFocusedListener=(state:Readonly<EngineState>)=>void;
 
 export interface CinematicEngine<TFraming=unknown,TTransition=unknown,TResponsive=unknown> {
   registerScene(scene:SceneRegistration<TFraming,TTransition,TResponsive>):()=>void;
@@ -136,4 +137,11 @@ export interface CinematicEngine<TFraming=unknown,TTransition=unknown,TResponsiv
   getFocusItem(collectionId:NavigationId,itemId:NavigationId):FocusItemRegistration<TFraming,TTransition>|undefined;
   getState():Readonly<EngineState>;
   subscribe(listener:EngineListener):()=>void;
+  /**
+   * Subscribe to the moment the camera reports that its requested location
+   * has settled. This is emitted after `completeTransition()` commits the
+   * location, so presentation layers can reveal content without guessing
+   * from animation progress.
+   */
+  onSceneFocused(listener:SceneFocusedListener):()=>void;
 }

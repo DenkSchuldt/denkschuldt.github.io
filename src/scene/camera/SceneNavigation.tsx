@@ -12,6 +12,7 @@ interface Props {
   visitedAutoScenes:readonly SceneId[];
   stateRef:React.MutableRefObject<{introComplete:boolean}>;
   onNavigate:(scene:SceneId)=>void;
+  onNext:()=>SceneId|null;
   onEnterFocus:(collection:FocusCollectionId,item:string)=>unknown;
   onExitFocus:()=>unknown;
 }
@@ -38,14 +39,19 @@ function FadingSceneName({label}:{label:string}){
   return <span className={`scene-name${visible?" is-visible":""}`}>{displayed}</span>;
 }
 
-export function SceneNavigation({selectedScene,selectedFocusCollection,selectedFocusItem,resumeScene,visitedAutoScenes,stateRef,onNavigate,onEnterFocus,onExitFocus}:Props){
+export function SceneNavigation({selectedScene,selectedFocusCollection,selectedFocusItem,resumeScene,visitedAutoScenes,stateRef,onNavigate,onNext,onEnterFocus,onExitFocus}:Props){
   const [introComplete,setIntroComplete]=useState(false);
   useEffect(()=>{
     const update=()=>setIntroComplete(stateRef.current.introComplete);
     update();
-    const timer=window.setInterval(update,120);
+    if(stateRef.current.introComplete)return;
+    let timer=0;
+    timer=window.setInterval(()=>{
+      update();
+      if(stateRef.current.introComplete)window.clearInterval(timer);
+    },120);
     return()=>window.clearInterval(timer);
-  },[stateRef]);
+  },[stateRef,selectedScene]);
   const current=introComplete?selectedScene:"opening";
   const previous=getAdjacentScene(current,-1,visitedAutoScenes);
   const resumeTarget=introComplete&&current==="opening"?resumeScene:null;
@@ -70,11 +76,11 @@ export function SceneNavigation({selectedScene,selectedFocusCollection,selectedF
         <Arrow direction="left"/><FadingSceneName label={previous?SCENE_REGISTRY[previous].label:""}/>
       </button>
       <div className="scene-navigation-current camera-location" aria-live="polite"><FadingSceneName label={currentLabel}/></div>
-      <button type="button" className="scene-navigation-target scene-navigation-next" aria-label={next?`Next scene: ${SCENE_REGISTRY[next].label}`:"No next scene"} disabled={!introComplete||!next} onClick={()=>next&&onNavigate(next)}>
+      <button type="button" className="scene-navigation-target scene-navigation-next" aria-label={next?`Next scene: ${SCENE_REGISTRY[next].label}`:"No next scene"} disabled={!introComplete||!next} onClick={()=>onNext()}>
         <FadingSceneName label={next?SCENE_REGISTRY[next].label:""}/><Arrow direction="right"/>
       </button>
     </nav>
-    {selectedFocusCollection&&<button type="button" className="collection-close" aria-label={`Exit ${collection?.label??"collection"} collection`} aria-keyshortcuts="Escape" title={`Exit ${collection?.label??"collection"} collection (ESC)`} onClick={()=>onExitFocus()}>
+    {selectedFocusCollection&&selectedFocusCollection!=="certificates"&&<button type="button" className="collection-close" aria-label={`Exit ${collection?.label??"collection"} collection`} aria-keyshortcuts="Escape" title={`Exit ${collection?.label??"collection"} collection (ESC)`} onClick={()=>onExitFocus()}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg>
       <span className="collection-close-label">Exit {collection?.label??"collection"}</span>
       <span className="collection-close-key" aria-hidden="true">ESC</span>

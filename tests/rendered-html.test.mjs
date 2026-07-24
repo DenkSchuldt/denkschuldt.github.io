@@ -82,8 +82,8 @@ test("keeps heavy WebGL resources outside the initial loading boundary",async()=
   assert.match(shell,/lazy\(\(\)=>import\("@\/src\/scene\/Experience"\)\)/);
   assert.match(experience,/import \{ Scene,type SceneSettings \} from "\.\/Scene"/);
   assert.doesNotMatch(experience,/lazy\(\(\)=>import\("\.\/Scene"\)/);
-  assert.match(scene,/paperAntialiasing=\{cameraSystem\.selectedTarget==="about"\}/);
-  assert.match(await readFile(new URL("../src/scene/effects/CinematicEffects.tsx",import.meta.url),"utf8"),/multisampling=\{paperAntialiasing\?RENDERING_INTENT\.postProcessing\.paperMultisampling:0\}/);
+  const effects=await readFile(new URL("../src/scene/effects/CinematicEffects.tsx",import.meta.url),"utf8");
+  assert.match(effects,/multisampling=\{0\}/);
   assert.doesNotMatch(scene,/loadCertificates|loadTextures/);
   assert.match(primitives,/<CertificateGallery illuminated=\{illuminated\}/);
   assert.match(primitives,/<PosterImages\/>/);

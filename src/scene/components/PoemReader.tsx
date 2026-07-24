@@ -134,16 +134,14 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
 
   const lovePoem = useCallback(() => {
     if (!displayRecord || !slug) return;
-    const alreadyLoved = Boolean(lovedPoems[slug]);
     setLovedPoems((current) => ({ ...current, [slug]: true }));
     setHeartAnimating(true);
     window.setTimeout(() => setHeartAnimating(false), 680);
-    if (alreadyLoved) return;
     const detail = { event: "poem_loved", slug, title: displayRecord.title, url: window.location.href };
     window.dispatchEvent(new CustomEvent("poem:loved", { detail }));
     const dataLayer = (window as Window & { dataLayer?: Array<Record<string, unknown>> }).dataLayer;
     dataLayer?.push(detail);
-  }, [displayRecord, lovedPoems, slug]);
+  }, [displayRecord, slug]);
 
   const closeCommentDialog = useCallback(() => {
     setCommentOpen(false);

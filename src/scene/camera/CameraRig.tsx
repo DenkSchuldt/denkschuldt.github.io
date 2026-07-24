@@ -19,11 +19,14 @@ interface Props {
   introVersion: number;
   skipVersion: number;
   returnVersion:number;
+  resumeVersion:number;
   workspaceVersion: number;
   focusVersion:number;
   reducedMotion: boolean;
   paused: boolean;
   transitionSpeed: number;
+  aboutTransitionSpeed: number;
+  openingAboutTransitionSpeed: number;
   openingDuration: number;
   openingHold: number;
   breathingEnabled: boolean;
@@ -87,6 +90,7 @@ export function CameraRig(props: Props) {
   const lastIntroVersion = useRef(props.introVersion);
   const lastSkipVersion = useRef(props.skipVersion);
   const lastReturnVersion=useRef(props.returnVersion);
+  const lastResumeVersion=useRef(props.resumeVersion);
   const lastWorkspaceVersion = useRef(props.workspaceVersion);
   const lastFocusVersion=useRef(props.focusVersion);
   const certificatePointerAnchor = useRef({x:0,y:0});
@@ -115,7 +119,10 @@ export function CameraRig(props: Props) {
     startRoll.current=baseRoll.current;endRoll.current=THREE.MathUtils.degToRad(next.roll??0);
     startFocus.current=props.focusRef.current; endFocus.current=next.focusDistance??props.focusRef.current;
     transitionStart.current=now;
-    transitionDuration.current=applyReducedMotionDuration(durationOverride??next.duration/props.transitionSpeed,props.reducedMotion);
+    // About is the reader-facing destination, so let its camera move a little
+    // faster while preserving the same easing and final composition.
+    const targetSpeed=id==="about"?(activeId.current==="opening"?props.openingAboutTransitionSpeed:props.aboutTransitionSpeed):1;
+    transitionDuration.current=applyReducedMotionDuration((durationOverride??next.duration/props.transitionSpeed)/targetSpeed,props.reducedMotion);
     activeTarget.current=next; requestedId.current=id; transitioning.current=true;
   };
 
@@ -132,6 +139,9 @@ export function CameraRig(props: Props) {
       props.focusRef.current=initial.focusDistance??props.focusRef.current;
       baseRoll.current=THREE.MathUtils.degToRad(initial.roll??0);camera.position.copy(basePosition);camera.lookAt(baseLook);camera.rotateZ(baseRoll.current);
       if(camera instanceof THREE.PerspectiveCamera){camera.fov=initial.fov;camera.updateProjectionMatrix();}
+      // Direct routes have no animated transition, but the camera still needs
+      // to publish the same settled event as an animated arrival.
+      if(props.directEntry)props.onTransitionComplete?.();
     }
     props.stateRef.current.requestedTarget=props.requestedTarget;
     props.stateRef.current.requestedShot=props.requestedTarget;
@@ -158,6 +168,8 @@ export function CameraRig(props: Props) {
       else beginTransition("opening",now,props.reducedMotion?.18:THREE.MathUtils.clamp(distance*1.65,1.35,4.8));
       return;
     }
+    const resumingFromStart=lastResumeVersion.current!==props.resumeVersion;
+    if(resumingFromStart)lastResumeVersion.current=props.resumeVersion;
     if(lastSkipVersion.current!==props.skipVersion){lastSkipVersion.current=props.skipVersion;introActive.current=false;introComplete.current=true;const destination=props.requestedTarget==="opening"?INTRO_DESTINATION:props.requestedTarget;beginTransition(destination,now,props.reducedMotion?.18:.4);}
     if(lastWorkspaceVersion.current!==props.workspaceVersion){lastWorkspaceVersion.current=props.workspaceVersion;if(introComplete.current)beginTransition("workspace",now);}
     if(lastFocusVersion.current!==props.focusVersion){lastFocusVersion.current=props.focusVersion;if(introComplete.current&&!props.paused&&props.requestedTarget===requestedId.current)beginTransition(props.requestedTarget,now);}
@@ -180,9 +192,9 @@ export function CameraRig(props: Props) {
         const workspace=tuneTarget(resolveCameraTarget(INTRO_PAN_SHOT,aspect),props.tuning,aspect);
         const sceneTransition=props.resolveSceneTransition?.(props.requestedTarget);
         const usesLibraryVariant=sceneTransition?.variant==="revisit"||sceneTransition?.variant==="return";
-        const duration=isDrawerOpeningReturn(activeId.current,props.requestedTarget)?Math.max(6.5,props.openingDuration*.5):usesLibraryVariant?sceneTransition.transition.duration/props.transitionSpeed:props.openingDuration-props.openingHold;
+        const duration=resumingFromStart?Math.max(.8,(sceneTransition?.transition.duration??resolveCameraTarget(props.requestedTarget,size.width/size.height).duration)*.45):isDrawerOpeningReturn(activeId.current,props.requestedTarget)?Math.max(6.5,props.openingDuration*.5):usesLibraryVariant?sceneTransition.transition.duration/props.transitionSpeed:props.openingDuration-props.openingHold;
         beginTransition(props.requestedTarget,now,duration,workspace.position);
-      } else beginTransition(props.requestedTarget,now);
+      } else beginTransition(props.requestedTarget,now,resumingFromStart?Math.max(.8,resolveCameraTarget(props.requestedTarget,size.width/size.height).duration*.45):undefined);
     }
     if(props.paused) return;
 

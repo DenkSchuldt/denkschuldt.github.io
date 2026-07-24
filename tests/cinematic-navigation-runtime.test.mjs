@@ -61,3 +61,21 @@ test("lazy nodes dispose while sleeping and mount when requested",()=>{
   assert.equal(runtime.getNodeState("scene:gallery").phase,"transitioning-in");
   assert.equal(runtime.getNodeState("scene:gallery").mounted,true);
 });
+
+test("shared node declarations are reference counted and lifecycle events are coarse",()=>{
+  const engine=createEngine();
+  const runtime=createCinematicRuntime(engine);
+  const node={id:"scene:gallery",scope:"scene",sceneId:"gallery",mountPolicy:"lazy",retainOnSleep:false};
+  const phases=[];
+  const unsubscribe=runtime.subscribeNode(node.id,(next,previous)=>phases.push([previous?.phase??null,next?.phase??null]));
+  const releaseA=runtime.registerNode(node);
+  const releaseB=runtime.registerNode({...node});
+  engine.goToScene("gallery");
+  for(let index=0;index<20;index++)engine.updateTransition(index/20);
+  assert.deepEqual(phases.map(([from,to])=>to),["disposed","transitioning-in"]);
+  releaseA();
+  assert.equal(runtime.getNodeState(node.id)?.phase,"transitioning-in");
+  releaseB();
+  assert.equal(runtime.getNodeState(node.id),undefined);
+  unsubscribe();
+});

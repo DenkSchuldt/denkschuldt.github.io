@@ -30,7 +30,7 @@ export function resolveNavigationPath(pathname:string):NavigationLocation {
   if(!parts.length)return locationForScene("opening");
   if(parts[0]==="about")return locationForScene("about");
   if(parts[0]==="projects")return parts[1]?locationForFocus("projects",parts[1])??locationForScene("projects"):locationForScene("projects");
-  if(parts[0]==="certificates")return parts[1]?locationForFocus("certificates",parts[1])??{sceneId:"certificates",focusCollectionId:"certificates",focusItemId:parts[1],cameraTarget:"certificate-detail"}:locationForScene("certificates");
+  if(parts[0]==="certificates")return parts[1]?locationForFocus("certificates",parts[1])??{sceneId:"certificates",focusCollectionId:"certificates",focusItemId:parts[1],cameraTarget:SCENE_REGISTRY.certificates.cameraTarget}:locationForScene("certificates");
   if(parts[0]==="poems")return parts[1]?locationForFocus("poems",parts[1])??{sceneId:"poems",focusCollectionId:"poems",focusItemId:parts[1],cameraTarget:SCENE_REGISTRY.poems.cameraTarget}:locationForScene("poems");
   if(parts[0]==="phone")return parts[1]==="qr"?locationForFocus("phone","qr")??locationForScene("phone"):locationForScene("phone");
   if(parts[0]==="socials")return locationForFocus("phone","socials")??locationForScene("phone");

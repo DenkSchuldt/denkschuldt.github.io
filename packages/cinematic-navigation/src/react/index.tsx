@@ -1,10 +1,24 @@
 "use client";
 
-import { createContext, createElement, useContext, useEffect, useMemo, useSyncExternalStore, type PropsWithChildren, type ReactNode } from "react";
-import { createCinematicRuntime, type CinematicEngine, type CinematicRuntime, type EngineState, type FocusCollectionRegistration, type FocusItemRegistration, type RuntimeNodeRegistration, type RuntimeNodeState, type RuntimeSnapshot, type RuntimeTaskRegistration, type SceneRegistration } from "../core/index.js";
+import { createContext, createElement, useContext, useEffect, useMemo, useRef, useSyncExternalStore, type Context, type PropsWithChildren, type ReactNode } from "react";
+import { createCinematicRuntime, type CinematicEngine, type CinematicRuntime, type EngineState, type FocusCollectionRegistration, type FocusItemRegistration, type RuntimeNodeListener, type RuntimeNodeRegistration, type RuntimeNodeState, type RuntimeSnapshot, type RuntimeTaskRegistration, type SceneRegistration } from "../core/index.js";
 
-const EngineContext=createContext<CinematicEngine|undefined>(undefined);
-const RuntimeContext=createContext<CinematicRuntime|undefined>(undefined);
+/**
+ * Keep context identity stable when Vite hot-reloads this package.
+ *
+ * The app imports the provider and consumers from the same package entry
+ * point, but a package rebuild can invalidate those modules at slightly
+ * different times. Without a shared context, the newly evaluated consumer
+ * cannot see the still-mounted provider and React tears down the Canvas.
+ */
+type SharedContexts={engine:Context<CinematicEngine|undefined>;runtime:Context<CinematicRuntime|undefined>};
+const hotReloadGlobals=globalThis as typeof globalThis & { __DENK_CINEMATIC_NAVIGATION_CONTEXTS__?:SharedContexts };
+const sharedContexts=hotReloadGlobals.__DENK_CINEMATIC_NAVIGATION_CONTEXTS__??= {
+  engine:createContext<CinematicEngine|undefined>(undefined),
+  runtime:createContext<CinematicRuntime|undefined>(undefined),
+};
+const EngineContext=sharedContexts.engine;
+const RuntimeContext=sharedContexts.runtime;
 const serverSnapshot:EngineState={sceneId:"",focusCollectionId:null,focusItemId:null,cameraTargetId:"",requestedSceneId:"",requestedFocusCollectionId:null,requestedFocusItemId:null,requestedCameraTargetId:"",previousFocusItemId:null,lastVisitedSceneId:null,visitedSceneIds:[],transitionStatus:"idle",transitionIntent:null,transitionProgress:1,responsiveMode:"desktop",introActive:false,introCompleted:true};
 
 export function CinematicEngineProvider({engine,children}:PropsWithChildren<{engine:CinematicEngine}>){return createElement(EngineContext.Provider,{value:engine},children);}
@@ -34,8 +48,15 @@ export function useRuntimeSnapshot<T=RuntimeSnapshot>(selector:(snapshot:Runtime
 }
 export function useRuntimeNode(node:RuntimeNodeRegistration):RuntimeNodeState|undefined {
   const runtime=useCinematicRuntime();
-  useEffect(()=>runtime.registerNode(node),[runtime,node]);
+  const stableNode=useMemo(()=>node,[node.id,node.scope,node.sceneId,node.collectionId,node.focusItemId,node.mountPolicy,node.retainOnSleep]);
+  useEffect(()=>runtime.registerNode(stableNode),[runtime,stableNode]);
   return useRuntimeSnapshot((snapshot)=>snapshot.nodes.find((candidate)=>candidate.id===node.id));
+}
+export function useRuntimeNodeLifecycle(nodeId:string,listener:RuntimeNodeListener){
+  const runtime=useCinematicRuntime();
+  const listenerRef=useRef(listener);
+  listenerRef.current=listener;
+  useEffect(()=>runtime.subscribeNode(nodeId,(next,previous)=>listenerRef.current(next,previous)),[runtime,nodeId]);
 }
 export function useRuntimeNodes(nodes:readonly RuntimeNodeRegistration[]){
   const runtime=useCinematicRuntime();
@@ -46,12 +67,18 @@ export function useRuntimeNodes(nodes:readonly RuntimeNodeRegistration[]){
 }
 export function useRuntimeTask(task:RuntimeTaskRegistration){
   const runtime=useCinematicRuntime();
-  useEffect(()=>runtime.registerTask(task),[runtime,task]);
+  const taskRef=useRef(task);
+  taskRef.current=task;
+  const stableTask=useMemo<RuntimeTaskRegistration>(()=>({id:task.id,nodeId:task.nodeId,priority:task.priority,update:(context)=>taskRef.current.update(context)}),[task.id,task.nodeId,task.priority]);
+  useEffect(()=>runtime.registerTask(stableTask),[runtime,stableTask]);
 }
 
 export function RuntimeBoundary({node,children}:{node:RuntimeNodeRegistration;children:ReactNode}){
   const state=useRuntimeNode(node);
-  return state?.mounted===false?null:children;
+  // A lazy boundary must not render optimistically while its declaration is
+  // still registering; otherwise the expensive resource would load for one
+  // frame before the disposed state is observed.
+  return state?.mounted===false||(!state&&node.mountPolicy==="lazy")?null:children;
 }
 
 export interface RuntimeInspectorMetrics {
@@ -62,9 +89,13 @@ export interface RuntimeInspectorMetrics {
 }
 
 export function RuntimeInspector({visible=false,metrics}:{visible?:boolean;metrics?:RuntimeInspectorMetrics}){
+  if(!visible||process.env.NODE_ENV==="production")return null;
+  return <RuntimeInspectorView metrics={metrics}/>;
+}
+
+function RuntimeInspectorView({metrics}:{metrics?:RuntimeInspectorMetrics}){
   const runtime=useCinematicRuntime();
   const snapshot=useRuntimeSnapshot();
-  if(!visible||process.env.NODE_ENV==="production")return null;
   const groups=(phase:string)=>snapshot.nodes.filter((node)=>node.phase===phase).map((node)=>node.id);
   const line=(label:string,value:unknown)=><div key={label}><strong>{label}</strong>: {String(value??"n/a")}</div>;
   return <aside aria-label="Runtime lifecycle inspector" style={{position:"fixed",zIndex:40,right:16,bottom:16,maxWidth:360,maxHeight:"70vh",overflow:"auto",padding:"12px 14px",border:"1px solid rgba(238,233,223,.18)",borderRadius:10,background:"rgba(12,12,12,.84)",backdropFilter:"blur(14px)",color:"rgba(244,239,229,.82)",font:"11px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace",pointerEvents:"none"}}>

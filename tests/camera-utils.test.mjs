@@ -98,6 +98,7 @@ test("the opening presents workspace from the left and lands on About", () => {
   assert.equal(INTRO_PAN_SHOT, "workspace");
   assert.ok(resolveShot("opening", 1.8).framing.position[0] < resolveShot("workspace", 1.8).framing.position[0]);
   assert.ok(resolveShot("workspace", 1.8).framing.position[0] < resolveShot("about", 1.8).framing.position[0]);
+  assert.equal(resolveShot("opening", 1.8).transition.breathing, undefined);
   assert.equal(getShotOvershoot("about", .018), 0);
   assert.equal(getShotOvershoot("workspace", .018), .018);
 });
@@ -128,12 +129,11 @@ test("Projects frames the MacBook display as its subject",()=>{
   assert.equal(frame.composition,"interactive MacBook display");
 });
 
-test("Certificate inspection uses a close cursor-controlled framing", () => {
-  const frame=resolveShot("certificate-detail",1.8).framing;
-  assert.equal(frame.composition,"cursor-controlled certificate inspection");
-  assert.ok(frame.fov<resolveShot("certificates",1.8).framing.fov);
-  assert.ok(frame.position[2]<-1);
-  assert.equal(getShotOvershoot("certificate-detail",.018),0);
+test("Certificate selection keeps the stable archive framing", () => {
+  const frame=resolveShot("certificates",1.8).framing;
+  assert.equal(frame.composition,"chronological certificate archive");
+  assert.equal(frame.fov,44);
+  assert.equal(getShotOvershoot("certificates",.018),.018);
 });
 
 test("Certificate browsing begins without drift and spans every shelf row", () => {
@@ -188,9 +188,10 @@ test("dynamic poem URLs restore the requested poem focus", () => {
   assert.equal(route.shot,"poems");
 });
 
-test("guided Scenes preserve the cinematic order and Drawer loop",()=>{
-  assert.deepEqual(GUIDED_SCENE_IDS,["opening","about","certificates","projects","wall","phone","poems","drawer"]);
+test("guided Scenes preserve the cinematic order and skip Drawer",()=>{
+  assert.deepEqual(GUIDED_SCENE_IDS,["opening","about","certificates","projects","wall","phone","poems"]);
   for(let index=0;index<GUIDED_SCENE_IDS.length-1;index++)assert.equal(getAdjacentScene(GUIDED_SCENE_IDS[index],1),GUIDED_SCENE_IDS[index+1]);
+  assert.equal(getAdjacentScene("poems",1),"opening");
   assert.equal(getAdjacentScene("drawer",1),"opening");
   assert.equal(getAdjacentScene("opening",-1),null);
 });
@@ -255,10 +256,10 @@ test("Certificates parent and representative Focus framing remain numerically st
   assert.equal(SCENE_REGISTRY.certificates.framing.fov,44);
   assert.deepEqual(SCENE_REGISTRY.certificates.responsive.mobile.position,[-3.72,2.35,2.1]);
   const first=FOCUS_COLLECTIONS.certificates.items[CERTIFICATES[0].slug];
-  assert.equal(first.cameraTarget,"certificate-detail");
-  assert.equal(first.framing.fov,27);
-  assert.equal(first.transition.duration,3.2);
-  assert.equal(first.cameraFocus.depthOfFieldStrength,0);
+  assert.equal(first.cameraTarget,"certificates");
+  assert.equal(first.framing,FOCUS_COLLECTIONS.certificates.defaultFraming);
+  assert.equal(first.transition.duration,5);
+  assert.equal(first.cameraFocus.focusTarget,"certificate");
 });
 
 test("every certificate Focus item keeps its subject centered",()=>{
@@ -266,17 +267,15 @@ test("every certificate Focus item keeps its subject centered",()=>{
   for(const layout of CERTIFICATE_LAYOUT){
     const certificate=CERTIFICATES[layout.index];
     const focused=collection.items[certificate.slug];
-    assert.ok(Math.abs((focused.framing.position[0]-collection.defaultFraming.position[0])-layout.x)<1e-9);
-    assert.ok(Math.abs((focused.framing.position[1]-collection.defaultFraming.position[1])-layout.y)<1e-9);
-    assert.ok(Math.abs((focused.framing.lookAt[0]-collection.defaultFraming.lookAt[0])-layout.x)<1e-9);
-    assert.ok(Math.abs((focused.framing.lookAt[1]-collection.defaultFraming.lookAt[1])-layout.y)<1e-9);
+    assert.equal(focused.framing,collection.defaultFraming);
+    assert.equal(focused.cameraTarget,"certificates");
   }
 });
 
 test("Focus activation and restoration keep the parent Scene",()=>{
   const item=CERTIFICATES[0];
   const focused=locationForFocus("certificates",item.slug);
-  assert.deepEqual(focused,{sceneId:"certificates",focusCollectionId:"certificates",focusItemId:item.slug,cameraTarget:"certificate-detail"});
+  assert.deepEqual(focused,{sceneId:"certificates",focusCollectionId:"certificates",focusItemId:item.slug,cameraTarget:"certificates"});
   assert.deepEqual(locationForScene(focused.sceneId),{sceneId:"certificates",focusCollectionId:null,focusItemId:null,cameraTarget:"certificates"});
 });
 

@@ -1,5 +1,5 @@
 import { resolveSpatialNeighbor } from "./spatial.js";
-import type { CinematicEngine, CinematicEngineConfiguration, EngineState, FocusCollectionRegistration, FocusDirection, FocusItemRegistration, NavigationLocation, NavigationRequest, SceneRegistration, TransitionIntent } from "./types.js";
+import type { CinematicEngine, CinematicEngineConfiguration, EngineState, FocusCollectionRegistration, FocusDirection, FocusItemRegistration, NavigationLocation, NavigationRequest, SceneFocusedListener, SceneRegistration, TransitionIntent } from "./types.js";
 
 const clamp=(value:number)=>Math.min(1,Math.max(0,value));
 
@@ -8,6 +8,8 @@ export function createCinematicEngine<TFraming=unknown,TTransition=unknown,TResp
   const collections=new Map<string,FocusCollectionRegistration<TFraming,TTransition>>();
   const items=new Map<string,Map<string,FocusItemRegistration<TFraming,TTransition>>>();
   const listeners=new Set<()=>void>();
+  const sceneFocusedListeners=new Set<SceneFocusedListener>();
+  let lastFocusedState:Readonly<EngineState>|null=null;
   const guided=[...(configuration.guidedSequence??[])];
   const development=configuration.development??true;
   const persistenceKey=configuration.persistenceKey??"cinematic-navigation:last-scene";
@@ -94,7 +96,7 @@ export function createCinematicEngine<TFraming=unknown,TTransition=unknown,TResp
   };
   const interruptTransition=(intent:TransitionIntent="interrupt")=>{configuration.cameraDriver?.cancel(intent);state={...state,transitionStatus:"idle",transitionIntent:intent,transitionProgress:state.transitionProgress};emit();};
   const updateTransition=(progress:number)=>{state={...state,transitionProgress:clamp(progress)};emit();};
-  const completeTransition=()=>{const visitedSceneIds=state.visitedSceneIds.includes(state.requestedSceneId)?state.visitedSceneIds:[...state.visitedSceneIds,state.requestedSceneId];state={...state,sceneId:state.requestedSceneId,focusCollectionId:state.requestedFocusCollectionId,focusItemId:state.requestedFocusItemId,cameraTargetId:state.requestedCameraTargetId,visitedSceneIds,transitionStatus:"idle",transitionIntent:null,transitionProgress:1};emit();};
+  const completeTransition=()=>{const visitedSceneIds=state.visitedSceneIds.includes(state.requestedSceneId)?state.visitedSceneIds:[...state.visitedSceneIds,state.requestedSceneId];state={...state,sceneId:state.requestedSceneId,focusCollectionId:state.requestedFocusCollectionId,focusItemId:state.requestedFocusItemId,cameraTargetId:state.requestedCameraTargetId,visitedSceneIds,transitionStatus:"idle",transitionIntent:null,transitionProgress:1};lastFocusedState=state;emit();sceneFocusedListeners.forEach((listener)=>listener(state));};
   const setResponsiveMode=(responsiveMode:string)=>{if(state.responsiveMode!==responsiveMode){state={...state,responsiveMode};emit();}};
   const setIntroState=(introActive:boolean,introCompleted:boolean)=>{if(state.introActive!==introActive||state.introCompleted!==introCompleted){state={...state,introActive,introCompleted};emit();}};
   const restoreLastVisitedScene=()=>{const id=configuration.persistence?.read(persistenceKey);return id&&scenes.has(id)?goToScene(id):null;};
@@ -107,5 +109,5 @@ export function createCinematicEngine<TFraming=unknown,TTransition=unknown,TResp
 
   const resolveSceneTransition=(sceneId:string)=>{const scene=scenes.get(sceneId);if(!scene)return undefined;const revisit=state.visitedSceneIds.includes(sceneId);const departure=scenes.get(state.sceneId);if(state.transitionIntent==="return"&&departure?.returnTransition!==undefined)return {sceneId,transition:departure.returnTransition,revisit,variant:"return" as const};if(revisit&&scene.revisitTransition!==undefined)return {sceneId,transition:scene.revisitTransition,revisit,variant:"revisit" as const};return {sceneId,transition:scene.transition,revisit,variant:"base" as const};};
 
-  return {registerScene,unregisterScene,registerFocusCollection,unregisterFocusCollection,registerFocusItem,unregisterFocusItem,goToScene,returnToScene,nextScene:()=>adjacentScene(1),previousScene:()=>adjacentScene(-1),enterFocus,goToFocus,moveFocus,exitFocus,syncLocation,interruptTransition,updateTransition,completeTransition,setResponsiveMode,setIntroState,restoreLastVisitedScene,getScene:(id)=>scenes.get(id),resolveSceneTransition,getFocusCollection:(id)=>collections.get(id),getFocusItem,getState:()=>state,subscribe:(listener)=>{listeners.add(listener);return()=>listeners.delete(listener);}};
+  return {registerScene,unregisterScene,registerFocusCollection,unregisterFocusCollection,registerFocusItem,unregisterFocusItem,goToScene,returnToScene,nextScene:()=>adjacentScene(1),previousScene:()=>adjacentScene(-1),enterFocus,goToFocus,moveFocus,exitFocus,syncLocation,interruptTransition,updateTransition,completeTransition,setResponsiveMode,setIntroState,restoreLastVisitedScene,getScene:(id)=>scenes.get(id),resolveSceneTransition,getFocusCollection:(id)=>collections.get(id),getFocusItem,getState:()=>state,subscribe:(listener)=>{listeners.add(listener);return()=>listeners.delete(listener);},onSceneFocused:(listener)=>{sceneFocusedListeners.add(listener);if(lastFocusedState)listener(lastFocusedState);return()=>sceneFocusedListeners.delete(listener);}};
 }

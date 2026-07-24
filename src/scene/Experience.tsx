@@ -1,15 +1,18 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
+import mixpanel from "mixpanel-browser";
 import { lazy,Suspense,useCallback,useEffect,useMemo,useRef,useState } from "react";
 import * as THREE from "three";
-import { CinematicRuntimeProvider, RuntimeInspector, useCinematicRuntimeController, useRuntimeNodes } from "@denk/cinematic-navigation/react";
+import { CinematicRuntimeProvider, RuntimeInspector, useCinematicRuntimeController } from "@denk/cinematic-navigation/react";
 import type { RuntimeNodeRegistration } from "@denk/cinematic-navigation";
 import { RuntimeFrameBridge } from "@denk/cinematic-navigation/r3f";
 import { Scene,type SceneSettings } from "./Scene";
 import { CinematicFade } from "./camera/CinematicFade";
 import { NavigationDebugPanel } from "./camera/NavigationDebugPanel";
 import { SceneNavigation } from "./camera/SceneNavigation";
+import { CertificateGalleryOverlay } from "./components/CertificateGalleryOverlay";
+import { ProjectsOverlay } from "./components/ProjectsOverlay";
 import { shouldSyncRouteShot } from "./camera/cameraNavigation";
 import type { NavigationLocation,SceneId } from "./camera/navigationTypes";
 import { pathForFocus,pathForScene } from "./camera/sceneRoutes";
@@ -17,51 +20,74 @@ import { INTRO_DESTINATION } from "./camera/shotRegistry";
 import { useAutoSceneNavigation,useCameraKeyboardNavigation,useCameraPinchNavigation,useCameraTapNavigation,useCinematicNavigation } from "./camera/useCinematicCamera";
 import type { CinematicNavigationSystem } from "./camera/useCinematicCamera";
 import { useSceneRouter } from "./camera/useSceneRouter";
-import type { RenderingDiagnosticsSnapshot } from "./diagnostics/RenderingDiagnostics";
 import { DEFAULT_RENDER_ISOLATION } from "./rendering/renderIsolation";
 import { RENDERING_INTENT } from "./rendering/renderingIntent";
 import { POEMS_FOLDER_LAYOUT } from "./sceneLayout";
 import { usePoems } from "./content/usePoems";
-import { FOCUS_COLLECTIONS,locationForScene } from "./camera/sceneRegistry";
+import { FOCUS_COLLECTIONS,getFocusItem,locationForScene,SCENE_REGISTRY } from "./camera/sceneRegistry";
 import { GUIDED_SCENE_IDS } from "./camera/sceneRegistry";
+import type { ScreenProjection } from "./screenProjection";
 
-const RenderingDiagnosticsProbe=lazy(()=>import("./diagnostics/RenderingDiagnostics").then((module)=>({default:module.RenderingDiagnosticsProbe})));
-const RenderingDiagnosticsPanel=lazy(()=>import("./diagnostics/RenderingDiagnostics").then((module)=>({default:module.RenderingDiagnosticsPanel})));
+type PoemInteractionDetail={slug?:string;title?:string;url?:string;comment?:string};
+type FocusedSceneState={sceneId:SceneId;cameraTargetId:string};
+
 // Keep the reading experience (and its draggable dialog dependency) out of
 // the main scene bundle. This still resolves for direct /poems/:slug entries
 // because the reader is rendered as soon as the route's poem is available.
 const PoemReader=lazy(()=>import("./components/PoemReader").then((module)=>({default:module.PoemReader})));
+let mixpanelInitialized=false;
 const RUNTIME_NODES:readonly RuntimeNodeRegistration[]=[
   {id:"world",scope:"world",mountPolicy:"persistent"},
-  ...GUIDED_SCENE_IDS.map((sceneId)=>({id:`scene:${sceneId}`,scope:"scene" as const,sceneId,mountPolicy:"persistent" as const})),
-  ...Object.values(FOCUS_COLLECTIONS).map((collection)=>({id:`collection:${collection.id}`,scope:"collection" as const,sceneId:collection.sceneId,collectionId:collection.id,mountPolicy:"persistent" as const})),
+  ...GUIDED_SCENE_IDS.map((sceneId)=>({id:`scene:${sceneId}`,scope:"scene" as const,sceneId,mountPolicy:"lazy" as const,retainOnSleep:false})),
+  ...Object.values(FOCUS_COLLECTIONS).map((collection)=>({id:`collection:${collection.id}`,scope:"collection" as const,sceneId:collection.sceneId,collectionId:collection.id,mountPolicy:"lazy" as const,retainOnSleep:false})),
 ];
 
-function PortfolioRuntimeDeclaration({cameraSystem}:{cameraSystem:CinematicNavigationSystem}){
+function PortfolioRuntimeDeclaration({cameraSystem,runtime}:{cameraSystem:CinematicNavigationSystem;runtime:ReturnType<typeof useCinematicRuntimeController>}){
   const nodes=useMemo(()=>{
     const focusCollection=cameraSystem.selectedFocusCollection,focusItem=cameraSystem.selectedFocusItem;
-    return focusCollection&&focusItem?[...RUNTIME_NODES,{id:`focus:${focusCollection}:${focusItem}`,scope:"focus-item" as const,sceneId:cameraSystem.selectedScene,collectionId:focusCollection,focusItemId:focusItem,mountPolicy:"persistent" as const}]:RUNTIME_NODES;
+    return focusCollection&&focusItem?[...RUNTIME_NODES,{id:`focus:${focusCollection}:${focusItem}`,scope:"focus-item" as const,sceneId:cameraSystem.selectedScene,collectionId:focusCollection,focusItemId:focusItem,mountPolicy:"lazy" as const,retainOnSleep:false}]:RUNTIME_NODES;
   },[cameraSystem.selectedFocusCollection,cameraSystem.selectedFocusItem,cameraSystem.selectedScene]);
-  useRuntimeNodes(nodes);
+  useEffect(()=>{
+    const cleanups=nodes.map((node)=>runtime.registerNode(node));
+    return()=>cleanups.forEach((cleanup)=>cleanup());
+  },[runtime,nodes]);
   return null;
 }
 const SETTINGS:SceneSettings={desk:19,moon:1.05,moonColor:"#91a8c2",bounce:.62,bloom:.08,fog:16.5,exposure:RENDERING_INTENT.renderer.exposure,dof:.45,focusDistance:.02,helpers:false,laptopPosition:[-.55,0,-.28],laptopRotation:-3,folderPosition:POEMS_FOLDER_LAYOUT.position,folderRotation:POEMS_FOLDER_LAYOUT.rotationDegrees,paperPosition:[-2,.518],paperRotation:12,penPosition:[.46,.05],penRotation:78,coffeePosition:[1.18,.175,-.58],plantPosition:[-2.48,1.35,-2.34],plantRotationY:-12,lampPosition:[-1.9,-.07,-.45]};
 
 export default function Experience({initialPath="/"}:{initialPath?:string}) {
   const [renderIsolation,setRenderIsolation]=useState(DEFAULT_RENDER_ISOLATION);
-  const [renderingDiagnostics,setRenderingDiagnostics]=useState<RenderingDiagnosticsSnapshot|null>(null);
-  const [diagnosticMobileViewport,setDiagnosticMobileViewport]=useState(false);
   const [sceneReady,setSceneReady]=useState(false);
+  const [cinematicFadeReady,setCinematicFadeReady]=useState(false);
+  const [projectsCameraFocused,setProjectsCameraFocused]=useState(false);
+  const [projectsOverlayReady,setProjectsOverlayReady]=useState(false);
   const [poemReaderOpen,setPoemReaderOpen]=useState(false);
   const [readerPoemSlug,setReaderPoemSlug]=useState<string|null>(null);
   const directPoemEntry=useRef(/^\/poems\/[^/]+(?:\/)?$/.test(initialPath));
   const directPoemOpened=useRef(false);
+  const previousProjectsScene=useRef<SceneId|null>(null);
+  const lastCertificateVisit=useRef<string|null>(null);
+  const lastPoemRead=useRef<string|null>(null);
+  const sceneReadyRef=useRef(false);
+  const pendingSceneFocus=useRef<FocusedSceneState|null>(null);
+  const skippedSceneFocus=useRef(false);
+  const lastSkipVersion=useRef(0);
+  const laptopScreenRef=useRef<THREE.Mesh|null>(null);
+  const screenProjectionRef=useRef<ScreenProjection|null>(null);
+  useEffect(()=>{
+    if(mixpanelInitialized)return;
+    mixpanel.init("ff576ce4c6538cde6328105772148efb",{
+      autocapture:true,
+      record_sessions_percent:0,
+    });
+    mixpanelInitialized=true;
+  },[]);
   const onSceneReady=useCallback(()=>setSceneReady(true),[]);
+  const onCinematicFadeComplete=useCallback(()=>setCinematicFadeReady(true),[]);
   useEffect(()=>{
     if(process.env.NODE_ENV==="production")return;
     const frame=window.requestAnimationFrame(()=>{
       const params=new URLSearchParams(window.location.search);
-      if(params.get("renderViewport")==="mobile")setDiagnosticMobileViewport(true);
       const disabled=new Set((params.get("renderDisable")??"").split(",").filter(Boolean));
       if(disabled.size)setRenderIsolation((current)=>({...current,postProcessing:!disabled.has("post"),ambientOcclusion:!disabled.has("ao"),vignette:!disabled.has("vignette"),bloom:!disabled.has("bloom"),shadows:!disabled.has("shadows"),environmentLighting:!disabled.has("environment"),fillLighting:!disabled.has("fill"),mobilePerformanceAdaptations:!disabled.has("mobile")}));
     });
@@ -88,6 +114,104 @@ export default function Experience({initialPath="/"}:{initialPath?:string}) {
   const poemNavigationKey=poemsContent.poems.map(({slug,title,date,imageUrl})=>`${slug}\u0000${title}\u0000${date}\u0000${imageUrl??""}`).join("\u0001");
   const poemNavigationItems=useMemo(()=>poemsContent.poems.map(({slug,title,date,imageUrl})=>({slug,title,date,imageUrl})),[poemNavigationKey]);
   const {syncRoute,goToScene,resumeFromStart,cameraState,introVersion}=cameraSystem;
+  useEffect(()=>{sceneReadyRef.current=sceneReady;},[sceneReady]);
+  useEffect(()=>{
+    if(cameraSystem.skipVersion===lastSkipVersion.current)return;
+    lastSkipVersion.current=cameraSystem.skipVersion;
+    skippedSceneFocus.current=true;
+    pendingSceneFocus.current=null;
+  },[cameraSystem.skipVersion]);
+  useEffect(()=>{
+    if(!sceneReady||!pendingSceneFocus.current||skippedSceneFocus.current)return;
+    const state=pendingSceneFocus.current;
+    pendingSceneFocus.current=null;
+    mixpanel.track("scene_viewed",{
+      scene_id:state.sceneId,
+      scene_name:SCENE_REGISTRY[state.sceneId]?.label??state.sceneId,
+      camera_target:state.cameraTargetId,
+    });
+  },[sceneReady]);
+  useEffect(()=>{
+    const unsubscribe=cameraSystem.engine.onSceneFocused((state)=>{
+      setProjectsCameraFocused(state.sceneId==="projects"&&state.cameraTargetId==="projects");
+      if(skippedSceneFocus.current){
+        skippedSceneFocus.current=false;
+        pendingSceneFocus.current=null;
+        return;
+      }
+      if(!sceneReadyRef.current){
+        pendingSceneFocus.current=state;
+        return;
+      }
+      mixpanel.track("scene_viewed",{
+        scene_id:state.sceneId,
+        scene_name:SCENE_REGISTRY[state.sceneId]?.label??state.sceneId,
+        camera_target:state.cameraTargetId,
+      });
+    });
+    return unsubscribe;
+  },[cameraSystem.engine]);
+  useEffect(()=>{
+    const onPoemLoved=(event:Event)=>{
+      const detail=(event as CustomEvent<PoemInteractionDetail>).detail??{};
+      mixpanel.track("poem_loved",{slug:detail.slug,title:detail.title,url:detail.url});
+    };
+    const onPoemCommented=(event:Event)=>{
+      const detail=(event as CustomEvent<PoemInteractionDetail>).detail??{};
+      mixpanel.track("poem_feedback",{slug:detail.slug,title:detail.title,comment:detail.comment,url:detail.url});
+    };
+    window.addEventListener("poem:loved",onPoemLoved);
+    window.addEventListener("poem:comment",onPoemCommented);
+    return()=>{
+      window.removeEventListener("poem:loved",onPoemLoved);
+      window.removeEventListener("poem:comment",onPoemCommented);
+    };
+  },[]);
+  useEffect(()=>{
+    const isCertificateFocus=cameraSystem.selectedScene==="certificates"&&cameraSystem.selectedFocusCollection==="certificates"&&Boolean(cameraSystem.selectedFocusItem);
+    if(!isCertificateFocus){
+      lastCertificateVisit.current=null;
+      return;
+    }
+    const slug=cameraSystem.selectedFocusItem!;
+    if(lastCertificateVisit.current===slug)return;
+    const certificate=getFocusItem("certificates",slug);
+    lastCertificateVisit.current=slug;
+    mixpanel.track("certificate_viewed",{
+      slug,
+      title:certificate?.label??slug,
+      url:certificate?.metadata?.url,
+    });
+  },[cameraSystem.selectedScene,cameraSystem.selectedFocusCollection,cameraSystem.selectedFocusItem]);
+  useEffect(()=>{
+    if(!poemReaderOpen||!readerPoemSlug){
+      if(!poemReaderOpen)lastPoemRead.current=null;
+      return;
+    }
+    if(lastPoemRead.current===readerPoemSlug)return;
+    const poem=poemsContent.poems.find(({slug})=>slug===readerPoemSlug);
+    if(!poem)return;
+    lastPoemRead.current=readerPoemSlug;
+    mixpanel.track("poem_read",{
+      slug:poem.slug,
+      title:poem.title,
+      url:window.location.href,
+    });
+  },[poemReaderOpen,readerPoemSlug,poemsContent.poems]);
+  useEffect(()=>{
+    setProjectsOverlayReady(sceneReady&&cameraSystem.selectedScene==="projects"&&projectsCameraFocused&&cinematicFadeReady);
+  },[cameraSystem.selectedScene,projectsCameraFocused,cinematicFadeReady,sceneReady]);
+  useEffect(()=>{
+    const previous=previousProjectsScene.current;
+    previousProjectsScene.current=cameraSystem.selectedScene;
+    if(previous!==null&&previous!==cameraSystem.selectedScene){
+      setProjectsCameraFocused(false);
+      setProjectsOverlayReady(false);
+    }
+  },[cameraSystem.selectedScene]);
+  useEffect(()=>{
+    setCinematicFadeReady(false);
+  },[cameraSystem.introVersion,cameraSystem.skipVersion]);
   useEffect(()=>{
     if(!directPoemEntry.current||directPoemOpened.current||route.focusCollectionId!=="poems"||!route.slug||poemsContent.loading)return;
     if(!poemsContent.poems.some((poem)=>poem.slug===route.slug))return;
@@ -142,6 +266,7 @@ export default function Experience({initialPath="/"}:{initialPath?:string}) {
   useCameraTapNavigation(cameraSystem,navigateScene);
   useAutoSceneNavigation(cameraSystem,navigateScene);
   const goToWorkspace=useCallback(()=>{goToScene("opening","workspace");},[goToScene]);
+  const selectCertificate=useCallback((slug:string)=>{cameraSystem.enterFocus("certificates",slug);},[cameraSystem]);
   useCameraPinchNavigation(cameraSystem,goToWorkspace);
   useEffect(()=>{
     if(route.path!=="/"||route.directEntry) return;
@@ -162,26 +287,26 @@ export default function Experience({initialPath="/"}:{initialPath?:string}) {
   },[route.path,route.directEntry,cameraState,introVersion,goToScene]);
   const settings=SETTINGS;
   return <CinematicRuntimeProvider runtime={runtime}>
-    <PortfolioRuntimeDeclaration cameraSystem={cameraSystem}/>
-    <div className={`canvas-stage${diagnosticMobileViewport?" diagnostic-mobile-viewport":""}${poemReaderOpen?" poem-reader-open":""}`}>
+    <PortfolioRuntimeDeclaration cameraSystem={cameraSystem} runtime={runtime}/>
+    <div className={`canvas-stage${poemReaderOpen?" poem-reader-open":""}`}>
     {/* Use the explicit PCF mode instead of Canvas' boolean default. The
         boolean form selects THREE.PCFSoftShadowMap, which is deprecated in
         the installed Three.js version and gets re-applied whenever the
         experience re-renders. */}
-    <Canvas shadows={renderIsolation.shadows ? "percentage" : false} dpr={RENDERING_INTENT.renderer.dpr} camera={{ position: [-0.72, 1.9, 4.82], fov: 42, near: 0.1, far: 45 }} gl={{ antialias: RENDERING_INTENT.renderer.antialias, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: settings.exposure, powerPreference: RENDERING_INTENT.renderer.powerPreference }}>
+    <Canvas shadows={renderIsolation.shadows ? "percentage" : false} dpr={RENDERING_INTENT.renderer.dpr} camera={{ position: [-0.72, 1.9, 4.82], fov: 42, near: 0.1, far: 45 }} gl={{ alpha: false, antialias: RENDERING_INTENT.renderer.antialias, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: settings.exposure, powerPreference: RENDERING_INTENT.renderer.powerPreference }}>
       <CinematicRuntimeProvider runtime={runtime}>
         <RuntimeFrameBridge runtime={runtime} paused={poemReaderOpen}/>
-        <Suspense fallback={null}><Scene s={settings} cameraSystem={cameraSystem} certificateSlug={route.slug} poemsContent={poemsContent} onPoemRead={openPoemReader} renderIsolation={renderIsolation} onReady={onSceneReady}/></Suspense>
-        {process.env.NODE_ENV!=="production"&&<Suspense fallback={null}><RenderingDiagnosticsProbe settings={settings} isolation={renderIsolation} stateRef={cameraSystem.cameraState} onSnapshot={setRenderingDiagnostics}/></Suspense>}
+        <Suspense fallback={null}><Scene s={settings} cameraSystem={cameraSystem} certificateSlug={route.slug} poemsContent={poemsContent} onPoemRead={openPoemReader} renderIsolation={renderIsolation} onReady={onSceneReady} laptopScreenRef={laptopScreenRef} screenProjectionRef={screenProjectionRef}/></Suspense>
       </CinematicRuntimeProvider>
     </Canvas>
     <div className={`experience-loading${sceneReady?" is-ready":""}`} role="status" aria-live="polite"><span>Entering workspace</span></div>
     <NavigationDebugPanel visible={cameraSystem.navigationDebug} stateRef={cameraSystem.cameraState} boundsVisible={settings.helpers} />
-    <RuntimeInspector visible={cameraSystem.navigationDebug} metrics={renderingDiagnostics?{drawCalls:renderingDiagnostics.performance.drawCalls,shadowCasters:renderingDiagnostics.performance.shadowCasters,gpuResources:renderingDiagnostics.performance.gpuResources}:undefined} />
-    <SceneNavigation selectedScene={cameraSystem.selectedScene} selectedFocusCollection={cameraSystem.selectedFocusCollection} selectedFocusItem={cameraSystem.selectedFocusItem} resumeScene={cameraSystem.resumeScene} visitedAutoScenes={cameraSystem.visitedAutoScenes} stateRef={cameraSystem.cameraState} onNavigate={navigateScene} onEnterFocus={cameraSystem.enterFocus} onExitFocus={cameraSystem.exitFocus} />
+    <RuntimeInspector visible={cameraSystem.navigationDebug} />
+    <SceneNavigation selectedScene={cameraSystem.selectedScene} selectedFocusCollection={cameraSystem.selectedFocusCollection} selectedFocusItem={cameraSystem.selectedFocusItem} resumeScene={cameraSystem.resumeScene} visitedAutoScenes={cameraSystem.visitedAutoScenes} stateRef={cameraSystem.cameraState} onNavigate={navigateScene} onNext={cameraSystem.nextScene} onEnterFocus={cameraSystem.enterFocus} onExitFocus={cameraSystem.exitFocus} />
+    <CertificateGalleryOverlay open={cameraSystem.selectedFocusCollection==="certificates"} selectedSlug={cameraSystem.selectedFocusItem} onSelect={selectCertificate} onClose={cameraSystem.exitFocus} />
+    <ProjectsOverlay visible={cameraSystem.selectedScene==="projects"&&projectsOverlayReady} projectionRef={screenProjectionRef} />
     <Suspense fallback={null}><PoemReader open={poemReaderOpen} poems={poemsContent.poems} slug={readerPoemSlug} onSlugChange={changeReaderPoem} onClose={closePoemReader}/></Suspense>
-    {process.env.NODE_ENV!=="production"&&<Suspense fallback={null}><RenderingDiagnosticsPanel snapshot={renderingDiagnostics} isolation={renderIsolation} onChange={setRenderIsolation} mobileViewport={diagnosticMobileViewport} onMobileViewportChange={setDiagnosticMobileViewport}/></Suspense>}
-    <CinematicFade replayKey={cameraSystem.introVersion} skipKey={cameraSystem.skipVersion} hold={route.directEntry?.18:cameraSystem.openingHold*.55} duration={route.directEntry?1.65:cameraSystem.fadeDuration} reducedMotion={cameraSystem.reducedMotion} />
+    <CinematicFade replayKey={cameraSystem.introVersion} skipKey={cameraSystem.skipVersion} hold={route.directEntry?.18:cameraSystem.openingHold*.55} duration={route.directEntry?1.65:cameraSystem.fadeDuration} reducedMotion={cameraSystem.reducedMotion} onComplete={onCinematicFadeComplete} />
     </div>
   </CinematicRuntimeProvider>;
 }

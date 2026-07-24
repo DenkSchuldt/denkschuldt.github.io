@@ -53,6 +53,8 @@ focused experience.
 
 The engine emits intent and state; an injected camera driver owns interpolation. Call `updateTransition()` and `completeTransition()` as the driver advances. Redirection is explicit when a new request arrives during an active transition.
 
+Presentation layers that must wait for the physical camera can subscribe with `engine.onSceneFocused(listener)`. The callback runs after `completeTransition()` commits the settled location and replays the latest settled location when a subscriber registers after the camera has initialized.
+
 ## Runtime lifecycle
 
 `createCinematicRuntime(engine)` consumes the engine's state and derives lifecycle phases for persistent world nodes, Scenes, Focus Collections, and Focus Items. It does not create a second navigation model. Register update work with the runtime scheduler so sleeping nodes stop receiving frame callbacks:
@@ -61,9 +63,19 @@ The engine emits intent and state; an injected camera driver owns interpolation.
 const runtime=createCinematicRuntime(engine);
 runtime.registerNode({id:"collection:art",scope:"collection",sceneId:"gallery",collectionId:"art"});
 runtime.registerTask({id:"art-light",nodeId:"collection:art",update:({delta})=>updateLight(delta)});
+runtime.subscribeNode("collection:art",(next,previous)=>{
+  // The consumer owns resource loading/releasing; the engine only reports lifecycle.
+  if(next?.phase!==previous?.phase) console.debug(next?.phase);
+});
 ```
 
-The React entry point provides `CinematicRuntimeProvider`, `useRuntimeNode`, `useRuntimeTask`, and `RuntimeBoundary`. The R3F entry point provides `RuntimeFrameBridge`, which is the single render-loop bridge for scheduler work. Persistent nodes remain mounted; lazy nodes can be disposed while sleeping and remounted when their Scene or Focus becomes relevant.
+The React entry point provides `CinematicRuntimeProvider`, `useRuntimeNode`,
+`useRuntimeNodeLifecycle`, `useRuntimeTask`, and `RuntimeBoundary`. The R3F
+entry point provides `RuntimeFrameBridge`, which is the single render-loop
+bridge for scheduler work. Persistent nodes remain mounted; lazy nodes can be
+disposed while sleeping and remounted when their Scene or Focus becomes
+relevant. Runtime subscribers are notified when lifecycle state changes, not
+for every camera interpolation sample.
 
 Scenes may declare `revisitTransition` for a different revisit cadence and `returnTransition` for an explicit return from that Scene. The engine tracks completed Scene visits in memory, while `resolveSceneTransition(sceneId)` resolves the base, revisit, or return variant. Visit history intentionally resets when the engine is recreated.
 

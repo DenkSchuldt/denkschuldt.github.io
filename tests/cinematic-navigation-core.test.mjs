@@ -92,6 +92,19 @@ test("redirects transitions and keeps logical/camera completion explicit",()=>{
   engine.interruptTransition();assert.equal(calls.at(-1)[0],"cancel");
 });
 
+test("replays the last settled camera location to late scene-focus subscribers",()=>{
+  const engine=createEngine();
+  engine.goToScene("two");
+  engine.completeTransition();
+  const focused=[];
+  const unsubscribe=engine.onSceneFocused((state)=>focused.push({sceneId:state.sceneId,cameraTargetId:state.cameraTargetId}));
+  assert.deepEqual(focused,[{sceneId:"two",cameraTargetId:"camera:two"}]);
+  engine.goToScene("three");
+  engine.completeTransition();
+  assert.deepEqual(focused,[{sceneId:"two",cameraTargetId:"camera:two"},{sceneId:"three",cameraTargetId:"camera:three"}]);
+  unsubscribe();
+});
+
 test("resolves revisit transitions only after a Scene has been reached",()=>{
   const engine=createEngine();
   assert.deepEqual(engine.getState().visitedSceneIds,["one"]);
