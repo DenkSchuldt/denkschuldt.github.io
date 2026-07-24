@@ -1,6 +1,6 @@
 # Poems content
 
-Poem content lives in the `revamp` branch using this structure:
+Poem content lives in the `master` branch using this structure:
 
 ```text
 public/poems/YYYY-MM-DD/

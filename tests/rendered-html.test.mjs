@@ -63,7 +63,7 @@ test("collection focus is explicit and the responsive navigation stays scene-bas
   assert.match(primitives,/intensity=\{initialLightIntensity\}/);
   assert.match(primitives,/<meshStandardMaterial ref=\{imageMaterialRef\} map=\{texture\}/);
   assert.match(primitives,/withSceneBasePath\("\/phone\.jpeg"\)/);
-  assert.match(primitives,/PHONE_CONTACT_URL="https:\/\/wa\.me\/\+593964198839"/);
+  assert.match(primitives,/PHONE_CONTACT_URL="https:\/\/wa\.me\/\+593964198839(?:\?[^\"]*)?"/);
   assert.match(primitives,/screenLoaded&&<Suspense fallback=\{null\}><PhoneScreen active=\{active\}/);
   assert.match(primitives,/<meshBasicMaterial ref=\{materialRef\} map=\{texture\} color="#050505" toneMapped=\{false\}/);
   assert.match(css,/@media \(max-width: 1024px\).*\.scene-navigation-target \{ display: none; \}/s);

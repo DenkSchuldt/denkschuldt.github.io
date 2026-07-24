@@ -1,78 +1,45 @@
-name: Deploy both portfolio versions to GitHub Pages
+name: Deploy portfolio to GitHub Pages
 
 on:
   push:
     branches:
       - master
-      - revamp
   workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
-  actions: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  trigger-master-deployment:
-    if: github.ref == 'refs/heads/revamp'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Dispatch protected Pages deployment from master
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh workflow run pages.yml --repo "${{ github.repository }}" --ref master
-
   build:
-    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - name: Check out master
         uses: actions/checkout@v5
         with:
           ref: master
-          path: master
-
-      - name: Check out revamp
-        uses: actions/checkout@v5
-        with:
-          ref: revamp
-          path: revamp
 
       - name: Use Node.js 24
         uses: actions/setup-node@v5
         with:
           node-version: 24.11.0
           cache: npm
-          cache-dependency-path: |
-            master/package-lock.json
-            revamp/package-lock.json
+          cache-dependency-path: package-lock.json
 
-      - name: Build master site
-        working-directory: master
-        run: |
-          npm ci
-          npm run build
-
-      - name: Build hidden revamp
-        working-directory: revamp
-        env:
-          GITHUB_PAGES_BASE_PATH: /hidden
-          NEXT_PUBLIC_BASE_PATH: /hidden
+      - name: Build site
         run: |
           npm ci
           npm run build
 
       - name: Assemble Pages artifact
         run: |
-          mkdir -p site/hidden
-          cp -R master/dist/. site/
-          cp -R revamp/dist/client/. site/hidden/
-          cp revamp/dist/client/robots.txt site/robots.txt
+          mkdir -p site
+          cp -R dist/client/. site/
           touch site/.nojekyll
 
       - name: Upload Pages artifact

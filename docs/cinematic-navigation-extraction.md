@@ -41,7 +41,7 @@ The package never imports from `app/` or `src/scene/`.
 - Guided order and forward Drawer-to-Opening loop.
 - Exact About framing, responsive overrides, transition timing, typography and lighting.
 - Direct certificate-to-certificate camera movement and explicit row neighbors.
-- Route parsing, `/hidden` basename handling, deep links, Back/Forward and push/replace policy.
+- Route parsing, optional basename handling, deep links, Back/Forward and push/replace policy.
 - Keyboard, pointer, mobile tap/navigation controls and trackpad pinch interruption.
 - Reduced-motion and last-Scene persistence behavior.
 

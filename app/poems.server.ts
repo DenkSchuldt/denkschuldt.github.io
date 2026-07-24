@@ -26,7 +26,7 @@ export async function getStaticPoemPreviews():Promise<StaticPoemPreview[]> {
       const content=parsePoemMarkdown(markdown,entry.name);
       const imagePath=`/poems/${encodeURIComponent(entry.name)}/${encodeURIComponent(image)}`;
       const contentUrl=`/poems/${encodeURIComponent(entry.name)}/poem.md`;
-      return {slug:frontmatter.slug??normalizePoemSlug(entry.name,entry.name),folder:entry.name,date:frontmatter.date??entry.name,title:frontmatter.title??content.title,body:content.body,imagePath,imageUrl:imagePath,contentUrl,language:frontmatter.language??"es",sourceRef:"revamp"} satisfies StaticPoemPreview;
+      return {slug:frontmatter.slug??normalizePoemSlug(entry.name,entry.name),folder:entry.name,date:frontmatter.date??entry.name,title:frontmatter.title??content.title,body:content.body,imagePath,imageUrl:imagePath,contentUrl,language:frontmatter.language??"es",sourceRef:"master"} satisfies StaticPoemPreview;
     }catch{return null;}
   }))).filter((poem):poem is StaticPoemPreview=>poem!==null);
   return poems.sort((a,b)=>Date.parse(b.date)-Date.parse(a.date)||b.date.localeCompare(a.date));
@@ -36,8 +36,7 @@ export async function getStaticPoemManifest():Promise<PoemManifestEntry[]> {
   return (await getStaticPoemPreviews()).map(({folder:_,imagePath:__,body:___,...poem})=>poem);
 }
 
-// Machine-readable discovery files are published at the canonical root site,
-// even when the same build is also assembled under /hidden for comparison.
+// Machine-readable discovery files are published at the canonical root site.
 const siteOrigin=()=>`${(process.env.NEXT_PUBLIC_SITE_URL??"https://denkschuldt.github.io").replace(/\/$/,"")}`;
 const absoluteUrl=(pathname:string)=>`${siteOrigin()}${pathname.startsWith("/")?pathname:`/${pathname}`}`;
 const escapeXml=(value:string)=>value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;");

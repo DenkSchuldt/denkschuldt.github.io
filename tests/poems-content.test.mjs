@@ -15,13 +15,13 @@ test("frontmatter owns the public poem slug",()=>{
 });
 
 test("the built manifest is the only client poem source",async()=>{
-  const poems=[{slug:"quiero",date:"2023-12-30",title:"Quiero",imageUrl:"/poems/2023-12-30/image.webp",contentUrl:"/poems/2023-12-30/poem.md",language:"es",sourceRef:"revamp"}];
+  const poems=[{slug:"quiero",date:"2023-12-30",title:"Quiero",imageUrl:"/poems/2023-12-30/image.webp",contentUrl:"/poems/2023-12-30/poem.md",language:"es",sourceRef:"master"}];
   const fetcher=async()=>new Response(JSON.stringify({poems}),{status:200,headers:{"Content-Type":"application/json"}});
   assert.deepEqual(await loadPoemManifest(fetcher),poems);
 });
 
 test("poem bodies are fetched lazily from their Markdown source",async()=>{
-  const poem={slug:"quiero",date:"2023-12-30",title:"Quiero",imageUrl:null,contentUrl:"/poems/2023-12-30/poem.md",language:"es",sourceRef:"revamp"};
+  const poem={slug:"quiero",date:"2023-12-30",title:"Quiero",imageUrl:null,contentUrl:"/poems/2023-12-30/poem.md",language:"es",sourceRef:"master"};
   const fetcher=async()=>new Response(`---\nslug: quiero\n---\n# Quiero\n\nQuiero escribir.`,{status:200});
   assert.deepEqual(await loadPoemContent(poem,fetcher),{...poem,body:"Quiero escribir."});
 });
@@ -35,12 +35,12 @@ test("generated discovery assets expose canonical poem URLs without bloating the
   assert.ok(slugs.includes("quimica-accidental"));
   assert.deepEqual(manifest.map(({date})=>Date.parse(date)),[...manifest].sort((a,b)=>Date.parse(b.date)-Date.parse(a.date)).map(({date})=>Date.parse(date)));
   assert.equal("body" in manifest[0],false);
-  assert.match(sitemap,/https:\/\/denkschuldt\.github\.io(?:\/hidden)?\/poems\/the-strategy-of-the-mystery/);
-  assert.match(sitemap,/https:\/\/denkschuldt\.github\.io(?:\/hidden)?\/poems\/quiero/);
+  assert.match(sitemap,/https:\/\/denkschuldt\.github\.io\/poems\/the-strategy-of-the-mystery/);
+  assert.match(sitemap,/https:\/\/denkschuldt\.github\.io\/poems\/quiero/);
   assert.match(feed,/<entry>[\s\S]*<title>Into the blue<\/title>/);
   assert.match(feed,/<entry>[\s\S]*<title>The strategy of the mystery<\/title>/);
   assert.match(feed,/<entry>[\s\S]*<title>Quiero<\/title>/);
-  assert.match(llms,/\[Markdown\]\(https:\/\/denkschuldt\.github\.io(?:\/hidden)?\/poems\/2024-01-08\/poem\.md\)/);
-  assert.match(llms,/\[Markdown\]\(https:\/\/denkschuldt\.github\.io(?:\/hidden)?\/poems\/2023-12-30\/poem\.md\)/);
+  assert.match(llms,/\[Markdown\]\(https:\/\/denkschuldt\.github\.io\/poems\/2024-01-08\/poem\.md\)/);
+  assert.match(llms,/\[Markdown\]\(https:\/\/denkschuldt\.github\.io\/poems\/2023-12-30\/poem\.md\)/);
   assert.match(getRobotsText(),/User-agent: OAI-SearchBot\nAllow: \//);
 });

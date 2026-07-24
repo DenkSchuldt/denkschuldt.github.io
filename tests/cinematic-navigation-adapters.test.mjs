@@ -16,10 +16,10 @@ test("R3F subjects resolve live handles and clean up safely",()=>{
 });
 
 test("router basename helpers preserve root and nested paths",()=>{
-  assert.equal(addBasename("/","/hidden"),"/hidden/");
-  assert.equal(addBasename("/certificates/item","/hidden/"),"/hidden/certificates/item");
-  assert.equal(removeBasename("/hidden/certificates/item","/hidden"),"/certificates/item");
-  assert.equal(removeBasename("/about","/hidden"),"/about");
+  assert.equal(addBasename("/","/preview"),"/preview/");
+  assert.equal(addBasename("/certificates/item","/preview/"),"/preview/certificates/item");
+  assert.equal(removeBasename("/preview/certificates/item","/preview"),"/certificates/item");
+  assert.equal(removeBasename("/about","/preview"),"/about");
 });
 
 test("normalized input dispatches without owning event listeners",()=>{
