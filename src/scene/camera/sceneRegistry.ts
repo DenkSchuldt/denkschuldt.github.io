@@ -37,7 +37,7 @@ const certificateItems=Object.fromEntries(CERTIFICATE_LAYOUT.map(({index,x,y,row
   // Certificate selection is now presented in an HTML gallery. Keep every
   // item on the shelf's parent shot so changing the active certificate never
   // reframes or zooms the 3D camera.
-  const item:FocusItemDefinition={id:certificate.slug,slug:certificate.slug,label:certificate.title,subject:`certificate:${certificate.slug}`,cameraTarget:"certificates",framing:SCENE_REGISTRY.certificates.framing,cameraFocus:SCENE_REGISTRY.certificates.cameraFocus,transition:SCENE_REGISTRY.certificates.transition,neighbors:{left:certificateNeighbor(index,"left"),right:certificateNeighbor(index,"right"),up:certificateNeighbor(index,"up"),down:certificateNeighbor(index,"down")},metadata:{image:certificate.image,date:certificate.date,url:certificate.url,spatial:{x,y,row,column}}};
+  const item:FocusItemDefinition={id:certificate.slug,slug:certificate.slug,label:certificate.title,subject:`certificate:${certificate.slug}`,route:`/certificates/${certificate.slug}`,cameraTarget:"certificates",framing:SCENE_REGISTRY.certificates.framing,cameraFocus:SCENE_REGISTRY.certificates.cameraFocus,transition:SCENE_REGISTRY.certificates.transition,neighbors:{left:certificateNeighbor(index,"left"),right:certificateNeighbor(index,"right"),up:certificateNeighbor(index,"up"),down:certificateNeighbor(index,"down")},metadata:{image:certificate.image,date:certificate.date,url:certificate.url,spatial:{x,y,row,column}}};
   return [item.id,item];
 }));
 
