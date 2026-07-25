@@ -1,6 +1,6 @@
 "use client";
 
-import { lazy,Suspense,useEffect,useLayoutEffect,useRef,useState,useSyncExternalStore } from "react";
+import { lazy,Suspense,useEffect,useLayoutEffect,useRef,useState } from "react";
 import { useFrame,useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { CameraController } from "./camera/CameraController";
@@ -57,10 +57,27 @@ function transitionUsesOpening(cameraSystem:CinematicNavigationSystem){
   return state.transitionStatus==="transitioning"&&(state.sceneId==="opening")!==(state.requestedSceneId==="opening");
 }
 
+function useChairMountState(cameraSystem:CinematicNavigationSystem){
+  const keepAtOpening=useRef(false);
+  const [mounted,setMounted]=useState(()=>transitionUsesOpening(cameraSystem));
+  useEffect(()=>{
+    const update=()=>{
+      const state=cameraSystem.engine.getState();
+      const crossingOpening=state.transitionStatus==="transitioning"&&(state.sceneId==="opening")!==(state.requestedSceneId==="opening");
+      if(crossingOpening&&state.requestedSceneId==="opening"&&state.transitionIntent==="return")keepAtOpening.current=true;
+      if(state.transitionStatus==="idle"&&state.sceneId!=="opening")keepAtOpening.current=false;
+      setMounted(crossingOpening||(state.transitionStatus==="idle"&&state.sceneId==="opening"&&keepAtOpening.current));
+    };
+    update();
+    return cameraSystem.engine.subscribe(update);
+  },[cameraSystem.engine]);
+  return mounted;
+}
+
 export function Scene({s,cameraSystem,certificateSlug,poemsContent,onPoemRead,renderIsolation=DEFAULT_RENDER_ISOLATION,qualityProfile,qualityFeatures,onReady,laptopScreenRef,screenProjectionRef}:{s:SceneSettings;cameraSystem:CinematicNavigationSystem;certificateSlug?:string;poemsContent:PoemsContentState;onPoemRead:()=>void;renderIsolation?:RenderIsolationState;qualityProfile:RenderingQualityProfile;qualityFeatures:ResolvedQualityFeatures;onReady?:()=>void;laptopScreenRef:React.MutableRefObject<THREE.Mesh|null>;screenProjectionRef:ScreenProjectionRef}) {
   const {size}=useThree();
   const renderDemand=useRenderDemand("scene");
-  const chairMounted=useSyncExternalStore(cameraSystem.engine.subscribe,()=>transitionUsesOpening(cameraSystem),()=>transitionUsesOpening(cameraSystem));
+  const chairMounted=useChairMountState(cameraSystem);
   const focusRef=useRef(s.focusDistance);
   const [effectsReady,setEffectsReady]=useState(false);
   const certificateFocusRef=useRef<CertificateFocus|null>(getCertificateFocusBySlug(certificateSlug));
