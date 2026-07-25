@@ -49,7 +49,7 @@ test("collection focus is explicit and the responsive navigation stays scene-bas
   assert.equal((navigation.match(/<FadingSceneName /g)??[]).length,3);
   assert.match(navigation,/const next=resumeTarget\?\?getAdjacentScene\(current,1,visitedAutoScenes\)/);
   assert.match(scene,/onCertificateSelect=\{focusCertificate\}/);
-  assert.match(primitives,/raycast=\{interactive\?undefined:\(\)=>null\} onPointerOver=\{interactive\?\(\)=>setHovered\(true\):undefined\}/);
+  assert.match(primitives,/raycast=\{interactive\?undefined:\(\)=>null\} onPointerOver=\{interactive\?\(\)=>\{setHovered\(true\);pointerDemand\.invalidate\("pointer-interaction"\);\}:undefined\}/);
   assert.doesNotMatch(primitives,/onPointerOver=\{\(\)=>\{[^}]*onSelect/);
   assert.match(primitives,/function ShelfDecor\(\)/);
   assert.match(primitives,/function Pen\(\{position,rotation\}/);

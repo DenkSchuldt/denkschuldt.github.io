@@ -8,6 +8,7 @@ import type { SceneSettings } from "../Scene";
 import type { RenderIsolationState } from "../rendering/renderIsolation";
 import { measurePerformanceTask } from "../diagnostics/performance/performanceStore";
 import type { RenderingQualityProfile,ResolvedQualityFeatures } from "../rendering/quality";
+import { useRenderDemand,useRenderSchedulerStore } from "../runtime/render-scheduler";
 
 function ManagedEffectComposer({children}:{children:ReactElement|ReactElement[]}){
   const composerRef=useRef<PostprocessingEffectComposer|null>(null);
@@ -27,7 +28,9 @@ function ManagedEffectComposer({children}:{children:ReactElement|ReactElement[]}
 
 export default function CinematicEffects({s,focusRef,readingMode,isolation,profile,features}:{s:SceneSettings;focusRef:React.MutableRefObject<number>;readingMode:boolean;isolation:RenderIsolationState;profile:RenderingQualityProfile;features:ResolvedQualityFeatures}){
   const dof=useRef<DepthOfFieldEffect|null>(null);
+  const lastFocus=useRef(Number.NaN);
   const gl=useThree((state)=>state.gl);
+  const renderDemand=useRenderDemand("cinematic-effects"),scheduler=useRenderSchedulerStore();
   const composerActive=isolation.postProcessing&&features.postProcessing;
   useLayoutEffect(()=>{
     // EffectComposer takes over R3F's render priority and sets autoClear=false
@@ -37,11 +40,12 @@ export default function CinematicEffects({s,focusRef,readingMode,isolation,profi
     if(!composerActive)gl.autoClear=true;
     return()=>{gl.autoClear=true;};
   },[composerActive,gl]);
+  useEffect(()=>renderDemand.acquireFor({reason:"effects-settle",priority:2},500),[composerActive,profile.id,readingMode,renderDemand]);
   useFrame(()=>measurePerformanceTask("CinematicEffectsFocusUpdate",()=>{
     if(!features.depthOfField)return;
     const effect=dof.current as {circleOfConfusionMaterial?:{uniforms?:{focusDistance?:{value:number}}}}|null;
     const uniform=effect?.circleOfConfusionMaterial?.uniforms?.focusDistance;
-    if(uniform)uniform.value=focusRef.current;
+    if(uniform&&Math.abs(lastFocus.current-focusRef.current)>.000001){uniform.value=focusRef.current;lastFocus.current=focusRef.current;scheduler.recordDof();}
   }));
   if(!composerActive)return null;
   return <ManagedEffectComposer>

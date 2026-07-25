@@ -29,6 +29,7 @@ import { MeasuredRuntimeFrameBridge,PerformanceOverlay,PerformanceProbe } from "
 import { performanceDiagnostics } from "./diagnostics/performance/performanceStore";
 import { QualityPreferenceControl,QualityProvider,QualityRuntimeBridge,useRenderingQuality } from "./rendering/quality";
 import { WorkingSetNavigationAdapter,WorkingSetProvider,useDestinationResources } from "./runtime/working-set";
+import { RenderSchedulerBridge,RenderSchedulerNavigationAdapter,RenderSchedulerProvider } from "./runtime/render-scheduler";
 
 type PoemInteractionDetail={slug?:string;title?:string;url?:string;comment?:string};
 type FocusedSceneState={sceneId:SceneId;cameraTargetId:string};
@@ -59,7 +60,7 @@ function PortfolioRuntimeDeclaration({cameraSystem,runtime}:{cameraSystem:Cinema
 const SETTINGS:SceneSettings={desk:19,moon:1.05,moonColor:"#91a8c2",bounce:.62,bloom:.08,fog:16.5,exposure:RENDERING_INTENT.renderer.exposure,dof:.45,focusDistance:.02,helpers:false,laptopPosition:[-.55,0,-.28],laptopRotation:-3,folderPosition:POEMS_FOLDER_LAYOUT.position,folderRotation:POEMS_FOLDER_LAYOUT.rotationDegrees,paperPosition:[-2,.518],paperRotation:12,penPosition:[.46,.05],penRotation:78,coffeePosition:[1.18,.175,-.58],plantPosition:[-2.48,1.35,-2.34],plantRotationY:-12,lampPosition:[-1.9,-.07,-.45]};
 
 export default function Experience({initialPath="/"}:{initialPath?:string}) {
-  return <QualityProvider><WorkingSetProvider><ExperienceContent initialPath={initialPath}/></WorkingSetProvider></QualityProvider>;
+  return <QualityProvider><WorkingSetProvider><RenderSchedulerProvider><ExperienceContent initialPath={initialPath}/></RenderSchedulerProvider></WorkingSetProvider></QualityProvider>;
 }
 
 function ExperienceContent({initialPath="/"}:{initialPath?:string}) {
@@ -309,13 +310,15 @@ function ExperienceContent({initialPath="/"}:{initialPath?:string}) {
   return <Profiler id="Experience" onRender={onProfile}><CinematicRuntimeProvider runtime={runtime}>
     <PortfolioRuntimeDeclaration cameraSystem={cameraSystem} runtime={runtime}/>
     <WorkingSetNavigationAdapter engine={cameraSystem.engine} profileId={qualityProfile.id} overlayResourceIds={workingSetOverlays}/>
+    <RenderSchedulerNavigationAdapter engine={cameraSystem.engine}/>
     <div className={`canvas-stage${poemReaderOpen?" poem-reader-open":""}`}>
     {/* Use the explicit PCF mode instead of Canvas' boolean default. The
         boolean form selects THREE.PCFSoftShadowMap, which is deprecated in
         the installed Three.js version and gets re-applied whenever the
         experience re-renders. */}
-    <Canvas shadows={renderIsolation.shadows&&qualityFeatures.allShadows ? "percentage" : false} dpr={currentDpr} camera={{ position: [-0.72, 1.9, 4.82], fov: 42, near: 0.1, far: 45 }} gl={{ alpha: false, antialias: qualityFeatures.antialias, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: settings.exposure, powerPreference: qualityProfile.renderer.powerPreference }}>
+    <Canvas frameloop="demand" shadows={renderIsolation.shadows&&qualityFeatures.allShadows ? "percentage" : false} dpr={currentDpr} camera={{ position: [-0.72, 1.9, 4.82], fov: 42, near: 0.1, far: 45 }} gl={{ alpha: false, antialias: qualityFeatures.antialias, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: settings.exposure, powerPreference: qualityProfile.renderer.powerPreference }}>
       <CinematicRuntimeProvider runtime={runtime}>
+        <RenderSchedulerBridge/>
         <MeasuredRuntimeFrameBridge runtime={runtime} paused={poemReaderOpen}/>
         <PerformanceProbe/>
         <QualityRuntimeBridge transitioning={cameraSystem.cameraState.current.isTransitioning} overlayChanging={poemReaderOpen||cameraSystem.selectedFocusCollection==="certificates"}/>

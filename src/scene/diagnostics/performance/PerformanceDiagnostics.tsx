@@ -7,6 +7,7 @@ import { performanceDiagnostics } from "./performanceStore";
 import type { CinematicRuntime } from "@denk/cinematic-navigation";
 import { useQualityStore,useRenderingQuality } from "../../rendering/quality";
 import { useWorkingSet,useWorkingSetStore } from "../../runtime/working-set";
+import { useRenderScheduler,useRenderSchedulerStore } from "../../runtime/render-scheduler";
 
 export function MeasuredRuntimeFrameBridge({runtime,paused=false}:{runtime:CinematicRuntime;paused?:boolean}){
   const workingSet=useWorkingSetStore();
@@ -95,6 +96,8 @@ export function PerformanceOverlay(){
   const quality=useRenderingQuality((state)=>state);
   const workingSetStore=useWorkingSetStore();
   const workingSet=useWorkingSet((state)=>state);
+  const schedulerStore=useRenderSchedulerStore();
+  const scheduler=useRenderScheduler((state)=>state);
   const [mounted,setMounted]=useState(false);
   useSyncExternalStore(performanceDiagnostics.subscribe,()=>performanceDiagnostics.version,empty);
   useEffect(()=>{
@@ -111,12 +114,12 @@ export function PerformanceOverlay(){
   if(!mounted||!performanceDiagnostics.enabled)return null;
   const summary=performanceDiagnostics.summary();
   const download=()=>{
-    const blob=new Blob([JSON.stringify({performance:performanceDiagnostics.export(),quality:qualityStore.export(),workingSet},null,2)],{type:"application/json"});
+    const blob=new Blob([JSON.stringify({performance:performanceDiagnostics.export(),quality:qualityStore.export(),workingSet,renderScheduler:scheduler},null,2)],{type:"application/json"});
     const url=URL.createObjectURL(blob),anchor=document.createElement("a");
     anchor.href=url;anchor.download=`portfolio-performance-${Date.now()}.json`;anchor.click();URL.revokeObjectURL(url);
   };
   const qualitySummary={profile:quality.profile.id,preference:quality.preference,reason:quality.selection.reason,currentDpr:quality.adaptive.currentDpr,targetDpr:quality.adaptive.targetDpr,pending:quality.adaptive.pending,cooldownUntil:quality.adaptive.cooldownUntil,health:quality.adaptive.health,features:quality.features,capabilities:quality.capabilities,history:quality.adaptive.history,warnings:quality.diagnostics.warnings};
-  return <aside aria-label="Performance diagnostics" data-performance-summary={JSON.stringify(summary)} data-quality-summary={JSON.stringify(qualitySummary)} data-working-set-summary={JSON.stringify(workingSet)} style={{position:"fixed",zIndex:100,right:12,top:12,width:340,maxHeight:"calc(100vh - 24px)",overflow:"auto",padding:12,border:"1px solid #ffffff2a",borderRadius:10,background:"#080808e8",color:"#eee",font:"11px/1.45 ui-monospace,monospace"}}>
+  return <aside aria-label="Performance diagnostics" data-performance-summary={JSON.stringify(summary)} data-quality-summary={JSON.stringify(qualitySummary)} data-working-set-summary={JSON.stringify(workingSet)} data-render-scheduler-summary={JSON.stringify(scheduler)} style={{position:"fixed",zIndex:100,right:12,top:12,width:340,maxHeight:"calc(100vh - 24px)",overflow:"auto",padding:12,border:"1px solid #ffffff2a",borderRadius:10,background:"#080808e8",color:"#eee",font:"11px/1.45 ui-monospace,monospace"}}>
     <strong>Performance baseline</strong>
     <div>Profile: {quality.profile.label} ({quality.selection.reason})</div>
     <div>Preference: {quality.preference}; adaptive: {quality.selection.adaptiveAllowed&&quality.preference==="auto"?"on":"off"}</div>
@@ -129,6 +132,11 @@ export function PerformanceOverlay(){
     <div>Estimated decoded textures: {(workingSet.estimatedDecodedTextureBytes/1048576).toFixed(1)} MiB (estimate)</div>
     <div>Pending releases / lifecycle events: {workingSet.pendingReleases} / {workingSet.events.length}</div>
     <div>Runtime tasks / raycast objects: {workingSet.activeRuntimeTasks??"n/a"} / {workingSet.raycastCandidates??"n/a"}</div>
+    <div>Scheduler: {scheduler.mode}; frameloop: {scheduler.frameloop}</div>
+    <div>Leases continuous / periodic: {scheduler.continuousLeases.length} / {scheduler.periodicLeases.length}</div>
+    <div>Pending / last: {scheduler.pendingInvalidations} / {scheduler.lastInvalidationOwner??"n/a"}:{scheduler.lastInvalidationReason??"n/a"}</div>
+    <div>Frames / unexplained idle: {scheduler.renderedFrames} / {scheduler.framesWhileIdle}</div>
+    <div>Projection / DOF updates: {scheduler.projectionUpdates} / {scheduler.dofUpdates}</div>
     {quality.diagnostics.warnings.map((warning)=><div key={warning} style={{color:"#f0b36a"}}>{warning}</div>)}
     <div>Scene: {performanceDiagnostics.scene}</div><div>Frames: {summary.frames}</div>
     <div>FPS avg / 1%: {summary.averageFps.toFixed(1)} / {summary.onePercentLowFps.toFixed(1)}</div>
@@ -139,6 +147,7 @@ export function PerformanceOverlay(){
       <button type="button" onClick={()=>performanceDiagnostics.reset()}>Reset</button>
       <button type="button" onClick={download}>Export JSON</button>
       <button type="button" onClick={()=>workingSetStore.clearOwned()}>Clear owned</button>
+      <button type="button" onClick={()=>schedulerStore.clearExpired()}>Clear leases</button>
     </div>
   </aside>;
 }
