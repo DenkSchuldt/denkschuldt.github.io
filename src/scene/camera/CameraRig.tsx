@@ -13,6 +13,7 @@ import { sceneForCameraTarget } from "./sceneRegistry";
 import type { CameraTargetId, ResolvedCameraTarget } from "./cameraTypes";
 import type { ShotTransition } from "./shotTypes";
 import { measurePerformanceTask } from "../diagnostics/performance/performanceStore";
+import { useRenderDemand } from "../runtime/render-scheduler";
 
 interface Props {
   requestedTarget: CameraTargetId;
@@ -72,6 +73,8 @@ function applyCertificateFocus(target:ResolvedCameraTarget,focus:{x:number;y:num
 
 export function CameraRig(props: Props) {
   const { camera, size } = useThree();
+  const renderDemand=useRenderDemand("camera-breathing");
+  const requestedBreathing=resolveCameraTarget(props.requestedTarget,size.width/size.height).breathing;
   const activeId = useRef<CameraTargetId>("opening");
   const requestedId = useRef<CameraTargetId>(INTRO_DESTINATION);
   const transitioning = useRef(false);
@@ -99,6 +102,10 @@ export function CameraRig(props: Props) {
 
   useEffect(() => validateCameraTargets(), []);
   useEffect(() => { camera.near=props.nearClip; camera.far=props.farClip; camera.updateProjectionMatrix(); }, [camera,props.nearClip,props.farClip]);
+  useEffect(()=>{
+    if(!props.breathingEnabled||props.reducedMotion||props.paused||props.breathingStrength<=.0001||!requestedBreathing||requestedBreathing.positionAmplitude*props.breathingStrength<=.0001)return;
+    return renderDemand.acquirePeriodic({reason:"camera-breathing",cadence:"30fps",priority:1});
+  },[props.breathingEnabled,props.breathingStrength,props.paused,props.reducedMotion,renderDemand,requestedBreathing]);
 
   const beginTransition = (id:CameraTargetId, now:number, durationOverride?:number, waypointOverride?:THREE.Vector3Tuple) => {
     if(activeId.current==="certificate-detail"){

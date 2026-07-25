@@ -7,6 +7,7 @@ import type { SceneId } from "../../camera/navigationTypes";
 import { WORKING_SET_DEFINITIONS,WORKING_SET_DESTINATIONS } from "./definitions";
 import { createResolverState,isResourceResidentState,resolveWorkingSet,type ResolverState } from "./resolver";
 import type { ReleaseEvidence,ResidentResourceState,WorkingSetEvent,WorkingSetNavigationIntent,WorkingSetSnapshot } from "./types";
+import { useRenderDemand } from "../render-scheduler";
 
 const MAX_EVENTS=160;
 class WorkingSetStore {
@@ -127,7 +128,9 @@ export const useDestinationResources=(destination:SceneId)=>useWorkingSet((snaps
 
 export function WorkingSetNavigationAdapter({engine,profileId,overlayResourceIds=[]}:{engine:CinematicEngine;profileId:QualityProfileId;overlayResourceIds?:readonly string[]}){
   const store=useWorkingSetStore();
+  const renderDemand=useRenderDemand("working-set");
   useEffect(()=>{
+    let lastState="";
     store.configureDiagnostics(window.location.search);
     const update=()=>{
       const state=engine.getState();
@@ -139,6 +142,8 @@ export function WorkingSetNavigationAdapter({engine,profileId,overlayResourceIds
         visible:document.visibilityState!=="hidden",
       };
       store.update(intent,profileId);
+      const nextState=Object.entries(store.getSnapshot().destinations).map(([id,value])=>`${id}:${value.state}`).join("|");
+      if(nextState!==lastState){lastState=nextState;renderDemand.invalidate("working-set-change");}
     };
     update();
     const failure=store.getSnapshot().diagnostics.simulatedFailure;
@@ -147,6 +152,6 @@ export function WorkingSetNavigationAdapter({engine,profileId,overlayResourceIds
     const visibility=()=>update();
     document.addEventListener("visibilitychange",visibility);
     return()=>{unsubscribe();document.removeEventListener("visibilitychange",visibility);};
-  },[engine,overlayResourceIds,profileId,store]);
+  },[engine,overlayResourceIds,profileId,renderDemand,store]);
   return null;
 }
