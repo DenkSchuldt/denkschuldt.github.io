@@ -5,6 +5,7 @@ import { useWorkingSetStore } from "../runtime/working-set";
 
 const SCREEN_LOGICAL_WIDTH=1000;
 const SCREEN_LOGICAL_HEIGHT=548;
+const ASSET_BASE_PATH=(process.env.NEXT_PUBLIC_BASE_PATH??"").replace(/\/$/,"");
 
 function solveHomography(source:readonly {x:number;y:number}[],destination:readonly {x:number;y:number}[]){
   const matrix:number[][]=[],values:number[]=[];
@@ -49,6 +50,8 @@ interface ProjectEntry {
   dates: string;
   description: string;
   href: string;
+  previewSrc: string;
+  previewAlt: string;
 }
 
 const EXPERIENCE: readonly ExperienceEntry[] = [
@@ -74,7 +77,7 @@ const EXPERIENCE: readonly ExperienceEntry[] = [
   {
     role: "UX/UI Instructor",
     company: "Coding Bootcamps, Escuela Superior Politécnica del Litoral",
-    dates: "March 2023; June 2025 – June 2025",
+    dates: "March 2023 – Present",
     location: "Guayaquil",
     bullets: [
       "Taught UX/UI fundamentals, information visualization, accessibility, and Figma.",
@@ -100,12 +103,13 @@ const EXPERIENCE: readonly ExperienceEntry[] = [
 ];
 
 const PROJECTS: readonly ProjectEntry[] = [
-  { title: "@denkschuldt/react-dialog", dates: "2021 – Present", description: "A simple to use and customizable React dialog implementation.", href: "https://www.npmjs.com/package/@denkschuldt/react-dialog" },
-  { title: "Aventuras en 360°", dates: "2016 – Present", description: "A collection of interactive spherical photography from touristic places, captured and shared through React.", href: "https://denkschuldt.github.io/360" },
+  { title: "Aventuras en 360°", dates: "2016 – Present", description: "A collection of interactive spherical photography from touristic places, captured and shared through React.", href: "https://denkschuldt.github.io/360", previewSrc: `${ASSET_BASE_PATH}/projects/360.png`, previewAlt: "Aventuras en 360° project preview" },
+  { title: "@denkschuldt/react-dialog", dates: "2021 – Present", description: "A simple to use and customizable React dialog implementation.", href: "https://www.npmjs.com/package/@denkschuldt/react-dialog", previewSrc: `${ASSET_BASE_PATH}/projects/react-dialog.png`, previewAlt: "@denkschuldt/react-dialog project preview" },
 ];
 
 function ProjectLink({ project }: { project: ProjectEntry }) {
   return <a className="projects-overlay-project" href={project.href} target="_blank" rel="noopener noreferrer">
+    <img className="projects-overlay-project-preview" src={project.previewSrc} alt={project.previewAlt}/>
     <div className="projects-overlay-project-heading">
       <h3>{project.title}</h3>
       <span aria-hidden="true">↗</span>
@@ -119,6 +123,7 @@ export function ProjectsOverlay({ visible,projectionRef }: { visible: boolean; p
   const workingSet=useWorkingSetStore();
   const shellRef=useRef<HTMLDivElement|null>(null);
   const [present,setPresent]=useState(visible);
+  const [mobileTab,setMobileTab]=useState<"experience"|"projects">("experience");
   useEffect(()=>{
     workingSet.resourceEvent("prepare-end","projects-overlay",{status:"resident",cache:"browser",detail:"lazy module/component mounted"});
     return()=>workingSet.resourceEvent("release","projects-overlay",{status:"released",cache:"browser",detail:"component unmounted; JavaScript module remains in browser module cache",evidence:["unmounted","references-released","browser-memory-unverified"]});
@@ -154,10 +159,13 @@ export function ProjectsOverlay({ visible,projectionRef }: { visible: boolean; p
           <p className="projects-overlay-eyebrow">Denny K. Schuldt</p>
           <h1>Experience & projects</h1>
         </div>
-        <span className="projects-overlay-index">Selected work</span>
       </header>
+      <div className="projects-overlay-tabs" role="tablist" aria-label="Portfolio sections">
+        <button type="button" role="tab" aria-selected={mobileTab==="experience"} aria-controls="projects-experience-panel" onClick={()=>setMobileTab("experience")}>Experience</button>
+        <button type="button" role="tab" aria-selected={mobileTab==="projects"} aria-controls="projects-projects-panel" onClick={()=>setMobileTab("projects")}>Projects</button>
+      </div>
       <div className="projects-overlay-columns">
-        <article className="projects-overlay-column projects-overlay-experience">
+        <article id="projects-experience-panel" role="tabpanel" className={`projects-overlay-column projects-overlay-experience${mobileTab==="experience"?" is-mobile-active":""}`}>
           <div className="projects-overlay-column-heading">
             <h2>Experience</h2>
           </div>
@@ -165,6 +173,7 @@ export function ProjectsOverlay({ visible,projectionRef }: { visible: boolean; p
             {EXPERIENCE.map((entry) => <section className="projects-overlay-entry" key={`${entry.role}-${entry.company}-${entry.dates}`}>
               <div className="projects-overlay-entry-meta">
                 <time>{entry.dates}</time>
+                <span className="projects-overlay-entry-separator" aria-hidden="true">•</span>
                 <span>{entry.location}</span>
               </div>
               <h3>{entry.role}</h3>
@@ -173,7 +182,7 @@ export function ProjectsOverlay({ visible,projectionRef }: { visible: boolean; p
             </section>)}
           </div>
         </article>
-        <article className="projects-overlay-column projects-overlay-projects">
+        <article id="projects-projects-panel" role="tabpanel" className={`projects-overlay-column projects-overlay-projects${mobileTab==="projects"?" is-mobile-active":""}`}>
           <div className="projects-overlay-column-heading">
             <h2>Projects</h2>
           </div>
