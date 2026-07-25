@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { CERTIFICATES } from "../objects/certificates";
 import { withSceneBasePath } from "../camera/sceneRoutes";
+import { useWorkingSetStore } from "../runtime/working-set";
 
 interface Props {
   open: boolean;
@@ -22,6 +23,7 @@ function GalleryArrow({ direction }: { direction: "previous" | "next" }) {
  * resident in the scene.
  */
 export function CertificateGalleryOverlay({ open, selectedSlug, onSelect, onClose }: Props) {
+  const workingSet=useWorkingSetStore();
   const panelRef = useRef<HTMLDivElement>(null);
   const selectedIndex = useMemo(() => {
     const index = CERTIFICATES.findIndex(({ slug }) => slug === selectedSlug);
@@ -30,6 +32,11 @@ export function CertificateGalleryOverlay({ open, selectedSlug, onSelect, onClos
   const certificate = CERTIFICATES[selectedIndex];
   const previous = CERTIFICATES[selectedIndex - 1];
   const next = CERTIFICATES[selectedIndex + 1];
+  useEffect(()=>{
+    if(!open||!certificate)return;
+    workingSet.resourceEvent("prepare-start","certificate-original",{status:"preparing",cache:"browser",detail:certificate.image});
+    return()=>workingSet.resourceEvent("release","certificate-original",{status:"released",cache:"browser",detail:"HTMLImageElement unmounted/reference released; browser decode/cache memory not observable",evidence:["unmounted","references-released","browser-memory-unverified","gpu-memory-unverified"]});
+  },[certificate,open,workingSet]);
 
   useEffect(() => {
     if (!open) return;
@@ -81,7 +88,7 @@ export function CertificateGalleryOverlay({ open, selectedSlug, onSelect, onClos
         </button>
         <figure className="certificate-gallery-figure">
           <a href={certificate.url} target="_blank" rel="noopener noreferrer" className="certificate-gallery-image-link" aria-label={`Open ${certificate.title} certificate in a new tab`}>
-            <img src={withSceneBasePath(`/certificates/${certificate.image}`)} alt={certificate.title} className="certificate-gallery-image" loading="eager" decoding="async" />
+            <img src={withSceneBasePath(`/certificates/${certificate.image}`)} alt={certificate.title} className="certificate-gallery-image" loading="eager" decoding="async" onLoad={()=>workingSet.resourceEvent("prepare-end","certificate-original",{status:"resident",cache:"browser",detail:certificate.image})} onError={()=>workingSet.resourceEvent("error","certificate-original",{status:"error",cache:"browser",detail:certificate.image})}/>
           </a>
           <figcaption className="certificate-gallery-caption">
             <div>

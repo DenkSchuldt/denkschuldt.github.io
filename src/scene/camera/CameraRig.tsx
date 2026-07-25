@@ -12,6 +12,7 @@ import type { CameraNavigationState } from "./navigationTypes";
 import { sceneForCameraTarget } from "./sceneRegistry";
 import type { CameraTargetId, ResolvedCameraTarget } from "./cameraTypes";
 import type { ShotTransition } from "./shotTypes";
+import { measurePerformanceTask } from "../diagnostics/performance/performanceStore";
 
 interface Props {
   requestedTarget: CameraTargetId;
@@ -126,7 +127,7 @@ export function CameraRig(props: Props) {
     activeTarget.current=next; requestedId.current=id; transitioning.current=true;
   };
 
-  useFrame(({clock,pointer},delta) => {
+  useFrame(({clock,pointer},delta) => measurePerformanceTask("CameraRig",()=>{
     const now=clock.elapsedTime;
     if(!initialized.current){
       initialized.current=true;
@@ -244,6 +245,6 @@ export function CameraRig(props: Props) {
     const speed=breathing.speed*props.breathingSpeed;
     camera.position.set(basePosition.x+Math.sin(now*speed*.61)*amplitude*.45,basePosition.y+Math.sin(now*speed)*amplitude,basePosition.z+Math.cos(now*speed*.43)*amplitude*.25);
     camera.lookAt(baseLook.x+Math.sin(now*speed*.37)*breathing.rotationAmplitude*props.breathingStrength,baseLook.y+Math.cos(now*speed*.29)*breathing.rotationAmplitude*props.breathingStrength,baseLook.z);camera.rotateZ(baseRoll.current);
-  });
+  }));
   return null;
 }

@@ -12,15 +12,18 @@ import type { CinematicNavigationSystem } from "./camera/useCinematicCamera";
 import { DEFAULT_RENDER_ISOLATION,type RenderIsolationState } from "./rendering/renderIsolation";
 import type { PoemsContentState } from "./content/usePoems";
 import type { ScreenProjectionRef } from "./screenProjection";
+import { measurePerformanceTask } from "./diagnostics/performance/performanceStore";
+import type { RenderingQualityProfile,ResolvedQualityFeatures } from "./rendering/quality";
 
 const LAPTOP_SCREEN_CORNERS:readonly [THREE.Vector3,THREE.Vector3,THREE.Vector3,THREE.Vector3]=[
   new THREE.Vector3(-.5,.5,0),new THREE.Vector3(.5,.5,0),new THREE.Vector3(.5,-.5,0),new THREE.Vector3(-.5,-.5,0),
 ];
 
-function LaptopScreenProjection({screenRef,projectionRef}:{screenRef:React.MutableRefObject<THREE.Mesh|null>;projectionRef:ScreenProjectionRef}){
+function LaptopScreenProjection({screenRef,projectionRef,enabled=true}:{screenRef:React.MutableRefObject<THREE.Mesh|null>;projectionRef:ScreenProjectionRef;enabled?:boolean}){
   const {camera,size}=useThree();
   const projected=LAPTOP_SCREEN_CORNERS.map(()=>new THREE.Vector3()) as [THREE.Vector3,THREE.Vector3,THREE.Vector3,THREE.Vector3];
-  useFrame(()=>{
+  useFrame(()=>measurePerformanceTask("LaptopScreenProjection",()=>{
+    if(!enabled)return;
     const screen=screenRef.current;
     if(!screen)return;
     screen.updateWorldMatrix(true,false);
@@ -33,7 +36,7 @@ function LaptopScreenProjection({screenRef,projectionRef}:{screenRef:React.Mutab
       ],
       viewport:{width:size.width,height:size.height},
     };
-  });
+  }));
   return null;
 }
 
@@ -41,7 +44,7 @@ const CinematicEffects=lazy(()=>import("./effects/CinematicEffects"));
 
 export interface SceneSettings { desk:number; moon:number; moonColor:string; bounce:number; bloom:number; fog:number; exposure:number; dof:number; focusDistance:number; helpers:boolean; laptopPosition:[number,number,number]; laptopRotation:number; folderPosition:[number,number]; folderRotation:number; paperPosition:[number,number]; paperRotation:number; penPosition:[number,number]; penRotation:number; coffeePosition:[number,number,number]; plantPosition:[number,number,number]; plantRotationY:number; lampPosition:[number,number,number] }
 
-export function Scene({s,cameraSystem,certificateSlug,poemsContent,onPoemRead,renderIsolation=DEFAULT_RENDER_ISOLATION,onReady,laptopScreenRef,screenProjectionRef}:{s:SceneSettings;cameraSystem:CinematicNavigationSystem;certificateSlug?:string;poemsContent:PoemsContentState;onPoemRead:()=>void;renderIsolation?:RenderIsolationState;onReady?:()=>void;laptopScreenRef:React.MutableRefObject<THREE.Mesh|null>;screenProjectionRef:ScreenProjectionRef}) {
+export function Scene({s,cameraSystem,certificateSlug,poemsContent,onPoemRead,renderIsolation=DEFAULT_RENDER_ISOLATION,qualityProfile,qualityFeatures,onReady,laptopScreenRef,screenProjectionRef}:{s:SceneSettings;cameraSystem:CinematicNavigationSystem;certificateSlug?:string;poemsContent:PoemsContentState;onPoemRead:()=>void;renderIsolation?:RenderIsolationState;qualityProfile:RenderingQualityProfile;qualityFeatures:ResolvedQualityFeatures;onReady?:()=>void;laptopScreenRef:React.MutableRefObject<THREE.Mesh|null>;screenProjectionRef:ScreenProjectionRef}) {
   const focusRef=useRef(s.focusDistance);
   const [effectsReady,setEffectsReady]=useState(false);
   const certificateFocusRef=useRef<CertificateFocus|null>(getCertificateFocusBySlug(certificateSlug));
@@ -58,9 +61,9 @@ export function Scene({s,cameraSystem,certificateSlug,poemsContent,onPoemRead,re
   return <>
   <color attach="background" args={["#070707"]} />
   <fog attach="fog" args={["#111216", 7, s.fog]} />
-  <Lighting desk={s.desk} moon={s.moon} moonColor={s.moonColor} bounce={s.bounce} fillEnabled={renderIsolation.fillLighting} shadowsEnabled={renderIsolation.shadows} />
+  <Lighting desk={s.desk} moon={s.moon} moonColor={s.moonColor} bounce={s.bounce} fillEnabled={renderIsolation.fillLighting} shadowsEnabled={renderIsolation.shadows} profile={qualityProfile} features={qualityFeatures} />
   <CameraController system={cameraSystem} focusRef={focusRef} certificateFocusRef={certificateFocusRef} />
-  <Room /><Desk /><Laptop position={s.laptopPosition} rotation={s.laptopRotation} screenRef={laptopScreenRef} /><LaptopScreenProjection screenRef={laptopScreenRef} projectionRef={screenProjectionRef}/><DeskObjects coffeePosition={s.coffeePosition} lampPosition={s.lampPosition} folderPosition={s.folderPosition} folderRotation={s.folderRotation} paperPosition={s.paperPosition} paperRotation={s.paperRotation} penPosition={s.penPosition} penRotation={s.penRotation} phoneActive={cameraSystem.selectedScene==="phone"} poemsActive={cameraSystem.selectedScene==="poems"} poemsContent={poemsContent} activePoemSlug={cameraSystem.selectedFocusCollection==="poems"?cameraSystem.selectedFocusItem:null} onPoemRead={onPoemRead} /><Chair /><Shelf illuminated={cameraSystem.selectedScene==="certificates"} onCertificateSelect={focusCertificate} /><Posters/><Plant position={s.plantPosition} rotationY={s.plantRotationY} />
+  <Room /><Desk /><Laptop position={s.laptopPosition} rotation={s.laptopRotation} screenRef={laptopScreenRef} /><LaptopScreenProjection screenRef={laptopScreenRef} projectionRef={screenProjectionRef} enabled={qualityFeatures.laptopProjection}/><DeskObjects coffeePosition={s.coffeePosition} lampPosition={s.lampPosition} folderPosition={s.folderPosition} folderRotation={s.folderRotation} paperPosition={s.paperPosition} paperRotation={s.paperRotation} penPosition={s.penPosition} penRotation={s.penRotation} phoneActive={cameraSystem.selectedScene==="phone"} poemsActive={cameraSystem.selectedScene==="poems"} poemsContent={poemsContent} activePoemSlug={cameraSystem.selectedFocusCollection==="poems"?cameraSystem.selectedFocusItem:null} onPoemRead={onPoemRead} /><Chair /><Shelf illuminated={cameraSystem.selectedScene==="certificates"} onCertificateSelect={focusCertificate} /><Posters/><Plant position={s.plantPosition} rotationY={s.plantRotationY} />
   <DebugHelpers visible={s.helpers} />
-  {effectsReady&&<Suspense fallback={null}><CinematicEffects s={s} focusRef={focusRef} readingMode={cameraSystem.selectedScene==="about"||cameraSystem.selectedScene==="certificates"||cameraSystem.cameraState.current.introActive} isolation={renderIsolation}/></Suspense>}
+  {effectsReady&&<Suspense fallback={null}><CinematicEffects s={s} focusRef={focusRef} readingMode={cameraSystem.selectedScene==="about"||cameraSystem.selectedScene==="certificates"||cameraSystem.cameraState.current.introActive} isolation={renderIsolation} profile={qualityProfile} features={qualityFeatures}/></Suspense>}
 </>; }

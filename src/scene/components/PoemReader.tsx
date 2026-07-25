@@ -5,6 +5,7 @@ import type { ComponentType, ReactNode } from "react";
 import ReactDOM from "react-dom";
 import DialogPackage from "@denkschuldt/react-dialog";
 import type { PoemRecord } from "../content/poems";
+import { useWorkingSetStore } from "../runtime/working-set";
 
 type ReactDialogProps = {
   title?: string;
@@ -73,6 +74,12 @@ function readLovedPoems(): Record<string, boolean> {
 }
 
 export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) {
+  const workingSet=useWorkingSetStore();
+  useEffect(()=>{
+    if(!open)return;
+    workingSet.resourceEvent("prepare-end","poem-reader-chunk",{status:"resident",cache:"browser",detail:"lazy reader module and DOM mounted"});
+    return()=>workingSet.resourceEvent("release","poem-reader-chunk",{status:"released",cache:"browser",detail:"reader DOM unmounted; JavaScript module remains cached",evidence:["unmounted","references-released","browser-memory-unverified"]});
+  },[open,workingSet]);
   const [shareLabel, setShareLabel] = useState("Share");
   const [lovedPoems, setLovedPoems] = useState<Record<string, boolean>>(readLovedPoems);
   const [heartAnimating, setHeartAnimating] = useState(false);
