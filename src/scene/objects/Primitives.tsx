@@ -1,7 +1,6 @@
 "use client";
 import { Capsule, RoundedBox, Text, useCursor, useTexture } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
-import { RuntimeBoundary, useRuntimeSnapshot, useRuntimeTask } from "@denk/cinematic-navigation/react";
+import { useRuntimeSnapshot, useRuntimeTask } from "@denk/cinematic-navigation/react";
 import { Suspense,useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState,type MutableRefObject,type RefObject } from "react";
 import * as THREE from "three";
 import { PALETTE as C } from "../constants";
@@ -10,6 +9,17 @@ import { CERTIFICATES, CERTIFICATE_LAYOUT, type CertificateRecord } from "./cert
 import { PHONE_LAYOUT } from "../sceneLayout";
 import type { PoemRecord } from "../content/poems";
 import type { PoemsContentState } from "../content/usePoems";
+import type { RuntimeTaskRegistration } from "@denk/cinematic-navigation";
+import { measurePerformanceTask,performanceDiagnostics } from "../diagnostics/performance/performanceStore";
+import { isResourceResidentState,useDestinationWorkingSet,useOwnedTexture,useOwnedTextures,useWorkingSetStore } from "../runtime/working-set";
+
+function useMeasuredRuntimeTask(task:RuntimeTaskRegistration){
+  useRuntimeTask({...task,update:(context)=>{
+    if(!performanceDiagnostics.switches.nonCameraTasks)return;
+    if(task.id==="task:coffee-steam"&&!performanceDiagnostics.switches.coffeeSteam)return;
+    return measurePerformanceTask(task.id,()=>task.update(context));
+  }});
+}
 
 const mat = { roughness: .82, metalness: 0 };
 const MACBOOK_CHASSIS_MATERIAL=new THREE.MeshStandardMaterial({color:"#55585a",roughness:.46,metalness:.24});
@@ -302,8 +312,10 @@ export function DeskObjects({coffeePosition,lampPosition,folderPosition,folderRo
 </group> }
 
 function PortfolioPhoto({materialRef}:{materialRef:RefObject<THREE.MeshStandardMaterial|null>}){
-  const photo=useTexture(withSceneBasePath("/pinscher.png"));
-  photo.colorSpace=THREE.SRGBColorSpace;photo.anisotropy=8;
+  const poemsState=useDestinationWorkingSet("poems");
+  const photo=useOwnedTexture(withSceneBasePath("/pinscher.png"),"pinscher-photo",isResourceResidentState(poemsState.state));
+  if(!photo)return null;
+  photo.anisotropy=8;
   return <mesh geometry={PORTFOLIO_PHOTO_GEOMETRY} position={[0,.0045,-.022]} rotation-x={-Math.PI/2}>
     <meshStandardMaterial ref={materialRef} map={photo} emissiveMap={photo} emissive="#ffffff" emissiveIntensity={0} color="#d2c9ba" roughness={.86} metalness={0}/>
   </mesh>;
@@ -317,7 +329,7 @@ function PortfolioPolaroid({active}:{active:boolean}){
     if(backingMaterialRef.current)backingMaterialRef.current.emissiveIntensity=THREE.MathUtils.damp(backingMaterialRef.current.emissiveIntensity,target?.13:0,5.5,delta);
     if(photoMaterialRef.current)photoMaterialRef.current.emissiveIntensity=THREE.MathUtils.damp(photoMaterialRef.current.emissiveIntensity,target?.15:0,5.5,delta);
   },[active,hovered]);
-  useRuntimeTask({id:"task:poems-polaroid",nodeId:"collection:poems",priority:20,update});
+  useMeasuredRuntimeTask({id:"task:poems-polaroid",nodeId:"collection:poems",priority:20,update});
   useCursor(active&&hovered);
   return <group position={[-.445,.045,.045]} rotation-y={.09}
     onPointerOver={(event)=>{if(!active)return;event.stopPropagation();setHovered(true);}}
@@ -373,18 +385,26 @@ function createPoemPreviewTexture(poem:PoemRecord|null){
   const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=8;texture.needsUpdate=true;return texture;
 }
 
-function usePoemPreviewTexture(poem:PoemRecord|null){
+function usePoemPreviewTexture(poem:PoemRecord|null,enabled:boolean){
+  const workingSet=useWorkingSetStore();
   const [texture,setTexture]=useState<THREE.CanvasTexture|null>(null);
   useEffect(()=>{
+    if(!enabled){setTexture(null);return;}
+    workingSet.resourceEvent("prepare-start","poem-preview-texture",{status:"preparing",cache:"owned",detail:poem?.slug??"ambient"});
     const next=createPoemPreviewTexture(poem);setTexture(next);
-    return()=>next?.dispose();
-  },[poem?.slug,poem?.title,poem?.body,poem?.date]);
+    if(next)workingSet.resourceEvent("prepare-end","poem-preview-texture",{status:"resident",cache:"owned",detail:poem?.slug??"ambient"});
+    return()=>{
+      if(!next)return;
+      next.dispose();
+      workingSet.resourceEvent("dispose","poem-preview-texture",{status:"released",cache:"owned",detail:"CanvasTexture.dispose() called; renderer/GPU reclamation not directly observable",evidence:["unmounted","references-released","texture-disposed","browser-memory-unverified","gpu-memory-unverified"]});
+    };
+  },[enabled,poem?.slug,poem?.title,poem?.body,poem?.date,workingSet]);
   return texture;
 }
 
 function PoemReadCue({active,hovered,onHover,onRead}:{active:boolean;hovered:boolean;onHover:(value:boolean)=>void;onRead:()=>void}){
   const groupRef=useRef<THREE.Group>(null),backgroundRef=useRef<THREE.MeshBasicMaterial>(null),labelRef=useRef<THREE.MeshBasicMaterial>(null);
-  useRuntimeTask({id:"task:poems-read-cue",nodeId:"collection:poems",priority:6,update:({delta})=>{
+  useMeasuredRuntimeTask({id:"task:poems-read-cue",nodeId:"collection:poems",priority:6,update:({delta})=>{
     const group=groupRef.current,background=backgroundRef.current,label=labelRef.current;
     if(group){const target=active?(hovered?1.08:1):.92;group.scale.x=THREE.MathUtils.damp(group.scale.x,target,7,delta);group.scale.y=THREE.MathUtils.damp(group.scale.y,target,7,delta);}
     if(background)background.opacity=THREE.MathUtils.damp(background.opacity,active?(hovered?.98:.88):0,6,delta);
@@ -404,30 +424,34 @@ function PoemReadCue({active,hovered,onHover,onRead}:{active:boolean;hovered:boo
   </group>;
 }
 
-function PortfolioPoemPreview({poem,active,onRead}:{poem:PoemRecord|null;active:boolean;onRead:()=>void}){
-  const texture=usePoemPreviewTexture(poem);
+function PortfolioPoemPreview({poem,active,prepare,onRead}:{poem:PoemRecord|null;active:boolean;prepare:boolean;onRead:()=>void}){
+  const texture=usePoemPreviewTexture(poem,(active||prepare)&&Boolean(poem?.body));
   const materialRef=useRef<THREE.MeshBasicMaterial>(null);
   const [hovered,setHovered]=useState(false);
   useCursor(active&&hovered);
-  useRuntimeTask({id:"task:poems-preview",nodeId:"collection:poems",priority:5,update:({delta})=>{
+  useMeasuredRuntimeTask({id:"task:poems-preview",nodeId:"collection:poems",priority:5,update:({delta})=>{
     if(!materialRef.current)return;
     // The generated canvas texture is asynchronous. Keep the preview dark
     // until it exists so a newly-mounted active page never flashes white.
     const channel=THREE.MathUtils.damp(materialRef.current.color.r,active&&texture?1:.018,3.2,delta);
     materialRef.current.color.setRGB(channel,channel,channel);
-  }},[active,texture]);
+  }});
   return <>
     <mesh geometry={PORTFOLIO_PAGE_SURFACE_GEOMETRY} position={[.395,.071,0]} rotation-x={-Math.PI/2}
       onPointerOver={(event)=>{if(!active)return;event.stopPropagation();setHovered(true);}}
       onPointerOut={()=>setHovered(false)}
       onClick={(event)=>{if(!active)return;event.stopPropagation();onRead();}}>
-      <meshBasicMaterial ref={materialRef} map={texture} color={active&&texture?"#ffffff":"#242424"} toneMapped={false}/>
+      {/* WebKit can retain the no-map shader variant when a CanvasTexture is
+          attached after the material's first compile. Remounting at that
+          boundary guarantees that Safari compiles the mapped variant. */}
+      <meshBasicMaterial key={texture?.uuid??"poem-preview-empty"} ref={materialRef} map={texture} color={active&&texture?"#ffffff":"#242424"} toneMapped={false}/>
     </mesh>
     <PoemReadCue active={active} hovered={hovered} onHover={setHovered} onRead={onRead}/>
   </>;
 }
 
 function PoemsPortfolio({position,rotation,active,poemsContent,activePoemSlug,onRead}:{position:[number,number];rotation:number;active:boolean;poemsContent:PoemsContentState;activePoemSlug:string|null;onRead:()=>void}){
+  const poemsWorkingSet=useDestinationWorkingSet("poems");
   const coversRef=useRef<THREE.InstancedMesh>(null),liningsRef=useRef<THREE.InstancedMesh>(null),pagesRef=useRef<THREE.InstancedMesh>(null);
   const ringsRef=useRef<THREE.InstancedMesh>(null),eyeletsRef=useRef<THREE.InstancedMesh>(null),stitchesRef=useRef<THREE.InstancedMesh>(null);
   const readingLightRef=useRef<THREE.PointLight>(null);
@@ -435,7 +459,7 @@ function PoemsPortfolio({position,rotation,active,poemsContent,activePoemSlug,on
   const activeIndex=requestedIndex>=0?requestedIndex:0;
   const activePoem=poemsContent.poems[activeIndex]??null;
   const updateReadingLight=useCallback(({delta}:{delta:number})=>{if(readingLightRef.current)readingLightRef.current.intensity=THREE.MathUtils.damp(readingLightRef.current.intensity,active?4.5:0,3.2,delta);},[active]);
-  useRuntimeTask({id:"task:poems-reading-light",nodeId:"collection:poems",priority:10,update:updateReadingLight});
+  useMeasuredRuntimeTask({id:"task:poems-reading-light",nodeId:"collection:poems",priority:10,update:updateReadingLight});
   useLayoutEffect(()=>{
     const covers=coversRef.current,linings=liningsRef.current,pages=pagesRef.current,rings=ringsRef.current,eyelets=eyeletsRef.current,stitches=stitchesRef.current;
     if(!covers||!linings||!pages||!rings||!eyelets||!stitches)return;
@@ -474,7 +498,7 @@ function PoemsPortfolio({position,rotation,active,poemsContent,activePoemSlug,on
     <mesh geometry={PORTFOLIO_SLOT_GEOMETRY} position={[-.48,.043,.13]}><primitive object={PORTFOLIO_LEATHER_MATERIAL} attach="material"/></mesh>
     <mesh geometry={PORTFOLIO_PEN_LOOP_GEOMETRY} position={[-.075,.06,.12]} rotation-x={Math.PI/2}><primitive object={PORTFOLIO_LEATHER_MATERIAL} attach="material"/></mesh>
     <instancedMesh ref={pagesRef} args={[PORTFOLIO_PAGE_GEOMETRY,PORTFOLIO_PAPER_MATERIAL,6]} castShadow/>
-    <PortfolioPoemPreview poem={activePoem} active={active} onRead={onRead}/>
+    <PortfolioPoemPreview poem={activePoem} active={active} prepare={poemsWorkingSet.state==="preparing"} onRead={onRead}/>
     <pointLight ref={readingLightRef} position={[.43,.62,.02]} color="#ffd39a" intensity={0} distance={1.4} decay={2}/>
     <instancedMesh ref={ringsRef} args={[PORTFOLIO_RING_GEOMETRY,PORTFOLIO_METAL_MATERIAL,6]} castShadow/>
     <instancedMesh ref={eyeletsRef} args={[PORTFOLIO_EYELET_GEOMETRY,PORTFOLIO_METAL_MATERIAL,6]} castShadow/>
@@ -486,11 +510,11 @@ function PoemsPortfolio({position,rotation,active,poemsContent,activePoemSlug,on
 }
 
 function PhoneScreen({active}:{active:boolean}){
-  const texture=useTexture(withSceneBasePath("/phone.jpeg"));
+  const texture=useOwnedTexture(withSceneBasePath("/phone.jpeg"),"phone-screen");
   const materialRef=useRef<THREE.MeshBasicMaterial>(null);
   const lightRef=useRef<THREE.PointLight>(null);
   const [hovered,setHovered]=useState(false);
-  texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=8;texture.repeat.set(IPHONE_SCREEN_TEXTURE_REPEAT_X,1);texture.offset.set((1-IPHONE_SCREEN_TEXTURE_REPEAT_X)/2,0);
+  if(texture){texture.anisotropy=8;texture.repeat.set(IPHONE_SCREEN_TEXTURE_REPEAT_X,1);texture.offset.set((1-IPHONE_SCREEN_TEXTURE_REPEAT_X)/2,0);}
   useCursor(active&&hovered);
   useEffect(()=>{if(!active)setHovered(false);},[active]);
   useEffect(()=>{
@@ -516,12 +540,12 @@ function PhoneScreen({active}:{active:boolean}){
       if(!active&&light.intensity<.001)light.intensity=0;
     }
   },[active]);
-  useRuntimeTask({id:"task:phone-screen",nodeId:"collection:phone",priority:10,update:updateScreen});
+  useMeasuredRuntimeTask({id:"task:phone-screen",nodeId:"collection:phone",priority:10,update:updateScreen});
   return <>
-    <mesh geometry={IPHONE_SCREEN_IMAGE_GEOMETRY} position={[0,.0182,0]}
-      onPointerOver={(event)=>{if(!active)return;event.stopPropagation();setHovered(true);}}
-      onPointerOut={()=>setHovered(false)}
-      onClick={(event)=>{if(!active)return;event.stopPropagation();window.open(PHONE_CONTACT_URL,"_blank","noopener,noreferrer");}}>
+    <mesh geometry={IPHONE_SCREEN_IMAGE_GEOMETRY} position={[0,.0182,0]} raycast={active?undefined:()=>null}
+      onPointerOver={active?(event)=>{event.stopPropagation();setHovered(true);}:undefined}
+      onPointerOut={active?()=>setHovered(false):undefined}
+      onClick={active?(event)=>{event.stopPropagation();window.open(PHONE_CONTACT_URL,"_blank","noopener,noreferrer");}:undefined}>
       <meshBasicMaterial ref={materialRef} map={texture} color="#050505" toneMapped={false}/>
     </mesh>
     {active&&<group
@@ -543,8 +567,8 @@ function PhoneScreen({active}:{active:boolean}){
 }
 
 function Phone({active}:{active:boolean}) {
-  const [screenLoaded,setScreenLoaded]=useState(active);
-  useEffect(()=>{if(active)setScreenLoaded(true);},[active]);
+  const workingSet=useDestinationWorkingSet("phone");
+  const screenResident=isResourceResidentState(workingSet.state);
   return <group position={PHONE_LAYOUT.localPosition} rotation-y={THREE.MathUtils.degToRad(PHONE_LAYOUT.rotationDegrees)} dispose={null}>
   <mesh geometry={IPHONE_BODY_GEOMETRY} castShadow receiveShadow>
     <primitive object={IPHONE_FRAME_MATERIAL} attach="material"/>
@@ -555,7 +579,7 @@ function Phone({active}:{active:boolean}) {
   <mesh geometry={IPHONE_DYNAMIC_ISLAND_GEOMETRY} position={[0,.0185,-.255]}>
     <primitive object={IPHONE_GLASS_MATERIAL} attach="material"/>
   </mesh>
-  <RuntimeBoundary node={{id:"collection:phone",scope:"collection",sceneId:"phone",collectionId:"phone",mountPolicy:"lazy",retainOnSleep:false}}>{screenLoaded&&<Suspense fallback={null}><PhoneScreen active={active}/></Suspense>}</RuntimeBoundary>
+  {screenResident&&<PhoneScreen active={active}/>}
   <mesh geometry={IPHONE_BACK_GEOMETRY} position={[0,-.0172,0]}>
     <primitive object={IPHONE_BACK_MATERIAL} attach="material"/>
   </mesh>
@@ -706,7 +730,7 @@ function CoffeeSteam(){
       sprite.material.rotation=Math.sin(elapsed*.29+index*2.1)*.16;
     });
   },[]);
-  useRuntimeTask({id:"task:coffee-steam",nodeId:"world",priority:30,update});
+  useMeasuredRuntimeTask({id:"task:coffee-steam",nodeId:"world",priority:30,update});
   return <>{materials.map((material,index)=><sprite key={index} ref={(sprite)=>{if(sprite)refs.current[index]=sprite;}}><primitive object={material} attach="material"/></sprite>)}</>;
 }
 
@@ -777,7 +801,7 @@ function CertificateCard({record,texture,index,position,rotation,tiltY,baseScale
   const [hovered,setHovered]=useState(false);
   const interactive=illuminated;
   useCursor(hovered&&interactive);
-  useFrame((_,delta)=>{
+  useMeasuredRuntimeTask({id:`task:certificate-card:${index}`,nodeId:"collection:certificates",priority:30,update:({delta})=>measurePerformanceTask("CertificateCard",()=>{
     if(!runtimeUpdates&&!hovered)return;
     if(!ref.current)return;
     const activeHover=hovered&&interactive;
@@ -798,8 +822,8 @@ function CertificateCard({record,texture,index,position,rotation,tiltY,baseScale
         labelMaterialRef.current.color.b=THREE.MathUtils.damp(labelMaterialRef.current.color.b,labelTarget.b,easing,delta);
       }
     }
-  });
-  return <group ref={ref} position={position} rotation={[0,tiltY,rotation]} scale={baseScale} onPointerOver={()=>{if(interactive)setHovered(true);}} onPointerOut={()=>setHovered(false)} onClick={(event)=>{if(!interactive)return;event.stopPropagation();onSelect?.(record.slug);}}>
+  })});
+  return <group ref={ref} position={position} rotation={[0,tiltY,rotation]} scale={baseScale} raycast={interactive?undefined:()=>null} onPointerOver={interactive?()=>setHovered(true):undefined} onPointerOut={interactive?()=>setHovered(false):undefined} onClick={interactive?(event)=>{event.stopPropagation();onSelect?.(record.slug);}:undefined}>
     <RoundedBox args={[.482,.354,.035]} radius={.012} castShadow>
       <meshStandardMaterial color={frameColor} metalness={index%3===1?.22:.06} roughness={index%3===1?.46:.64}/>
     </RoundedBox>
@@ -818,9 +842,10 @@ function CertificateCard({record,texture,index,position,rotation,tiltY,baseScale
 }
 
 function CertificateGallery({illuminated,onCertificateSelect}:{illuminated:boolean;onCertificateSelect?:(slug:string)=>void}){
-  const textures=useTexture(CERTIFICATE_THUMBNAILS);
+  const textures=useOwnedTextures(CERTIFICATE_THUMBNAILS,"certificate-thumbnails");
   const runtimeUpdates=useRuntimeSnapshot((snapshot)=>snapshot.nodes.find((node)=>node.id==="collection:certificates")?.updates??true);
-  textures.forEach((texture)=>{texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=8;});
+  textures.forEach((texture)=>{texture.anisotropy=8;});
+  if(textures.length!==CERTIFICATE_THUMBNAILS.length)return null;
   return <>{CERTIFICATE_LAYOUT.map(({index,x,y,rotation,tiltY,scale,depth})=><CertificateCard key={CERTIFICATES[index].image} record={CERTIFICATES[index]} texture={textures[index]} index={index} position={[x,y,depth]} rotation={rotation} tiltY={tiltY} baseScale={scale} illuminated={illuminated} runtimeUpdates={runtimeUpdates} onSelect={onCertificateSelect}/>)}</>;
 }
 
@@ -834,7 +859,7 @@ function ShelfPracticalLighting({illuminated}:{illuminated:boolean}){
     lightRefs.current.forEach((light)=>{light.intensity=THREE.MathUtils.damp(light.intensity,illuminated?2.35:.01,easing,delta);});
     ledRefs.current.forEach((material)=>{material.emissiveIntensity=THREE.MathUtils.damp(material.emissiveIntensity,illuminated?.018:0,easing,delta);});
   },[illuminated]);
-  useRuntimeTask({id:"task:certificates-shelf-lighting",nodeId:"collection:certificates",priority:10,update:updateShelfLighting});
+  useMeasuredRuntimeTask({id:"task:certificates-shelf-lighting",nodeId:"collection:certificates",priority:10,update:updateShelfLighting});
   return <>
     {[1.717,.827,-.063,-.953].map((y,rowIndex)=><group key={y} position={[0,y,0]}>
       <mesh position={[0,0,.335]}>
@@ -865,6 +890,9 @@ function ShelfDecor(){return <>
 </>}
 
 export function Shelf({illuminated=false,onCertificateSelect}:{illuminated?:boolean;onCertificateSelect?:(slug:string)=>void}) {
+  const workingSet=useDestinationWorkingSet("certificates");
+  const thumbnailsResident=isResourceResidentState(workingSet.state);
+  const localLightingRelevant=workingSet.state==="preparing"||workingSet.state==="active";
   return <group position={[-3.8,2,-3.63]}>
     <group position={[.07,0,.08]} rotation-y={THREE.MathUtils.degToRad(6)}>
       {[1.29,.43,-.43,-1.29].map((y,index)=><RoundedBox key={y} args={[2.36,.69,.075]} radius={.018} position={[0,y,-.315]} receiveShadow><meshStandardMaterial color={["#30231d","#382820","#2b211c","#35261e"][index]} roughness={.78-index*.025}/></RoundedBox>)}
@@ -872,12 +900,12 @@ export function Shelf({illuminated=false,onCertificateSelect}:{illuminated?:bool
       {[-1.27,1.27].map((x,index)=><RoundedBox key={x} args={[.085,3.62,.72]} radius={.025} position={[x,0,0]} castShadow><meshStandardMaterial color={index?"#2d2019":"#3a281e"} roughness={.7}/></RoundedBox>)}
       {[-1.18,1.18].map((x)=><mesh key={x} position={[x,-1.91,.04]} castShadow><boxGeometry args={[.14,.28,.54]}/><meshStandardMaterial color="#271b15" roughness={.76}/></mesh>)}
       {[-1.78,-.89,0,.89,1.78].map((y)=><mesh key={y} position={[0,y,.382]}><boxGeometry args={[2.46,.016,.018]}/><meshStandardMaterial color="#493023" roughness={.72}/></mesh>)}
-      <ShelfPracticalLighting illuminated={illuminated}/>
+      {localLightingRelevant&&<ShelfPracticalLighting illuminated={illuminated}/>}
       <ShelfDecor/>
     </group>
     {/* Thumbnails are the ambient shelf artwork. Full-size certificate images
         are rendered by the HTML gallery, not as a second 3D card texture. */}
-    <Suspense fallback={null}><CertificateGallery illuminated={illuminated} onCertificateSelect={onCertificateSelect}/></Suspense>
+    {thumbnailsResident&&<CertificateGallery illuminated={illuminated} onCertificateSelect={onCertificateSelect}/>}
   </group>;
 }
 

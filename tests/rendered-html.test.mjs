@@ -49,7 +49,7 @@ test("collection focus is explicit and the responsive navigation stays scene-bas
   assert.equal((navigation.match(/<FadingSceneName /g)??[]).length,3);
   assert.match(navigation,/const next=resumeTarget\?\?getAdjacentScene\(current,1,visitedAutoScenes\)/);
   assert.match(scene,/onCertificateSelect=\{focusCertificate\}/);
-  assert.match(primitives,/onPointerOver=\{\(\)=>\{if\(interactive\)setHovered\(true\);\}\}/);
+  assert.match(primitives,/raycast=\{interactive\?undefined:\(\)=>null\} onPointerOver=\{interactive\?\(\)=>setHovered\(true\):undefined\}/);
   assert.doesNotMatch(primitives,/onPointerOver=\{\(\)=>\{[^}]*onSelect/);
   assert.match(primitives,/function ShelfDecor\(\)/);
   assert.match(primitives,/function Pen\(\{position,rotation\}/);
@@ -64,7 +64,8 @@ test("collection focus is explicit and the responsive navigation stays scene-bas
   assert.match(primitives,/<meshStandardMaterial ref=\{imageMaterialRef\} map=\{texture\}/);
   assert.match(primitives,/withSceneBasePath\("\/phone\.jpeg"\)/);
   assert.match(primitives,/PHONE_CONTACT_URL="https:\/\/wa\.me\/\+593964198839(?:\?[^\"]*)?"/);
-  assert.match(primitives,/screenLoaded&&<Suspense fallback=\{null\}><PhoneScreen active=\{active\}/);
+  assert.match(primitives,/screenResident&&<PhoneScreen active=\{active\}/);
+  assert.match(primitives,/useOwnedTexture\(withSceneBasePath\("\/phone\.jpeg"\),"phone-screen"\)/);
   assert.match(primitives,/<meshBasicMaterial ref=\{materialRef\} map=\{texture\} color="#050505" toneMapped=\{false\}/);
   assert.match(css,/@media \(max-width: 1024px\).*\.scene-navigation-target \{ display: none; \}/s);
   assert.match(css,/@media \(max-width: 640px\).*\.scene-navigation-target \{ display: grid;[^}]*border-radius: 999px/s);

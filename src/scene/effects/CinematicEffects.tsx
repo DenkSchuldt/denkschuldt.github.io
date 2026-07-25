@@ -2,13 +2,14 @@
 
 import { useFrame,useThree } from "@react-three/fiber";
 import { Bloom,DepthOfField,EffectComposer,HueSaturation,N8AO,Vignette } from "@react-three/postprocessing";
-import { useEffect,useLayoutEffect,useRef } from "react";
-import type { EffectComposer as PostprocessingEffectComposer } from "postprocessing";
+import { useEffect,useLayoutEffect,useRef,type ReactElement } from "react";
+import type { DepthOfFieldEffect,EffectComposer as PostprocessingEffectComposer } from "postprocessing";
 import type { SceneSettings } from "../Scene";
 import type { RenderIsolationState } from "../rendering/renderIsolation";
-import { RENDERING_INTENT } from "../rendering/renderingIntent";
+import { measurePerformanceTask } from "../diagnostics/performance/performanceStore";
+import type { RenderingQualityProfile,ResolvedQualityFeatures } from "../rendering/quality";
 
-function ManagedEffectComposer({children}:{children:React.ReactNode}){
+function ManagedEffectComposer({children}:{children:ReactElement|ReactElement[]}){
   const composerRef=useRef<PostprocessingEffectComposer|null>(null);
   useEffect(()=>{
     // @react-three/postprocessing does not dispose its postprocessing composer
@@ -24,10 +25,10 @@ function ManagedEffectComposer({children}:{children:React.ReactNode}){
   return <EffectComposer ref={composerRef} multisampling={0}>{children}</EffectComposer>;
 }
 
-export default function CinematicEffects({s,focusRef,readingMode,isolation}:{s:SceneSettings;focusRef:React.MutableRefObject<number>;readingMode:boolean;isolation:RenderIsolationState}){
-  const dof=useRef<unknown>(null);
+export default function CinematicEffects({s,focusRef,readingMode,isolation,profile,features}:{s:SceneSettings;focusRef:React.MutableRefObject<number>;readingMode:boolean;isolation:RenderIsolationState;profile:RenderingQualityProfile;features:ResolvedQualityFeatures}){
+  const dof=useRef<DepthOfFieldEffect|null>(null);
   const gl=useThree((state)=>state.gl);
-  const composerActive=isolation.postProcessing;
+  const composerActive=isolation.postProcessing&&features.postProcessing;
   useLayoutEffect(()=>{
     // EffectComposer takes over R3F's render priority and sets autoClear=false
     // even when its `enabled` prop is false. Restore the base renderer while
@@ -36,17 +37,18 @@ export default function CinematicEffects({s,focusRef,readingMode,isolation}:{s:S
     if(!composerActive)gl.autoClear=true;
     return()=>{gl.autoClear=true;};
   },[composerActive,gl]);
-  useFrame(()=>{
+  useFrame(()=>measurePerformanceTask("CinematicEffectsFocusUpdate",()=>{
+    if(!features.depthOfField)return;
     const effect=dof.current as {circleOfConfusionMaterial?:{uniforms?:{focusDistance?:{value:number}}}}|null;
     const uniform=effect?.circleOfConfusionMaterial?.uniforms?.focusDistance;
     if(uniform)uniform.value=focusRef.current;
-  });
+  }));
   if(!composerActive)return null;
   return <ManagedEffectComposer>
-    {isolation.ambientOcclusion?<N8AO aoRadius={1.7} intensity={RENDERING_INTENT.postProcessing.ambientOcclusionIntensity} distanceFalloff={1.2}/>:null}
-    <DepthOfField ref={dof} focusDistance={s.focusDistance} focalLength={.035} bokehScale={readingMode?0:s.dof} height={480}/>
-    {isolation.bloom?<Bloom intensity={readingMode?0:s.bloom} luminanceThreshold={.84} luminanceSmoothing={.18} mipmapBlur/>:null}
-    <HueSaturation hue={-.012} saturation={-.12}/>
-    {isolation.vignette?<Vignette eskil={false} offset={.32} darkness={RENDERING_INTENT.postProcessing.vignetteDarkness}/>:null}
+    {isolation.ambientOcclusion&&features.ambientOcclusion?<N8AO aoRadius={profile.postprocessing.ao.radius} intensity={profile.postprocessing.ao.intensity} distanceFalloff={profile.postprocessing.ao.distanceFalloff} quality={profile.postprocessing.ao.quality} halfRes={profile.postprocessing.ao.halfResolution}/>:null}
+    {features.depthOfField?<DepthOfField ref={dof} focusDistance={s.focusDistance} focalLength={profile.postprocessing.dof.focalLength} bokehScale={readingMode?0:profile.postprocessing.dof.bokehScale} height={profile.postprocessing.dof.height}/>:null}
+    {isolation.bloom&&features.bloom?<Bloom intensity={readingMode?0:profile.postprocessing.bloom.intensity} luminanceThreshold={profile.postprocessing.bloom.luminanceThreshold} luminanceSmoothing={profile.postprocessing.bloom.luminanceSmoothing} mipmapBlur={profile.postprocessing.bloom.mipmapBlur}/>:null}
+    {features.grading?<HueSaturation hue={profile.postprocessing.grading.hue} saturation={profile.postprocessing.grading.saturation}/>:null}
+    {isolation.vignette&&features.vignette?<Vignette eskil={false} offset={profile.postprocessing.vignette.offset} darkness={profile.postprocessing.vignette.darkness}/>:null}
   </ManagedEffectComposer>;
 }

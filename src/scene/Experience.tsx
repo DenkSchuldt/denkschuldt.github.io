@@ -2,17 +2,15 @@
 
 import { Canvas } from "@react-three/fiber";
 import mixpanel from "mixpanel-browser";
-import { lazy,Suspense,useCallback,useEffect,useMemo,useRef,useState } from "react";
+import { lazy,Profiler,Suspense,useCallback,useEffect,useMemo,useRef,useState } from "react";
 import * as THREE from "three";
 import { CinematicRuntimeProvider, RuntimeInspector, useCinematicRuntimeController } from "@denk/cinematic-navigation/react";
 import type { RuntimeNodeRegistration } from "@denk/cinematic-navigation";
-import { RuntimeFrameBridge } from "@denk/cinematic-navigation/r3f";
 import { Scene,type SceneSettings } from "./Scene";
 import { CinematicFade } from "./camera/CinematicFade";
 import { NavigationDebugPanel } from "./camera/NavigationDebugPanel";
 import { SceneNavigation } from "./camera/SceneNavigation";
 import { CertificateGalleryOverlay } from "./components/CertificateGalleryOverlay";
-import { ProjectsOverlay } from "./components/ProjectsOverlay";
 import { shouldSyncRouteShot } from "./camera/cameraNavigation";
 import type { NavigationLocation,SceneId } from "./camera/navigationTypes";
 import { pathForFocus,pathForScene } from "./camera/sceneRoutes";
@@ -27,6 +25,10 @@ import { usePoems } from "./content/usePoems";
 import { FOCUS_COLLECTIONS,getFocusItem,locationForScene,SCENE_REGISTRY } from "./camera/sceneRegistry";
 import { GUIDED_SCENE_IDS } from "./camera/sceneRegistry";
 import type { ScreenProjection } from "./screenProjection";
+import { MeasuredRuntimeFrameBridge,PerformanceOverlay,PerformanceProbe } from "./diagnostics/performance/PerformanceDiagnostics";
+import { performanceDiagnostics } from "./diagnostics/performance/performanceStore";
+import { QualityPreferenceControl,QualityProvider,QualityRuntimeBridge,useRenderingQuality } from "./rendering/quality";
+import { WorkingSetNavigationAdapter,WorkingSetProvider,useDestinationResources } from "./runtime/working-set";
 
 type PoemInteractionDetail={slug?:string;title?:string;url?:string;comment?:string};
 type FocusedSceneState={sceneId:SceneId;cameraTargetId:string};
@@ -35,6 +37,7 @@ type FocusedSceneState={sceneId:SceneId;cameraTargetId:string};
 // the main scene bundle. This still resolves for direct /poems/:slug entries
 // because the reader is rendered as soon as the route's poem is available.
 const PoemReader=lazy(()=>import("./components/PoemReader").then((module)=>({default:module.PoemReader})));
+const ProjectsOverlay=lazy(()=>import("./components/ProjectsOverlay").then((module)=>({default:module.ProjectsOverlay})));
 let mixpanelInitialized=false;
 const RUNTIME_NODES:readonly RuntimeNodeRegistration[]=[
   {id:"world",scope:"world",mountPolicy:"persistent"},
@@ -56,6 +59,14 @@ function PortfolioRuntimeDeclaration({cameraSystem,runtime}:{cameraSystem:Cinema
 const SETTINGS:SceneSettings={desk:19,moon:1.05,moonColor:"#91a8c2",bounce:.62,bloom:.08,fog:16.5,exposure:RENDERING_INTENT.renderer.exposure,dof:.45,focusDistance:.02,helpers:false,laptopPosition:[-.55,0,-.28],laptopRotation:-3,folderPosition:POEMS_FOLDER_LAYOUT.position,folderRotation:POEMS_FOLDER_LAYOUT.rotationDegrees,paperPosition:[-2,.518],paperRotation:12,penPosition:[.46,.05],penRotation:78,coffeePosition:[1.18,.175,-.58],plantPosition:[-2.48,1.35,-2.34],plantRotationY:-12,lampPosition:[-1.9,-.07,-.45]};
 
 export default function Experience({initialPath="/"}:{initialPath?:string}) {
+  return <QualityProvider><WorkingSetProvider><ExperienceContent initialPath={initialPath}/></WorkingSetProvider></QualityProvider>;
+}
+
+function ExperienceContent({initialPath="/"}:{initialPath?:string}) {
+  useMemo(()=>performanceDiagnostics.configure(typeof window==="undefined"?"":window.location.search),[]);
+  const qualityProfile=useRenderingQuality((state)=>state.profile);
+  const qualityFeatures=useRenderingQuality((state)=>state.features);
+  const currentDpr=useRenderingQuality((state)=>state.adaptive.currentDpr);
   const [renderIsolation,setRenderIsolation]=useState(DEFAULT_RENDER_ISOLATION);
   const [sceneReady,setSceneReady]=useState(false);
   const [cinematicFadeReady,setCinematicFadeReady]=useState(false);
@@ -108,9 +119,17 @@ export default function Experience({initialPath="/"}:{initialPath?:string}) {
     else routeNavigate(path);
   },[routeFocusCollection,routeScene,routeNavigate,navigateWithinScene,replaceWithinScene]);
   const cameraSystem=useCinematicNavigation(route,route.directEntry,{onNavigate:commitNavigation});
+  performanceDiagnostics.setLocation(cameraSystem.selectedScene,cameraSystem.selectedFocusCollection,cameraSystem.selectedFocusItem);
   const runtime=useCinematicRuntimeController(cameraSystem.engine);
   const poemsSceneActive=cameraSystem.selectedScene==="poems";
-  const poemsContent=usePoems(poemsSceneActive&&routeFocusCollection==="poems"?route.slug??null:null,poemsSceneActive);
+  const poemsResourcesResident=useDestinationResources("poems");
+  const projectsResourcesResident=useDestinationResources("projects");
+  const poemsContent=usePoems(poemsSceneActive&&routeFocusCollection==="poems"?route.slug??null:null,poemsResourcesResident);
+  const workingSetOverlays=useMemo(()=>[
+    ...(poemReaderOpen?["poem-reader-chunk","poem-markdown"]:[]),
+    ...(cameraSystem.selectedFocusCollection==="certificates"?["certificate-original"]:[]),
+    ...(projectsOverlayReady?["projects-overlay"]:[]),
+  ],[poemReaderOpen,cameraSystem.selectedFocusCollection,projectsOverlayReady]);
   const poemNavigationKey=poemsContent.poems.map(({slug,title,date,imageUrl})=>`${slug}\u0000${title}\u0000${date}\u0000${imageUrl??""}`).join("\u0001");
   const poemNavigationItems=useMemo(()=>poemsContent.poems.map(({slug,title,date,imageUrl})=>({slug,title,date,imageUrl})),[poemNavigationKey]);
   const {syncRoute,goToScene,resumeFromStart,cameraState,introVersion}=cameraSystem;
@@ -286,27 +305,33 @@ export default function Experience({initialPath="/"}:{initialPath?:string}) {
     return()=>window.cancelAnimationFrame(frame);
   },[route.path,route.directEntry,cameraState,introVersion,goToScene]);
   const settings=SETTINGS;
-  return <CinematicRuntimeProvider runtime={runtime}>
+  const onProfile=useCallback((id:string,phase:"mount"|"update"|"nested-update",actualDuration:number,baseDuration:number,startTime:number,commitTime:number)=>performanceDiagnostics.reactCommit(id,phase,actualDuration,baseDuration,startTime,commitTime),[]);
+  return <Profiler id="Experience" onRender={onProfile}><CinematicRuntimeProvider runtime={runtime}>
     <PortfolioRuntimeDeclaration cameraSystem={cameraSystem} runtime={runtime}/>
+    <WorkingSetNavigationAdapter engine={cameraSystem.engine} profileId={qualityProfile.id} overlayResourceIds={workingSetOverlays}/>
     <div className={`canvas-stage${poemReaderOpen?" poem-reader-open":""}`}>
     {/* Use the explicit PCF mode instead of Canvas' boolean default. The
         boolean form selects THREE.PCFSoftShadowMap, which is deprecated in
         the installed Three.js version and gets re-applied whenever the
         experience re-renders. */}
-    <Canvas shadows={renderIsolation.shadows ? "percentage" : false} dpr={RENDERING_INTENT.renderer.dpr} camera={{ position: [-0.72, 1.9, 4.82], fov: 42, near: 0.1, far: 45 }} gl={{ alpha: false, antialias: RENDERING_INTENT.renderer.antialias, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: settings.exposure, powerPreference: RENDERING_INTENT.renderer.powerPreference }}>
+    <Canvas shadows={renderIsolation.shadows&&qualityFeatures.allShadows ? "percentage" : false} dpr={currentDpr} camera={{ position: [-0.72, 1.9, 4.82], fov: 42, near: 0.1, far: 45 }} gl={{ alpha: false, antialias: qualityFeatures.antialias, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: settings.exposure, powerPreference: qualityProfile.renderer.powerPreference }}>
       <CinematicRuntimeProvider runtime={runtime}>
-        <RuntimeFrameBridge runtime={runtime} paused={poemReaderOpen}/>
-        <Suspense fallback={null}><Scene s={settings} cameraSystem={cameraSystem} certificateSlug={route.slug} poemsContent={poemsContent} onPoemRead={openPoemReader} renderIsolation={renderIsolation} onReady={onSceneReady} laptopScreenRef={laptopScreenRef} screenProjectionRef={screenProjectionRef}/></Suspense>
+        <MeasuredRuntimeFrameBridge runtime={runtime} paused={poemReaderOpen}/>
+        <PerformanceProbe/>
+        <QualityRuntimeBridge transitioning={cameraSystem.cameraState.current.isTransitioning} overlayChanging={poemReaderOpen||cameraSystem.selectedFocusCollection==="certificates"}/>
+        <Profiler id="Scene" onRender={onProfile}><Suspense fallback={null}><Scene s={settings} cameraSystem={cameraSystem} certificateSlug={route.slug} poemsContent={poemsContent} onPoemRead={openPoemReader} renderIsolation={renderIsolation} qualityProfile={qualityProfile} qualityFeatures={qualityFeatures} onReady={onSceneReady} laptopScreenRef={laptopScreenRef} screenProjectionRef={screenProjectionRef}/></Suspense></Profiler>
       </CinematicRuntimeProvider>
     </Canvas>
     <div className={`experience-loading${sceneReady?" is-ready":""}`} role="status" aria-live="polite"><span>Entering workspace</span></div>
     <NavigationDebugPanel visible={cameraSystem.navigationDebug} stateRef={cameraSystem.cameraState} boundsVisible={settings.helpers} />
     <RuntimeInspector visible={cameraSystem.navigationDebug} />
-    <SceneNavigation selectedScene={cameraSystem.selectedScene} selectedFocusCollection={cameraSystem.selectedFocusCollection} selectedFocusItem={cameraSystem.selectedFocusItem} resumeScene={cameraSystem.resumeScene} visitedAutoScenes={cameraSystem.visitedAutoScenes} stateRef={cameraSystem.cameraState} onNavigate={navigateScene} onNext={cameraSystem.nextScene} onEnterFocus={cameraSystem.enterFocus} onExitFocus={cameraSystem.exitFocus} />
+    <Profiler id="SceneNavigation" onRender={onProfile}><SceneNavigation selectedScene={cameraSystem.selectedScene} selectedFocusCollection={cameraSystem.selectedFocusCollection} selectedFocusItem={cameraSystem.selectedFocusItem} resumeScene={cameraSystem.resumeScene} visitedAutoScenes={cameraSystem.visitedAutoScenes} stateRef={cameraSystem.cameraState} onNavigate={navigateScene} onNext={cameraSystem.nextScene} onEnterFocus={cameraSystem.enterFocus} onExitFocus={cameraSystem.exitFocus} /></Profiler>
     <CertificateGalleryOverlay open={cameraSystem.selectedFocusCollection==="certificates"} selectedSlug={cameraSystem.selectedFocusItem} onSelect={selectCertificate} onClose={cameraSystem.exitFocus} />
-    <ProjectsOverlay visible={cameraSystem.selectedScene==="projects"&&projectsOverlayReady} projectionRef={screenProjectionRef} />
-    <Suspense fallback={null}><PoemReader open={poemReaderOpen} poems={poemsContent.poems} slug={readerPoemSlug} onSlugChange={changeReaderPoem} onClose={closePoemReader}/></Suspense>
+    {projectsResourcesResident&&<Suspense fallback={null}><ProjectsOverlay visible={cameraSystem.selectedScene==="projects"&&projectsOverlayReady} projectionRef={screenProjectionRef} /></Suspense>}
+    {poemReaderOpen&&<Suspense fallback={null}><PoemReader open poems={poemsContent.poems} slug={readerPoemSlug} onSlugChange={changeReaderPoem} onClose={closePoemReader}/></Suspense>}
     <CinematicFade replayKey={cameraSystem.introVersion} skipKey={cameraSystem.skipVersion} hold={route.directEntry?.18:cameraSystem.openingHold*.55} duration={route.directEntry?1.65:cameraSystem.fadeDuration} reducedMotion={cameraSystem.reducedMotion} onComplete={onCinematicFadeComplete} />
+    <QualityPreferenceControl/>
+    <PerformanceOverlay/>
     </div>
-  </CinematicRuntimeProvider>;
+  </CinematicRuntimeProvider></Profiler>;
 }

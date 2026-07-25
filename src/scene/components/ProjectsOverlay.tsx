@@ -1,6 +1,7 @@
 "use client";
 import { useEffect,useRef,useState } from "react";
 import type { ScreenProjectionRef } from "../screenProjection";
+import { useWorkingSetStore } from "../runtime/working-set";
 
 const SCREEN_LOGICAL_WIDTH=1000;
 const SCREEN_LOGICAL_HEIGHT=548;
@@ -115,8 +116,13 @@ function ProjectLink({ project }: { project: ProjectEntry }) {
 }
 
 export function ProjectsOverlay({ visible,projectionRef }: { visible: boolean; projectionRef:ScreenProjectionRef }) {
+  const workingSet=useWorkingSetStore();
   const shellRef=useRef<HTMLDivElement|null>(null);
   const [present,setPresent]=useState(visible);
+  useEffect(()=>{
+    workingSet.resourceEvent("prepare-end","projects-overlay",{status:"resident",cache:"browser",detail:"lazy module/component mounted"});
+    return()=>workingSet.resourceEvent("release","projects-overlay",{status:"released",cache:"browser",detail:"component unmounted; JavaScript module remains in browser module cache",evidence:["unmounted","references-released","browser-memory-unverified"]});
+  },[workingSet]);
   useEffect(()=>{
     if(visible){
       setPresent(true);
