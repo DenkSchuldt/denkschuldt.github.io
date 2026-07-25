@@ -61,6 +61,11 @@ export function useRenderingQuality<T>(selector:(snapshot:QualitySnapshot)=>T):T
 }
 
 export function QualityPreferenceControl(){
+  if(process.env.NODE_ENV==="production")return null;
+  return <QualityPreferenceControlDevelopment/>;
+}
+
+function QualityPreferenceControlDevelopment(){
   const store=useQualityStore(),preference=useRenderingQuality((state)=>state.preference);
   const [mounted,setMounted]=useState(false);useEffect(()=>setMounted(true),[]);
   if(!mounted)return null;
