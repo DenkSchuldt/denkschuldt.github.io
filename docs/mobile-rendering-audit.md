@@ -8,21 +8,21 @@ This audit predates and is independent of the cinematic navigation extraction. I
 
 The development diagnostics panel measured desktop `1280 × 720` and mobile comparison `390 × 720` on the same Chromium runtime.
 
-| Runtime value | Desktop | Mobile |
-| --- | --- | --- |
-| Renderer / API | WebGLRenderer / WebGL 2 | Same |
-| Precision | highp | Same |
-| Tone mapping | ACESFilmic | Same |
-| Exposure | 0.68 | Same |
-| Output color space | sRGB | Same |
-| DPR | 1.6 | Same |
-| Buffer | RGBA8, depth24 | Same |
-| Shadows | PCF, enabled | Same |
-| Quality tier | fixed | Same |
-| Environment map | none, intensity 0 | Same |
-| Post-processing | N8AO, DOF, Bloom, Hue/Saturation, Vignette | Same |
-| Active lights | 8 | Same |
-| Mobile performance adaptations | none | none |
+| Runtime value                  | Desktop                                    | Mobile |
+| ------------------------------ | ------------------------------------------ | ------ |
+| Renderer / API                 | WebGLRenderer / WebGL 2                    | Same   |
+| Precision                      | highp                                      | Same   |
+| Tone mapping                   | ACESFilmic                                 | Same   |
+| Exposure                       | 0.68                                       | Same   |
+| Output color space             | sRGB                                       | Same   |
+| DPR                            | 1.6                                        | Same   |
+| Buffer                         | RGBA8, depth24                             | Same   |
+| Shadows                        | PCF, enabled                               | Same   |
+| Quality tier                   | fixed                                      | Same   |
+| Environment map                | none, intensity 0                          | Same   |
+| Post-processing                | N8AO, DOF, Bloom, Hue/Saturation, Vignette | Same   |
+| Active lights                  | 8                                          | Same   |
+| Mobile performance adaptations | none                                       | none   |
 
 ## Mobile-specific branches
 

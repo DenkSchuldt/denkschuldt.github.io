@@ -36,13 +36,13 @@ existing Phase 1 results remain the reference for those destinations.
 
 ## Profile comparison — settled About
 
-| Profile | DPR / buffer | Median / p95 | Calls / triangles | Textures / programs | Active effects | Active shadows |
-| --- | --- | --- | --- | --- | --- | --- |
-| Ultra | 1.6 / 2048×1152 (2.36 MP) | 23.70 / 26.40 ms | 571 / 210,124 | 66 / 58 | AO, DOF, bloom, grade, vignette | directional, spot, contact |
-| High | 1.4 / 1792×1007 (1.80 MP) | 17.90 / 19.10 ms | 725 / 266,310 | 66 / 58 | AO, DOF, bloom, grade, vignette | directional, spot, contact |
-| Balanced | 1.25 / 1600×900 (1.44 MP) | 11.20 / 12.20 ms | 726 / 266,311 | 68 / 59 | half-res AO, DOF, bloom, grade, vignette | directional, spot, contact |
-| Mobile | 1.25 / 1600×900 (1.44 MP) | 8.30 / 9.40 ms | 320 / 124,875 | 42 / 37 | bloom, grade, vignette | directional only |
-| Fallback | 1 / 1280×720 (.92 MP) | 8.30 / 9.30 ms | 203 / 76,260 | 22 / 12 | none | none |
+| Profile  | DPR / buffer              | Median / p95     | Calls / triangles | Textures / programs | Active effects                           | Active shadows             |
+| -------- | ------------------------- | ---------------- | ----------------- | ------------------- | ---------------------------------------- | -------------------------- |
+| Ultra    | 1.6 / 2048×1152 (2.36 MP) | 23.70 / 26.40 ms | 571 / 210,124     | 66 / 58             | AO, DOF, bloom, grade, vignette          | directional, spot, contact |
+| High     | 1.4 / 1792×1007 (1.80 MP) | 17.90 / 19.10 ms | 725 / 266,310     | 66 / 58             | AO, DOF, bloom, grade, vignette          | directional, spot, contact |
+| Balanced | 1.25 / 1600×900 (1.44 MP) | 11.20 / 12.20 ms | 726 / 266,311     | 68 / 59             | half-res AO, DOF, bloom, grade, vignette | directional, spot, contact |
+| Mobile   | 1.25 / 1600×900 (1.44 MP) | 8.30 / 9.40 ms   | 320 / 124,875     | 42 / 37             | bloom, grade, vignette                   | directional only           |
+| Fallback | 1 / 1280×720 (.92 MP)     | 8.30 / 9.30 ms   | 203 / 76,260      | 22 / 12             | none                                     | none                       |
 
 Relative to this Ultra sample, median frame time improved approximately 24% in
 High, 53% in Balanced, and 65% in Mobile/Fallback. Calls/triangle snapshots can

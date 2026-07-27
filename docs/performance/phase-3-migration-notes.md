@@ -28,16 +28,16 @@
 
 ## Ownership changes
 
-| Resource | Old ownership | New ownership |
-| --- | --- | --- |
-| Certificate thumbnails | global Drei `useTexture` cache | `CertificateGallery` owned loader batch |
-| Phone screen | RuntimeBoundary unmount + global `useTexture` cache | working-set boundary + `PhoneScreen` owned loader |
-| Pinscher photo | eager global `useTexture` cache | Poems boundary + `PortfolioPhoto` owned loader |
-| Poem preview | local CanvasTexture cleanup | same owner plus lifecycle boundary/evidence |
-| Poem manifest/bodies | manifest startup, bodies accumulated | destination preparation; manifest shared, bodies bounded |
-| Projects overlay | static bundle/component | destination-scoped lazy component |
-| PoemReader | lazy component attempted while closed | lazy component mounted only while open |
-| Wall images | implicit eager cache | explicit shared session cache |
+| Resource               | Old ownership                                       | New ownership                                            |
+| ---------------------- | --------------------------------------------------- | -------------------------------------------------------- |
+| Certificate thumbnails | global Drei `useTexture` cache                      | `CertificateGallery` owned loader batch                  |
+| Phone screen           | RuntimeBoundary unmount + global `useTexture` cache | working-set boundary + `PhoneScreen` owned loader        |
+| Pinscher photo         | eager global `useTexture` cache                     | Poems boundary + `PortfolioPhoto` owned loader           |
+| Poem preview           | local CanvasTexture cleanup                         | same owner plus lifecycle boundary/evidence              |
+| Poem manifest/bodies   | manifest startup, bodies accumulated                | destination preparation; manifest shared, bodies bounded |
+| Projects overlay       | static bundle/component                             | destination-scoped lazy component                        |
+| PoemReader             | lazy component attempted while closed               | lazy component mounted only while open                   |
+| Wall images            | implicit eager cache                                | explicit shared session cache                            |
 
 ## Disposal rules
 

@@ -4,7 +4,15 @@ export { ShotHelpers, CameraTargetHelpers } from "./CameraTargetHelper";
 export { CinematicFade } from "./CinematicFade";
 export { SceneNavigation } from "./SceneNavigation";
 export { NavigationDebugPanel } from "./NavigationDebugPanel";
-export { useCinematicNavigation, useCinematicShots, useCinematicCamera, useCameraKeyboardNavigation, useCameraTapNavigation, useCameraPinchNavigation, type CinematicNavigationSystem } from "./useCinematicCamera";
+export {
+  useCinematicNavigation,
+  useCinematicShots,
+  useCinematicCamera,
+  useCameraKeyboardNavigation,
+  useCameraTapNavigation,
+  useCameraPinchNavigation,
+  type CinematicNavigationSystem,
+} from "./useCinematicCamera";
 export * from "./cameraTypes";
 export * from "./shotTypes";
 export * from "./navigationTypes";

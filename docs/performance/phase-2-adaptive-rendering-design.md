@@ -9,26 +9,26 @@ persistent room graph.
 
 ## Pre-implementation audit
 
-| Decision | Previous owner | Previous value | Consumers | Centralised? | Runtime-changeable? |
-| --- | --- | --- | --- | --- | --- |
-| Canvas DPR | `Experience` | `[1, 1.6]` | R3F renderer | No | Yes |
-| Antialias | `Experience` | `true` | WebGLRenderer | No | No; renderer creation |
-| Power preference | `Experience` | high-performance | WebGLRenderer | No | No; renderer creation |
-| Global shadows | `Experience` | enabled, percentage type | renderer/lights | No | Partly |
-| Directional shadow | `Lighting` | enabled, 2048 | moon key | No | Yes, with resource remount |
-| Desk spot shadow | `Lighting` | enabled, 2048 | desk key | No | Yes, with resource remount |
-| ContactShadows | `Lighting` | enabled, 512, blur 3.4, opacity .48 | floor pass | No | Yes, by mount lifecycle |
-| EffectComposer | `CinematicEffects` | enabled | full frame | No | Yes, by mount lifecycle |
-| N8AO | `CinematicEffects` | radius 1.7, intensity .32, default medium quality | full frame | No | Yes |
-| DepthOfField | `CinematicEffects` | height 480, focal .035, bokeh .45 | full frame | No | Yes |
-| Bloom | `CinematicEffects` | .08/.84/.18, mipmap | full frame | No | Yes |
-| Hue/Saturation | `CinematicEffects` | -.012/-.12 | full frame | No | Yes |
-| Vignette | `CinematicEffects` | .32/.22 | full frame | No | Yes |
-| Camera near/far | `Experience` | .1/45 | camera/navigation | Intentional camera policy | Session-start |
-| Light count/intensity | `Lighting` and scene settings | seven lights; shot-driven intensities | composition | Intentional composition policy | Yes |
-| Responsive camera framing | shot registry/navigation | destination-specific | camera rig | Centralised outside quality | Yes |
-| Mobile fill/breathing | rendering intent/camera rig | aspect and reduced-motion driven | lighting/camera | Separate concern | Yes |
-| Diagnostics | performance store | `perf`, `perfDpr`, `perfDisable` | renderer/effects/lights | Partly | Yes |
+| Decision                  | Previous owner                | Previous value                                    | Consumers               | Centralised?                   | Runtime-changeable?        |
+| ------------------------- | ----------------------------- | ------------------------------------------------- | ----------------------- | ------------------------------ | -------------------------- |
+| Canvas DPR                | `Experience`                  | `[1, 1.6]`                                        | R3F renderer            | No                             | Yes                        |
+| Antialias                 | `Experience`                  | `true`                                            | WebGLRenderer           | No                             | No; renderer creation      |
+| Power preference          | `Experience`                  | high-performance                                  | WebGLRenderer           | No                             | No; renderer creation      |
+| Global shadows            | `Experience`                  | enabled, percentage type                          | renderer/lights         | No                             | Partly                     |
+| Directional shadow        | `Lighting`                    | enabled, 2048                                     | moon key                | No                             | Yes, with resource remount |
+| Desk spot shadow          | `Lighting`                    | enabled, 2048                                     | desk key                | No                             | Yes, with resource remount |
+| ContactShadows            | `Lighting`                    | enabled, 512, blur 3.4, opacity .48               | floor pass              | No                             | Yes, by mount lifecycle    |
+| EffectComposer            | `CinematicEffects`            | enabled                                           | full frame              | No                             | Yes, by mount lifecycle    |
+| N8AO                      | `CinematicEffects`            | radius 1.7, intensity .32, default medium quality | full frame              | No                             | Yes                        |
+| DepthOfField              | `CinematicEffects`            | height 480, focal .035, bokeh .45                 | full frame              | No                             | Yes                        |
+| Bloom                     | `CinematicEffects`            | .08/.84/.18, mipmap                               | full frame              | No                             | Yes                        |
+| Hue/Saturation            | `CinematicEffects`            | -.012/-.12                                        | full frame              | No                             | Yes                        |
+| Vignette                  | `CinematicEffects`            | .32/.22                                           | full frame              | No                             | Yes                        |
+| Camera near/far           | `Experience`                  | .1/45                                             | camera/navigation       | Intentional camera policy      | Session-start              |
+| Light count/intensity     | `Lighting` and scene settings | seven lights; shot-driven intensities             | composition             | Intentional composition policy | Yes                        |
+| Responsive camera framing | shot registry/navigation      | destination-specific                              | camera rig              | Centralised outside quality    | Yes                        |
+| Mobile fill/breathing     | rendering intent/camera rig   | aspect and reduced-motion driven                  | lighting/camera         | Separate concern               | Yes                        |
+| Diagnostics               | performance store             | `perf`, `perfDpr`, `perfDisable`                  | renderer/effects/lights | Partly                         | Yes                        |
 
 Camera framing, light composition, material authorship and accessibility remain
 separate from GPU quality. Their values were audited but were not moved into a
@@ -96,12 +96,12 @@ invalid diagnostic values are ignored safely and exposed as warnings.
 
 ## Runtime mutability
 
-| Class | Fields | Behaviour |
-| --- | --- | --- |
-| Runtime mutable | DPR, effect flags/parameters, shadow enablement, shadow resolutions, contact-shadow parameters | Applied without replacing Canvas or navigation state |
-| Explicit resource lifecycle | composer targets, ContactShadows, directional/spot shadow maps | Unmounted/disposed or keyed remount when the profile changes |
-| Renderer recreation required | antialias, power preference, renderer context attributes | Chosen before Canvas creation; changing the selector during a session does not recreate Canvas |
-| Session composition policy | camera near/far, tone mapping, authored lights/materials | Intentionally not adapted in Phase 2 |
+| Class                        | Fields                                                                                         | Behaviour                                                                                      |
+| ---------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Runtime mutable              | DPR, effect flags/parameters, shadow enablement, shadow resolutions, contact-shadow parameters | Applied without replacing Canvas or navigation state                                           |
+| Explicit resource lifecycle  | composer targets, ContactShadows, directional/spot shadow maps                                 | Unmounted/disposed or keyed remount when the profile changes                                   |
+| Renderer recreation required | antialias, power preference, renderer context attributes                                       | Chosen before Canvas creation; changing the selector during a session does not recreate Canvas |
+| Session composition policy   | camera near/far, tone mapping, authored lights/materials                                       | Intentionally not adapted in Phase 2                                                           |
 
 A future production settings surface should explain that antialias and power
 preference changes fully apply after reload. Ordinary adaptive operation changes

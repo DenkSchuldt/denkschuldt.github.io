@@ -20,11 +20,11 @@ previous texture is disposed. One attributed invalidation follows publication.
 
 ## Bounded policy
 
-| Profile | Preparation |
-| --- | --- |
-| Ultra/High/Balanced | actual requested destination owned textures |
-| Mobile | requested destination, tighter Phase 3 retention |
-| Fallback | requested destination only; no speculative retention |
+| Profile             | Preparation                                          |
+| ------------------- | ---------------------------------------------------- |
+| Ultra/High/Balanced | actual requested destination owned textures          |
+| Mobile              | requested destination, tighter Phase 3 retention     |
+| Fallback            | requested destination only; no speculative retention |
 
 No full-world `compile()` is performed. In this persistent world that call
 would compile materials for unrelated destinations. Candidate shader warm-up

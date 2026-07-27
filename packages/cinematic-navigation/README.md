@@ -18,24 +18,56 @@ Only the R3F entry point imports Three.js. Only the React entry point imports Re
 ```ts
 import { createCinematicEngine } from "@denk/cinematic-navigation";
 
-const engine=createCinematicEngine({
-  scenes:[
-    {id:"lobby",subjectId:"lobby-model",cameraTargetId:"lobby-wide",framing:{distance:5},transition:{duration:2}},
-    {id:"gallery",subjectId:"gallery-model",cameraTargetId:"gallery-wide",framing:{distance:4},transition:{duration:2}},
+const engine = createCinematicEngine({
+  scenes: [
+    {
+      id: "lobby",
+      subjectId: "lobby-model",
+      cameraTargetId: "lobby-wide",
+      framing: { distance: 5 },
+      transition: { duration: 2 },
+    },
+    {
+      id: "gallery",
+      subjectId: "gallery-model",
+      cameraTargetId: "gallery-wide",
+      framing: { distance: 4 },
+      transition: { duration: 2 },
+    },
   ],
-  focusCollections:[{
-    id:"artworks",sceneId:"gallery",cameraTargetId:"artwork-detail",framing:{distance:1},transition:{duration:1},
-    items:[
-      {id:"one",subjectId:"artwork-one",cameraTargetId:"artwork-detail",framing:{distance:1},transition:{duration:1},spatial:{x:0,y:0}},
-      {id:"two",subjectId:"artwork-two",cameraTargetId:"artwork-detail",framing:{distance:1},transition:{duration:1},spatial:{x:1,y:0}},
-    ],
-  }],
-  guidedSequence:["lobby","gallery"],
+  focusCollections: [
+    {
+      id: "artworks",
+      sceneId: "gallery",
+      cameraTargetId: "artwork-detail",
+      framing: { distance: 1 },
+      transition: { duration: 1 },
+      items: [
+        {
+          id: "one",
+          subjectId: "artwork-one",
+          cameraTargetId: "artwork-detail",
+          framing: { distance: 1 },
+          transition: { duration: 1 },
+          spatial: { x: 0, y: 0 },
+        },
+        {
+          id: "two",
+          subjectId: "artwork-two",
+          cameraTargetId: "artwork-detail",
+          framing: { distance: 1 },
+          transition: { duration: 1 },
+          spatial: { x: 1, y: 0 },
+        },
+      ],
+    },
+  ],
+  guidedSequence: ["lobby", "gallery"],
 });
 
 engine.goToScene("gallery");
-engine.enterFocus("artworks","one");
-  engine.moveFocus("right");
+engine.enterFocus("artworks", "one");
+engine.moveFocus("right");
 ```
 
 Collections can set `reframeOnFocus:false` when their items are content states
@@ -60,12 +92,21 @@ Presentation layers that must wait for the physical camera can subscribe with `e
 `createCinematicRuntime(engine)` consumes the engine's state and derives lifecycle phases for persistent world nodes, Scenes, Focus Collections, and Focus Items. It does not create a second navigation model. Register update work with the runtime scheduler so sleeping nodes stop receiving frame callbacks:
 
 ```ts
-const runtime=createCinematicRuntime(engine);
-runtime.registerNode({id:"collection:art",scope:"collection",sceneId:"gallery",collectionId:"art"});
-runtime.registerTask({id:"art-light",nodeId:"collection:art",update:({delta})=>updateLight(delta)});
-runtime.subscribeNode("collection:art",(next,previous)=>{
+const runtime = createCinematicRuntime(engine);
+runtime.registerNode({
+  id: "collection:art",
+  scope: "collection",
+  sceneId: "gallery",
+  collectionId: "art",
+});
+runtime.registerTask({
+  id: "art-light",
+  nodeId: "collection:art",
+  update: ({ delta }) => updateLight(delta),
+});
+runtime.subscribeNode("collection:art", (next, previous) => {
   // The consumer owns resource loading/releasing; the engine only reports lifecycle.
-  if(next?.phase!==previous?.phase) console.debug(next?.phase);
+  if (next?.phase !== previous?.phase) console.debug(next?.phase);
 });
 ```
 

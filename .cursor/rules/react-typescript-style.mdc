@@ -1,0 +1,31 @@
+---
+description: Repository-wide React and TypeScript engineering standards
+globs:
+  - "**/*.js"
+  - "**/*.jsx"
+  - "**/*.ts"
+  - "**/*.tsx"
+alwaysApply: true
+---
+
+# React and TypeScript Style Rules
+
+Read and follow the root `AGENTS.md` file before modifying any code in this
+repository. It is the canonical source of engineering standards.
+
+## Key Rules
+
+- Preserve application behaviour. Do not refactor architecture beyond the task.
+- Use the configured Prettier formatter (`npm run format`).
+- Use the configured ESLint linter (`npm run lint`).
+- Follow the import ordering conventions in AGENTS.md.
+- Use descriptive names. Booleans should start with `is`, `has`, `can`,
+  `should`, or `was`.
+- Prefer guard clauses over deep nesting.
+- Never use nested ternaries.
+- Type component props with explicit interfaces.
+- Avoid `any`. Prefer `unknown` followed by validation.
+- Use `import type` for type-only imports.
+- One persistent `<Canvas>`, renderer-agnostic navigation, demand-driven
+  render scheduling.
+- Use **npm** as the package manager.
