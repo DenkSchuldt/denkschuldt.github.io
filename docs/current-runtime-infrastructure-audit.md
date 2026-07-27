@@ -22,15 +22,15 @@ La pantalla “Entering workspace” deja de cubrir la experiencia cuando `Scene
 
 ### Entry points, build y despliegue
 
-| Grupo | Archivos | Responsabilidad y consumidores | Capa |
-|---|---|---|---|
-| Documento HTML | `app/layout.tsx` | Metadata global, `<html>`, `<body>`, CSS global. Consumido por Next/Vinext. | Infraestructura compartida |
-| Ruta catch-all | `app/[[...route]]/page.tsx` | Genera rutas estáticas, metadata de poemas, contenido SEO oculto/alternativo y monta `SceneShell`. | Portfolio + infraestructura web |
-| Entrada cliente | `app/SceneShell.tsx` | `React.lazy` de `Experience`, Suspense inicial, grain y fallback no-WebGL. | Portfolio |
-| Runtime cliente | `src/scene/Experience.tsx` | Estado superior, router, motor, Canvas, overlays, analytics y coordinadores de entrada. | Portfolio/integración |
-| Mundo R3F | `src/scene/Scene.tsx` | Monta el único scene graph persistente, luces, cámara, objetos y efectos. | Portfolio/renderizado |
-| Build principal | `package.json`, `vite.config.ts`, `next.config.ts` | `vinext build`, export estático, Vite 8, plugin RSC, Cloudflare/Sites y generación de manifests de poemas. | Infraestructura compartida |
-| Worker/datos | `worker/index.ts`, `db/*`, `drizzle.config.ts` | Adaptador Cloudflare y esquema Drizzle; no participan en el loop 3D observado. | Infraestructura compartida |
+| Grupo           | Archivos                                           | Responsabilidad y consumidores                                                                             | Capa                            |
+| --------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| Documento HTML  | `app/layout.tsx`                                   | Metadata global, `<html>`, `<body>`, CSS global. Consumido por Next/Vinext.                                | Infraestructura compartida      |
+| Ruta catch-all  | `app/[[...route]]/page.tsx`                        | Genera rutas estáticas, metadata de poemas, contenido SEO oculto/alternativo y monta `SceneShell`.         | Portfolio + infraestructura web |
+| Entrada cliente | `app/SceneShell.tsx`                               | `React.lazy` de `Experience`, Suspense inicial, grain y fallback no-WebGL.                                 | Portfolio                       |
+| Runtime cliente | `src/scene/Experience.tsx`                         | Estado superior, router, motor, Canvas, overlays, analytics y coordinadores de entrada.                    | Portfolio/integración           |
+| Mundo R3F       | `src/scene/Scene.tsx`                              | Monta el único scene graph persistente, luces, cámara, objetos y efectos.                                  | Portfolio/renderizado           |
+| Build principal | `package.json`, `vite.config.ts`, `next.config.ts` | `vinext build`, export estático, Vite 8, plugin RSC, Cloudflare/Sites y generación de manifests de poemas. | Infraestructura compartida      |
+| Worker/datos    | `worker/index.ts`, `db/*`, `drizzle.config.ts`     | Adaptador Cloudflare y esquema Drizzle; no participan en el loop 3D observado.                             | Infraestructura compartida      |
 
 `package.json` es un workspace con `packages/*`. El build ejecuta primero TypeScript del motor y luego `vinext build`. `next.config.ts` conserva `output: "export"`, imágenes sin optimización y `assetPrefix`; el runtime efectivo de desarrollo/build viene de Vinext/Vite. `vite.config.ts` añade generación de `poems-manifest.json`, sitemap, Atom, `llms.txt` y robots, y configura bindings locales D1/R2 desde `.openai/hosting.json`.
 
@@ -38,27 +38,27 @@ La pantalla “Entering workspace” deja de cubrir la experiencia cuando `Scene
 
 ### Motor reutilizable
 
-| Grupo | Archivos | Qué hace |
-|---|---|---|
-| Core | `packages/cinematic-navigation/src/core/{engine,runtime,spatial,types}.ts` | Registros de Scene/Collection/Item, estado autoritativo, navegación, resolución espacial, lifecycle y scheduler. |
-| React | `packages/cinematic-navigation/src/react/index.tsx` | Providers, selectores mediante external store, hooks de registro, `RuntimeBoundary`, tareas e inspector. |
-| R3F | `packages/cinematic-navigation/src/r3f/index.ts` | `RuntimeFrameBridge` y registro genérico de subjects; conecta un frame R3F con `runtime.update`. |
-| Adaptadores | `input`, `router`, `persistence`, `testing` | Intents, basename, almacenamiento inyectable y utilidades de pruebas. |
-| API | `packages/cinematic-navigation/src/index.ts` y subpath exports del `package.json` | Superficie pública consumida por el portfolio. |
+| Grupo       | Archivos                                                                          | Qué hace                                                                                                         |
+| ----------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Core        | `packages/cinematic-navigation/src/core/{engine,runtime,spatial,types}.ts`        | Registros de Scene/Collection/Item, estado autoritativo, navegación, resolución espacial, lifecycle y scheduler. |
+| React       | `packages/cinematic-navigation/src/react/index.tsx`                               | Providers, selectores mediante external store, hooks de registro, `RuntimeBoundary`, tareas e inspector.         |
+| R3F         | `packages/cinematic-navigation/src/r3f/index.ts`                                  | `RuntimeFrameBridge` y registro genérico de subjects; conecta un frame R3F con `runtime.update`.                 |
+| Adaptadores | `input`, `router`, `persistence`, `testing`                                       | Intents, basename, almacenamiento inyectable y utilidades de pruebas.                                            |
+| API         | `packages/cinematic-navigation/src/index.ts` y subpath exports del `package.json` | Superficie pública consumida por el portfolio.                                                                   |
 
 ### Aplicación del portfolio
 
-| Grupo | Archivos | Qué hace / quién lo importa |
-|---|---|---|
-| Configuración cinematográfica | `camera/sceneRegistry.ts`, `shotRegistry.ts`, `cameraTargets.ts`, `sceneLayout.ts` | IDs, secuencia, encuadres, responsive, transitions y disposición. Consumidos por engine adapter, router y cámara. |
-| Integración del engine | `camera/portfolioEngine.ts`, `useCinematicCamera.ts` | Convierte registros del portfolio al contrato genérico y expone el sistema React compatible. Consumido por `Experience`, cámara y UI. |
-| Driver visual | `camera/CameraController.tsx`, `CameraRig.tsx`, easing/helpers | Interpola cámara/FOV/lookAt y reporta progreso/fin al engine. Consumido por `Scene`. |
-| Routing | `camera/sceneRoutes.ts`, `useSceneRouter.ts` | URL ↔ ubicación y History API. Consumido por `Experience` y página estática. |
-| Objetos | `objects/Primitives.tsx`, `objects/certificates.ts` | Geometría, materiales, texturas, interacciones y tareas del cuarto. Consumido por `Scene`. |
-| UI HTML | `components/CertificateGalleryOverlay.tsx`, `ProjectsOverlay.tsx`, `PoemReader.tsx`, `camera/SceneNavigation.tsx` | Overlays y navegación fuera del Canvas. Consumidos por `Experience`. |
-| Contenido | `content/usePoems.ts`, `content/poems.ts`, `app/poems.server.ts` | Manifest/fetch cliente, tipos y generación server/build de poemas. |
-| Render | `lighting/Lighting.tsx`, `effects/CinematicEffects.tsx`, `rendering/*` | Luces, sombras, composer y política gráfica fija. |
-| Diagnóstico | `diagnostics/RenderingDiagnostics.tsx`, `NavigationDebugPanel.tsx`, `DebugHelpers.tsx` | Instrumentación de desarrollo; no define la experiencia productiva normal. |
+| Grupo                         | Archivos                                                                                                          | Qué hace / quién lo importa                                                                                                           |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Configuración cinematográfica | `camera/sceneRegistry.ts`, `shotRegistry.ts`, `cameraTargets.ts`, `sceneLayout.ts`                                | IDs, secuencia, encuadres, responsive, transitions y disposición. Consumidos por engine adapter, router y cámara.                     |
+| Integración del engine        | `camera/portfolioEngine.ts`, `useCinematicCamera.ts`                                                              | Convierte registros del portfolio al contrato genérico y expone el sistema React compatible. Consumido por `Experience`, cámara y UI. |
+| Driver visual                 | `camera/CameraController.tsx`, `CameraRig.tsx`, easing/helpers                                                    | Interpola cámara/FOV/lookAt y reporta progreso/fin al engine. Consumido por `Scene`.                                                  |
+| Routing                       | `camera/sceneRoutes.ts`, `useSceneRouter.ts`                                                                      | URL ↔ ubicación y History API. Consumido por `Experience` y página estática.                                                          |
+| Objetos                       | `objects/Primitives.tsx`, `objects/certificates.ts`                                                               | Geometría, materiales, texturas, interacciones y tareas del cuarto. Consumido por `Scene`.                                            |
+| UI HTML                       | `components/CertificateGalleryOverlay.tsx`, `ProjectsOverlay.tsx`, `PoemReader.tsx`, `camera/SceneNavigation.tsx` | Overlays y navegación fuera del Canvas. Consumidos por `Experience`.                                                                  |
+| Contenido                     | `content/usePoems.ts`, `content/poems.ts`, `app/poems.server.ts`                                                  | Manifest/fetch cliente, tipos y generación server/build de poemas.                                                                    |
+| Render                        | `lighting/Lighting.tsx`, `effects/CinematicEffects.tsx`, `rendering/*`                                            | Luces, sombras, composer y política gráfica fija.                                                                                     |
+| Diagnóstico                   | `diagnostics/RenderingDiagnostics.tsx`, `NavigationDebugPanel.tsx`, `DebugHelpers.tsx`                            | Instrumentación de desarrollo; no define la experiencia productiva normal.                                                            |
 
 No existe carpeta de shaders ni shader material propio. Tampoco hay modelos 3D externos. `public/` contiene imágenes, fuente y markdown. `tmp/pdfs` no es importado por el runtime.
 
@@ -113,16 +113,16 @@ La mezcla más importante está en `useCinematicCamera.ts`: aunque delega la ló
 
 ### Clasificación de cargas
 
-| Momento | Recursos |
-|---|---|
-| Antes del cliente | HTML, CSS y datos estáticos de poema para SEO cuando aplica. |
-| Suspense inicial | Chunk de `Experience`. |
-| Montaje de `Scene` | Código R3F, geometrías/materiales de módulo, pósteres (4), miniaturas de certificados (14) y `pinscher.png`; fuente CSS según uso del navegador. |
-| Primer frame | La app marca `sceneReady`; esto no prueba que todos los uploads/compilaciones GPU finalizaron. |
-| ~350 ms | Chunk de `CinematicEffects`, composer y efectos. |
-| Al activar Phone | `PhoneScreen`, `phone.jpeg` y su luz/tarea, mediante `RuntimeBoundary` + Suspense. |
-| Al activar Poems | Fetch del manifest/markdown conforme a `usePoems`; CanvasTexture del preview seleccionado; reader se descarga por lazy cuando el componente Suspense intenta renderizarse (el lazy está presente siempre, aunque `open=false`). |
-| Al enfocar certificado | Overlay HTML referencia la imagen original seleccionada; el shelf conserva thumbnails. |
+| Momento                | Recursos                                                                                                                                                                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Antes del cliente      | HTML, CSS y datos estáticos de poema para SEO cuando aplica.                                                                                                                                                                    |
+| Suspense inicial       | Chunk de `Experience`.                                                                                                                                                                                                          |
+| Montaje de `Scene`     | Código R3F, geometrías/materiales de módulo, pósteres (4), miniaturas de certificados (14) y `pinscher.png`; fuente CSS según uso del navegador.                                                                                |
+| Primer frame           | La app marca `sceneReady`; esto no prueba que todos los uploads/compilaciones GPU finalizaron.                                                                                                                                  |
+| ~350 ms                | Chunk de `CinematicEffects`, composer y efectos.                                                                                                                                                                                |
+| Al activar Phone       | `PhoneScreen`, `phone.jpeg` y su luz/tarea, mediante `RuntimeBoundary` + Suspense.                                                                                                                                              |
+| Al activar Poems       | Fetch del manifest/markdown conforme a `usePoems`; CanvasTexture del preview seleccionado; reader se descarga por lazy cuando el componente Suspense intenta renderizarse (el lazy está presente siempre, aunque `open=false`). |
+| Al enfocar certificado | Overlay HTML referencia la imagen original seleccionada; el shelf conserva thumbnails.                                                                                                                                          |
 
 Bloqueos estáticos confirmables: el Suspense que rodea `Scene` puede impedir presentar el mundo hasta que terminen los `useTexture` eager de sus descendientes. El tiempo de red y el orden exacto de chunks no son determinables estáticamente.
 
@@ -161,16 +161,16 @@ flowchart LR
 
 La siguiente tabla usa “Scene” como destino lógico. Todas comparten el mismo subtree `Scene`; no existen componentes `OpeningScene`, `AboutScene`, etc.
 
-| Scene | Montada inicialmente | Permanece montada | Visible inactiva | useFrame activo | Raycasting activo | Luces | Sombras | Texturas/modelos residentes | Dinámicos | Activación/desactivación |
-|---|---|---|---|---|---|---|---|---|---|---|
-| Opening | Sí, como mundo | Sí | La misma habitación sigue visible desde otros encuadres | Cámara/proyección/DOF/bridge globales | Handlers del mundo montados; varios comprueban `active` | Globales | Globales | Texturas ambient; sin modelos | Ninguno propio | `selectedScene` + camera target |
-| About | Sí | Sí | Su “contenido” es el escritorio compartido | Igual | Igual | Globales | Globales | Igual | Ninguno propio | Solo encuadre/readingMode |
-| Certificates | Shelf y 14 cards: sí | Sí | Sí, el estante es parte del cuarto | Tarea de cards/LED solo habilitada por lifecycle; callbacks `useFrame` globales siguen | Cards montadas; `interactive`/estado limita acción fuera de Scene | 3 RectArea de shelf + globales; intensidades animadas | Cards/shelf proyectan/reciben | 14 thumbnails residentes; originales HTML bajo selección | Overlay seleccionado | `illuminated`, Collection y overlay |
-| Projects | Laptop: sí; overlay HTML: sí | Sí | Laptop visible; overlay usa `visible` | Proyección de pantalla siempre | NO CONFIRMADO para screen mesh; overlay solo visible | Globales | Laptop proyecta | Sin screenshots locales/importados | Overlay CSS/proyección | selectedScene + readiness |
-| Wall | Frames e imágenes: sí | Sí | Sí, forman la pared | Solo globales | No se observan handlers en pósteres | Globales | Frames proyectan | 4 texturas residentes | No | Cámara + autoAdvance |
-| Phone | Cuerpo: sí; pantalla: lazy | Cuerpo sí; pantalla no necesariamente | Cuerpo sí; screen se desmonta al dormir según boundary | Tarea screen solo activa; globales siguen | Handlers del screen solo montados al boundary; grupo usa `active` | Luz de screen lazy + globales | Cuerpo proyecta/recibe | `phone.jpeg` cache Drei aun tras unmount: residencia GPU no confirmada | Screen/luz/tarea | `RuntimeBoundary collection:phone` |
-| Poems | Portfolio físico y polaroid: sí | Sí | Sí | Tareas de preview/cue/light condicionadas por runtime; globales siguen | Handlers siguen montados, con `active` o `visible` | Luz de lectura siempre montada, intensidad a 0 fuera | Portfolio proyecta/recibe | `pinscher.png` eager; CanvasTexture reemplazable; imágenes poema son HTML/manifest | CanvasTexture | active + lifecycle tasks + overlay reader |
-| Drawer | Geometría incluida en `Desk`: sí | Sí | Sí | Solo globales | Sin handlers observados | Globales | Proyecta/recibe | Sin textura/modelo propio | No | Solo camera target interno |
+| Scene        | Montada inicialmente             | Permanece montada                     | Visible inactiva                                        | useFrame activo                                                                        | Raycasting activo                                                 | Luces                                                 | Sombras                       | Texturas/modelos residentes                                                        | Dinámicos              | Activación/desactivación                  |
+| ------------ | -------------------------------- | ------------------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------- | ----------------------------- | ---------------------------------------------------------------------------------- | ---------------------- | ----------------------------------------- |
+| Opening      | Sí, como mundo                   | Sí                                    | La misma habitación sigue visible desde otros encuadres | Cámara/proyección/DOF/bridge globales                                                  | Handlers del mundo montados; varios comprueban `active`           | Globales                                              | Globales                      | Texturas ambient; sin modelos                                                      | Ninguno propio         | `selectedScene` + camera target           |
+| About        | Sí                               | Sí                                    | Su “contenido” es el escritorio compartido              | Igual                                                                                  | Igual                                                             | Globales                                              | Globales                      | Igual                                                                              | Ninguno propio         | Solo encuadre/readingMode                 |
+| Certificates | Shelf y 14 cards: sí             | Sí                                    | Sí, el estante es parte del cuarto                      | Tarea de cards/LED solo habilitada por lifecycle; callbacks `useFrame` globales siguen | Cards montadas; `interactive`/estado limita acción fuera de Scene | 3 RectArea de shelf + globales; intensidades animadas | Cards/shelf proyectan/reciben | 14 thumbnails residentes; originales HTML bajo selección                           | Overlay seleccionado   | `illuminated`, Collection y overlay       |
+| Projects     | Laptop: sí; overlay HTML: sí     | Sí                                    | Laptop visible; overlay usa `visible`                   | Proyección de pantalla siempre                                                         | NO CONFIRMADO para screen mesh; overlay solo visible              | Globales                                              | Laptop proyecta               | Sin screenshots locales/importados                                                 | Overlay CSS/proyección | selectedScene + readiness                 |
+| Wall         | Frames e imágenes: sí            | Sí                                    | Sí, forman la pared                                     | Solo globales                                                                          | No se observan handlers en pósteres                               | Globales                                              | Frames proyectan              | 4 texturas residentes                                                              | No                     | Cámara + autoAdvance                      |
+| Phone        | Cuerpo: sí; pantalla: lazy       | Cuerpo sí; pantalla no necesariamente | Cuerpo sí; screen se desmonta al dormir según boundary  | Tarea screen solo activa; globales siguen                                              | Handlers del screen solo montados al boundary; grupo usa `active` | Luz de screen lazy + globales                         | Cuerpo proyecta/recibe        | `phone.jpeg` cache Drei aun tras unmount: residencia GPU no confirmada             | Screen/luz/tarea       | `RuntimeBoundary collection:phone`        |
+| Poems        | Portfolio físico y polaroid: sí  | Sí                                    | Sí                                                      | Tareas de preview/cue/light condicionadas por runtime; globales siguen                 | Handlers siguen montados, con `active` o `visible`                | Luz de lectura siempre montada, intensidad a 0 fuera  | Portfolio proyecta/recibe     | `pinscher.png` eager; CanvasTexture reemplazable; imágenes poema son HTML/manifest | CanvasTexture          | active + lifecycle tasks + overlay reader |
+| Drawer       | Geometría incluida en `Desk`: sí | Sí                                    | Sí                                                      | Solo globales                                                                          | Sin handlers observados                                           | Globales                                              | Proyecta/recibe               | Sin textura/modelo propio                                                          | No                     | Solo camera target interno                |
 
 “Visible inactiva” significa que la geometría no se oculta por Scene; puede estar fuera del frustum o tapada desde el encuadre actual. No equivale a desmontada ni dormida. El frustum culling exacto por frame es `NO CONFIRMADO`.
 
@@ -180,48 +180,48 @@ No se usan React portals en el mundo. Los overlays son siblings DOM del Canvas. 
 
 ### Configuración del renderer
 
-| Propiedad | Estado actual |
-|---|---|
-| frameloop | No especificado en `Canvas`; predeterminado R3F `always`. |
-| DPR | `[1, 1.6]`; R3F limita `window.devicePixelRatio` a ese intervalo y responde a resize. |
-| Resolución buffer | CSS size × DPR resuelto; dimensiones concretas dependen del viewport. |
-| Antialias | `true`. |
-| Alpha | `false`. |
-| powerPreference | `high-performance`. |
-| Tone mapping/exposure | `THREE.ACESFilmicToneMapping`, `0.68`. |
-| Output color space | No se asigna en `Canvas`; Three/WebGLRenderer instalado usa su default actual sRGB. La constante declara `"srgb"`. |
-| Sombras | `"percentage"` de R3F, que resuelve a `PCFShadowMap`; desactivable solo por diagnóstico. |
-| preserveDrawingBuffer | No especificado (default renderer). |
-| precision/stencil/depth/logarithmicDepthBuffer | No especificados (defaults renderer/dispositivo). |
-| Cámara | Perspective: `[−0.72,1.9,4.82]`, FOV 42, near .1, far 45; CameraRig modifica encuadre/FOV. |
-| Adaptive DPR/events/detect-gpu | No existen. |
-| Mobile | Mismo DPR/AA/efectos/sombras; camera responsive y hemispheric fill por aspect `< .82`. |
+| Propiedad                                      | Estado actual                                                                                                      |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| frameloop                                      | No especificado en `Canvas`; predeterminado R3F `always`.                                                          |
+| DPR                                            | `[1, 1.6]`; R3F limita `window.devicePixelRatio` a ese intervalo y responde a resize.                              |
+| Resolución buffer                              | CSS size × DPR resuelto; dimensiones concretas dependen del viewport.                                              |
+| Antialias                                      | `true`.                                                                                                            |
+| Alpha                                          | `false`.                                                                                                           |
+| powerPreference                                | `high-performance`.                                                                                                |
+| Tone mapping/exposure                          | `THREE.ACESFilmicToneMapping`, `0.68`.                                                                             |
+| Output color space                             | No se asigna en `Canvas`; Three/WebGLRenderer instalado usa su default actual sRGB. La constante declara `"srgb"`. |
+| Sombras                                        | `"percentage"` de R3F, que resuelve a `PCFShadowMap`; desactivable solo por diagnóstico.                           |
+| preserveDrawingBuffer                          | No especificado (default renderer).                                                                                |
+| precision/stencil/depth/logarithmicDepthBuffer | No especificados (defaults renderer/dispositivo).                                                                  |
+| Cámara                                         | Perspective: `[−0.72,1.9,4.82]`, FOV 42, near .1, far 45; CameraRig modifica encuadre/FOV.                         |
+| Adaptive DPR/events/detect-gpu                 | No existen.                                                                                                        |
+| Mobile                                         | Mismo DPR/AA/efectos/sombras; camera responsive y hemispheric fill por aspect `< .82`.                             |
 
 El DPR puede cambiar si cambia `devicePixelRatio` o tamaño/entorno, pero no hay monitor de performance que lo haga oscilar. No existe quality tier ni fallback mobile.
 
 ### Lista completa de `useFrame`
 
-| Archivo/componente | Propósito | Frecuencia/prioridad | Condición y efectos |
-|---|---|---|---|
-| `packages/.../r3f/index.ts`, `RuntimeFrameBridge` | `runtime.update(delta, elapsed)` | Cada frame, prioridad por defecto | No actualiza el runtime si `paused`; paused solo durante PoemReader. No setState React por frame. |
-| `src/scene/camera/CameraRig.tsx`, `CameraRig` | Intro, transición, waypoint, FOV, lookAt, breathing y reporte al engine | Cada frame, prioridad por defecto | Siempre montado; aun idle aplica breathing/estado visual. Usa refs/objetos Three; notificaciones lógicas al cambiar lifecycle. |
-| `src/scene/Scene.tsx`, `LaptopScreenProjection` | Proyecta 4 esquinas del screen a coordenadas CSS para Projects overlay | Cada frame, prioridad por defecto | Siempre, para cualquier Scene; asigna un ref, no estado React. |
-| `src/scene/effects/CinematicEffects.tsx` | Copia `focusRef.current` al uniforme DOF | Cada frame, prioridad por defecto | Sigue mientras efectos montados, incluso si post se deshabilita por diagnóstico porque el hook precede al return; no setState. |
+| Archivo/componente                                | Propósito                                                               | Frecuencia/prioridad              | Condición y efectos                                                                                                            |
+| ------------------------------------------------- | ----------------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `packages/.../r3f/index.ts`, `RuntimeFrameBridge` | `runtime.update(delta, elapsed)`                                        | Cada frame, prioridad por defecto | No actualiza el runtime si `paused`; paused solo durante PoemReader. No setState React por frame.                              |
+| `src/scene/camera/CameraRig.tsx`, `CameraRig`     | Intro, transición, waypoint, FOV, lookAt, breathing y reporte al engine | Cada frame, prioridad por defecto | Siempre montado; aun idle aplica breathing/estado visual. Usa refs/objetos Three; notificaciones lógicas al cambiar lifecycle. |
+| `src/scene/Scene.tsx`, `LaptopScreenProjection`   | Proyecta 4 esquinas del screen a coordenadas CSS para Projects overlay  | Cada frame, prioridad por defecto | Siempre, para cualquier Scene; asigna un ref, no estado React.                                                                 |
+| `src/scene/effects/CinematicEffects.tsx`          | Copia `focusRef.current` al uniforme DOF                                | Cada frame, prioridad por defecto | Sigue mientras efectos montados, incluso si post se deshabilita por diagnóstico porque el hook precede al return; no setState. |
 
 `EffectComposer` toma prioridad de render positiva internamente y realiza el render postprocesado; no hay llamada `gl.render` manual en código del portfolio. No se encontró `invalidate()`. El composer usa `multisampling={0}`.
 
 ### Tareas ejecutadas por RuntimeFrameBridge
 
-| Tarea | Nodo | Propósito |
-|---|---|---|
-| `task:coffee-steam` | `world` | Opacidad/posición/escala de 3 sprites; persistente. |
-| `task:poems-polaroid` | `collection:poems` | Hover/animación del polaroid. |
-| `task:poems-read-cue` | `collection:poems` | Pulso/transición del cue. |
-| `task:poems-preview` | `collection:poems` | Damping visual del preview. |
-| `task:poems-reading-light` | `collection:poems` | Damping de intensidad de luz. |
-| `task:phone-screen` | `collection:phone` | Emisión/luz/hover del screen. |
-| `task:certificates-shelf-lighting` | `collection:certificates` | Intensidad de tres RectAreaLights. |
-| Certificate cards | Collection Certificates | Cada card usa actualización frame para escala/color/hover cuando runtime lo permite. |
+| Tarea                              | Nodo                      | Propósito                                                                            |
+| ---------------------------------- | ------------------------- | ------------------------------------------------------------------------------------ |
+| `task:coffee-steam`                | `world`                   | Opacidad/posición/escala de 3 sprites; persistente.                                  |
+| `task:poems-polaroid`              | `collection:poems`        | Hover/animación del polaroid.                                                        |
+| `task:poems-read-cue`              | `collection:poems`        | Pulso/transición del cue.                                                            |
+| `task:poems-preview`               | `collection:poems`        | Damping visual del preview.                                                          |
+| `task:poems-reading-light`         | `collection:poems`        | Damping de intensidad de luz.                                                        |
+| `task:phone-screen`                | `collection:phone`        | Emisión/luz/hover del screen.                                                        |
+| `task:certificates-shelf-lighting` | `collection:certificates` | Intensidad de tres RectAreaLights.                                                   |
+| Certificate cards                  | Collection Certificates   | Cada card usa actualización frame para escala/color/hover cuando runtime lo permite. |
 
 Las tareas reciben delta del bridge y mutan objetos/materiales Three. El runtime decide ejecución por lifecycle; las declaraciones Scene/Collection son lazy y `retainOnSleep:false`. El mundo visual sigue montado aunque una tarea esté sleeping.
 
@@ -240,17 +240,17 @@ No se encontraron springs de `@react-spring/three`, AnimationMixers ni scroll li
 
 ## 8. Estado y rerenders
 
-| Sistema | Datos | Consumidores / granularidad |
-|---|---|---|
-| Engine externo | ubicación, registros, transition/lifecycle, last Scene | `useCinematicNavigation`, runtime; API subscribe y selectores del adapter React. |
-| Runtime externo | nodos, fases, tareas, métricas | Providers, boundaries, bridge e inspector; `useSyncExternalStore` con selector en adapter. |
-| React `Experience` | readiness, isolation, projects focus, reader open/slug | Rerenderiza `Experience` y propaga props al Canvas/overlays. |
-| React `useCinematicNavigation` | requestedLocation, versions, resume, visitedAutoScenes, reduced motion | Cambios de navegación rerenderizan el hook/Experience. |
-| Refs | cameraState, screen/projection, pending analytics, resources | Mutación por frame sin rerender React. |
-| Router React | parsed route | `Experience`; `popstate`, push/replace manual. |
-| localStorage | última Scene del engine | persistence adapter con clave fija. |
-| History/URL | Scene/Collection/Item | `useSceneRouter` y generación estática. |
-| Estado local de objetos | hovered, texturas Canvas, readiness | Subárboles concretos. |
+| Sistema                        | Datos                                                                  | Consumidores / granularidad                                                                |
+| ------------------------------ | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Engine externo                 | ubicación, registros, transition/lifecycle, last Scene                 | `useCinematicNavigation`, runtime; API subscribe y selectores del adapter React.           |
+| Runtime externo                | nodos, fases, tareas, métricas                                         | Providers, boundaries, bridge e inspector; `useSyncExternalStore` con selector en adapter. |
+| React `Experience`             | readiness, isolation, projects focus, reader open/slug                 | Rerenderiza `Experience` y propaga props al Canvas/overlays.                               |
+| React `useCinematicNavigation` | requestedLocation, versions, resume, visitedAutoScenes, reduced motion | Cambios de navegación rerenderizan el hook/Experience.                                     |
+| Refs                           | cameraState, screen/projection, pending analytics, resources           | Mutación por frame sin rerender React.                                                     |
+| Router React                   | parsed route                                                           | `Experience`; `popstate`, push/replace manual.                                             |
+| localStorage                   | última Scene del engine                                                | persistence adapter con clave fija.                                                        |
+| History/URL                    | Scene/Collection/Item                                                  | `useSceneRouter` y generación estática.                                                    |
+| Estado local de objetos        | hovered, texturas Canvas, readiness                                    | Subárboles concretos.                                                                      |
 
 ```mermaid
 flowchart TD
@@ -272,16 +272,16 @@ Las actualizaciones de cámara por frame no pasan por React state; usan refs. La
 
 ### Recursos externos
 
-| Recurso | Propietario / Scene | Tamaño y resolución | Carga/caché/disposal |
-|---|---|---|---|
-| 14 thumbnails Certificates | `CertificateGallery`, ambient/Certificates | Total aprox. 508 KiB; normalmente 480×352, una 480×371 y una 480×351; JPEG | `useTexture(array)` al montar Scene; caché loader Drei/Three; compartidas entre cards; no disposal manual. |
-| 14 originales Certificates | Overlay HTML | 144–299 KiB cada uno; 776×600, 818/819×600 o ~1920×1408; JPEG/PNG | Navegador carga la seleccionada por `<img>`; no textura R3F; caché/discard control navegador. |
-| Wall | `PosterImages` / Wall ambiental | arrival 121,137 B 1920×1200; her 30,699 B 728×410; interstellar 43,592 B 728×410; matrix 9,966 B WebP 598×362 pese a extensión `.jpg` | Las 4 con `useTexture` al montaje; resident/cached; sin disposal manual. |
-| `phone.jpeg` | `PhoneScreen` / Phone | 41,724 B; 675×1200 JPEG | `useTexture` solo al montar boundary Phone; caché loader; no disposal manual. |
-| `pinscher.png` | `PortfolioPhoto` / Poems ambient | 141,437 B; 567×612 PNG | Eager al montar mundo; persistente; no disposal manual. |
-| 30 imágenes Poems | PoemReader/contenido | WebP; 35,518 B–1,165,250 B; resolución no determinada por `file` en esta pasada | URLs llegan por manifest; carga HTML/browsing según reader; no textura R3F observada. |
-| 30 markdown Poems | `usePoems`, build/server | 618–4,996 B en poemas reales observados | Manifest/fetch condicionado a Poems; caché HTTP no determinada. |
-| Patrick Hand | CSS/Poems | 214,772 B TTF | Carga del navegador según `@font-face`/uso CSS; no recurso GPU Three. |
+| Recurso                    | Propietario / Scene                        | Tamaño y resolución                                                                                                                   | Carga/caché/disposal                                                                                       |
+| -------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| 14 thumbnails Certificates | `CertificateGallery`, ambient/Certificates | Total aprox. 508 KiB; normalmente 480×352, una 480×371 y una 480×351; JPEG                                                            | `useTexture(array)` al montar Scene; caché loader Drei/Three; compartidas entre cards; no disposal manual. |
+| 14 originales Certificates | Overlay HTML                               | 144–299 KiB cada uno; 776×600, 818/819×600 o ~1920×1408; JPEG/PNG                                                                     | Navegador carga la seleccionada por `<img>`; no textura R3F; caché/discard control navegador.              |
+| Wall                       | `PosterImages` / Wall ambiental            | arrival 121,137 B 1920×1200; her 30,699 B 728×410; interstellar 43,592 B 728×410; matrix 9,966 B WebP 598×362 pese a extensión `.jpg` | Las 4 con `useTexture` al montaje; resident/cached; sin disposal manual.                                   |
+| `phone.jpeg`               | `PhoneScreen` / Phone                      | 41,724 B; 675×1200 JPEG                                                                                                               | `useTexture` solo al montar boundary Phone; caché loader; no disposal manual.                              |
+| `pinscher.png`             | `PortfolioPhoto` / Poems ambient           | 141,437 B; 567×612 PNG                                                                                                                | Eager al montar mundo; persistente; no disposal manual.                                                    |
+| 30 imágenes Poems          | PoemReader/contenido                       | WebP; 35,518 B–1,165,250 B; resolución no determinada por `file` en esta pasada                                                       | URLs llegan por manifest; carga HTML/browsing según reader; no textura R3F observada.                      |
+| 30 markdown Poems          | `usePoems`, build/server                   | 618–4,996 B en poemas reales observados                                                                                               | Manifest/fetch condicionado a Poems; caché HTTP no determinada.                                            |
+| Patrick Hand               | CSS/Poems                                  | 214,772 B TTF                                                                                                                         | Carga del navegador según `@font-face`/uso CSS; no recurso GPU Three.                                      |
 
 No existen GLTF/GLB, vídeo, audio, HDRI/environment maps, LUT, documentos runtime ni modelos externos. `tmp/pdfs/*.png` no tiene import runtime.
 
@@ -302,19 +302,19 @@ La residencia GPU exacta tras un unmount no puede probarse estáticamente. `useT
 
 ### Luces
 
-| Luz | Tipo / intensidad | Montaje | Shadow / parámetros |
-|---|---|---|---|
-| `hemisphere-fill` | Hemisphere; `bounce*.16` desktop = .0992, `bounce*1.25` mobile = .775 | Global si fill | No shadow |
-| `moon-key` | Directional 1.05, distancia N/A | Global | cast; 2048²; bounds L/R ±6, top 6, bottom −3; bias −0.00018 |
-| `desk-key` | Spot 19, distance 7, angle .48, penumbra .92, decay 2 | Global | cast; 2048²; bias −0.00012 |
-| `desk-fill` | Point 3.8, distance 2.7, decay 2 | Global si fill | No |
-| `wall-bounce` | RectArea .62, 4.4×1.6 | Global si fill | No |
-| `drawer-rim` | Point .434, distance 3.2 | Global si fill | No |
-| `upper-warm-fill` | RectArea 1.35, 5.2×1.35 | Global si fill | No |
-| Desk lamp | Spot 7.2, distance 2.15, angle .55 | Siempre | No castShadow declarado |
-| Shelf practical ×3 | RectArea, intensidad animada | Siempre montadas; tarea Certificates | No |
-| Poems reading | Point 0→4.5, distance 1.4 | Siempre montada; tarea Poems | No |
-| Phone screen | Point, intensidad animada, distance .9 | Solo boundary Phone | No |
+| Luz                | Tipo / intensidad                                                     | Montaje                              | Shadow / parámetros                                         |
+| ------------------ | --------------------------------------------------------------------- | ------------------------------------ | ----------------------------------------------------------- |
+| `hemisphere-fill`  | Hemisphere; `bounce*.16` desktop = .0992, `bounce*1.25` mobile = .775 | Global si fill                       | No shadow                                                   |
+| `moon-key`         | Directional 1.05, distancia N/A                                       | Global                               | cast; 2048²; bounds L/R ±6, top 6, bottom −3; bias −0.00018 |
+| `desk-key`         | Spot 19, distance 7, angle .48, penumbra .92, decay 2                 | Global                               | cast; 2048²; bias −0.00012                                  |
+| `desk-fill`        | Point 3.8, distance 2.7, decay 2                                      | Global si fill                       | No                                                          |
+| `wall-bounce`      | RectArea .62, 4.4×1.6                                                 | Global si fill                       | No                                                          |
+| `drawer-rim`       | Point .434, distance 3.2                                              | Global si fill                       | No                                                          |
+| `upper-warm-fill`  | RectArea 1.35, 5.2×1.35                                               | Global si fill                       | No                                                          |
+| Desk lamp          | Spot 7.2, distance 2.15, angle .55                                    | Siempre                              | No castShadow declarado                                     |
+| Shelf practical ×3 | RectArea, intensidad animada                                          | Siempre montadas; tarea Certificates | No                                                          |
+| Poems reading      | Point 0→4.5, distance 1.4                                             | Siempre montada; tarea Poems         | No                                                          |
+| Phone screen       | Point, intensidad animada, distance .9                                | Solo boundary Phone                  | No                                                          |
 
 `ContactShadows` global se monta si shadows están habilitadas: posición `[0,.012,-.8]`, opacity `.48`, scale 12, blur 3.4, far 4.5. Crea su propio render target/paso de profundidad internamente; resolución no se especifica y queda en default de Drei.
 
@@ -368,18 +368,18 @@ Posibles retenciones a medir, no leaks demostrados: caches `useTexture`, recurso
 
 ## 14. Engine vs Portfolio
 
-| Clasificación | Sistema | Evidencia |
-|---|---|---|
-| A — engine correcto | Grafo genérico, guided sequence execution, focus/spatial, lifecycle/scheduler, persist adapter contract | `packages/cinematic-navigation/src/core` no importa IDs/contenido/Three. |
-| A | React selectors/providers y frame bridge genéricos | Subpath adapters del paquete. |
-| B — portfolio correcto | Registries concretos, rutas, framing, camera breathing/waypoints, objetos, assets, luces, effects, overlays, Mixpanel | Todo bajo `src/scene`/`app`. |
-| B | Política de carga/disposal de texturas y CanvasTexture | `Primitives.tsx`, `usePoems.ts`. |
-| C — compartida con interfaz clara | `portfolioEngine.ts` | Traduce definitions concretas a registrations genéricas. |
-| C | `RuntimeFrameBridge` + `useRuntimeTask` | Engine agenda; portfolio define la mutación Three. |
-| C | Persistence | Engine acepta adapter; portfolio elige `window.localStorage` y key. |
-| D — mezcla actual | `useCinematicCamera.ts` | En un hook conviven adaptación del engine, React state, localStorage, reglas Certificates/Opening/resume/Wall, listeners DOM y API legacy. Afecta Experience, UI y CameraRig. |
-| D — mezcla actual | `Experience.tsx` | Orquesta runtime, routing, analytics, readiness, overlays, Canvas y reglas de poemas/proyectos. Su dependencia amplia hace que navegación y UI compartan un límite de rerender. |
-| D — semántica parcial | Declaraciones runtime de Scene | Se registran nodos lazy, pero el mundo único no está envuelto por boundaries por Scene; el lifecycle describe tareas/recursos puntuales, no montaje real de geometría por Scene. |
+| Clasificación                     | Sistema                                                                                                               | Evidencia                                                                                                                                                                        |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A — engine correcto               | Grafo genérico, guided sequence execution, focus/spatial, lifecycle/scheduler, persist adapter contract               | `packages/cinematic-navigation/src/core` no importa IDs/contenido/Three.                                                                                                         |
+| A                                 | React selectors/providers y frame bridge genéricos                                                                    | Subpath adapters del paquete.                                                                                                                                                    |
+| B — portfolio correcto            | Registries concretos, rutas, framing, camera breathing/waypoints, objetos, assets, luces, effects, overlays, Mixpanel | Todo bajo `src/scene`/`app`.                                                                                                                                                     |
+| B                                 | Política de carga/disposal de texturas y CanvasTexture                                                                | `Primitives.tsx`, `usePoems.ts`.                                                                                                                                                 |
+| C — compartida con interfaz clara | `portfolioEngine.ts`                                                                                                  | Traduce definitions concretas a registrations genéricas.                                                                                                                         |
+| C                                 | `RuntimeFrameBridge` + `useRuntimeTask`                                                                               | Engine agenda; portfolio define la mutación Three.                                                                                                                               |
+| C                                 | Persistence                                                                                                           | Engine acepta adapter; portfolio elige `window.localStorage` y key.                                                                                                              |
+| D — mezcla actual                 | `useCinematicCamera.ts`                                                                                               | En un hook conviven adaptación del engine, React state, localStorage, reglas Certificates/Opening/resume/Wall, listeners DOM y API legacy. Afecta Experience, UI y CameraRig.    |
+| D — mezcla actual                 | `Experience.tsx`                                                                                                      | Orquesta runtime, routing, analytics, readiness, overlays, Canvas y reglas de poemas/proyectos. Su dependencia amplia hace que navegación y UI compartan un límite de rerender.  |
+| D — semántica parcial             | Declaraciones runtime de Scene                                                                                        | Se registran nodos lazy, pero el mundo único no está envuelto por boundaries por Scene; el lifecycle describe tareas/recursos puntuales, no montaje real de geometría por Scene. |
 
 Esta clasificación describe ubicación/acoplamiento; no prescribe todavía el movimiento de código.
 
@@ -421,58 +421,58 @@ El portfolio físico, polaroid, `pinscher.png`, páginas y luz de lectura están
 
 Leyenda aplicada literalmente al comportamiento comprobable. “Mounted but hidden” solo se usa para UI con `visible`/CSS; geometría fuera del encuadre se marca “Fully active” porque sigue en el scene graph.
 
-| Estado | Scene geometry | Other Scene geometry | Textures | useFrame | Raycasting | Lights | Shadows | Postprocessing | Focus Collections | Focus Items | Videos | Render targets | React subscriptions |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| Opening | Fully active | Fully active | Loaded but unused/ambient | Fully active | Fully active | Fully active | Fully active | Fully active | Sleeping | Loaded but unused | Unmounted | Fully active | Fully active |
-| About | Fully active | Fully active | Loaded but unused/ambient | Fully active | Fully active | Fully active | Fully active | Fully active | Sleeping | Loaded but unused | Unmounted | Fully active | Fully active |
-| Certificates | Fully active | Fully active | Fully active (thumbs) | Mounted and updating | Fully active | Mounted and updating | Fully active | Fully active | Fully active | Fully active | Unmounted | Fully active | Fully active |
-| Projects | Fully active | Fully active | Loaded but unused/ambient | Fully active | Fully active | Fully active | Fully active | Fully active | Fully active logical | Unknown/dynamic empty | Unmounted | Fully active | Fully active |
-| Wall | Fully active | Fully active | Fully active (wall) | Fully active | Fully active | Fully active | Fully active | Fully active | Fully active logical | Unknown/dynamic empty | Unmounted | Fully active | Fully active |
-| Phone | Fully active + lazy screen | Fully active | Fully active phone + ambient | Mounted and updating | Fully active | Mounted and updating | Fully active | Fully active | Fully active | Fully active logical | Unmounted | Fully active | Fully active |
-| Poems | Fully active | Fully active | Fully active preview/ambient | Mounted and updating | Fully active | Mounted and updating | Fully active | Fully active | Fully active | Fully active (todos registrados) | Unmounted | Fully active | Fully active |
-| Drawer | Fully active | Fully active | Loaded but unused/ambient | Fully active | Fully active | Fully active | Fully active | Fully active | Unmounted | Unmounted | Unmounted | Fully active | Fully active |
+| Estado       | Scene geometry             | Other Scene geometry | Textures                     | useFrame             | Raycasting   | Lights               | Shadows      | Postprocessing | Focus Collections    | Focus Items                      | Videos    | Render targets | React subscriptions |
+| ------------ | -------------------------- | -------------------- | ---------------------------- | -------------------- | ------------ | -------------------- | ------------ | -------------- | -------------------- | -------------------------------- | --------- | -------------- | ------------------- |
+| Opening      | Fully active               | Fully active         | Loaded but unused/ambient    | Fully active         | Fully active | Fully active         | Fully active | Fully active   | Sleeping             | Loaded but unused                | Unmounted | Fully active   | Fully active        |
+| About        | Fully active               | Fully active         | Loaded but unused/ambient    | Fully active         | Fully active | Fully active         | Fully active | Fully active   | Sleeping             | Loaded but unused                | Unmounted | Fully active   | Fully active        |
+| Certificates | Fully active               | Fully active         | Fully active (thumbs)        | Mounted and updating | Fully active | Mounted and updating | Fully active | Fully active   | Fully active         | Fully active                     | Unmounted | Fully active   | Fully active        |
+| Projects     | Fully active               | Fully active         | Loaded but unused/ambient    | Fully active         | Fully active | Fully active         | Fully active | Fully active   | Fully active logical | Unknown/dynamic empty            | Unmounted | Fully active   | Fully active        |
+| Wall         | Fully active               | Fully active         | Fully active (wall)          | Fully active         | Fully active | Fully active         | Fully active | Fully active   | Fully active logical | Unknown/dynamic empty            | Unmounted | Fully active   | Fully active        |
+| Phone        | Fully active + lazy screen | Fully active         | Fully active phone + ambient | Mounted and updating | Fully active | Mounted and updating | Fully active | Fully active   | Fully active         | Fully active logical             | Unmounted | Fully active   | Fully active        |
+| Poems        | Fully active               | Fully active         | Fully active preview/ambient | Mounted and updating | Fully active | Mounted and updating | Fully active | Fully active   | Fully active         | Fully active (todos registrados) | Unmounted | Fully active   | Fully active        |
+| Drawer       | Fully active               | Fully active         | Loaded but unused/ambient    | Fully active         | Fully active | Fully active         | Fully active | Fully active   | Unmounted            | Unmounted                        | Unmounted | Fully active   | Fully active        |
 
 ## 17. Hallazgos
 
-| Categoría | Hallazgo y evidencia | Impacto probable | Confianza | ¿Medición? |
-|---|---|---|---|---|
-| Arquitectura | Scenes son ubicaciones, no boundaries de geometría (`Scene.tsx` monta todo). | Cualquier estrategia futura basada en “unmount Scene” no describe el estado actual. | Alta | No |
-| Render loop/CPU | `frameloop` default always y 4 `useFrame`, incluida proyección de laptop global. | Trabajo continuo aun idle. | Alta | Sí, Performance panel |
-| CPU | Coffee steam world task permanece activa; otras tasks se lifecycle-gatean. | Coste continuo pequeño/no cuantificado. | Alta | Sí |
-| GPU | Composer global con N8AO, DOF, Bloom, grading y vignette. | Múltiples full-screen/render-target passes por frame. | Alta | Sí, GPU profiler |
-| GPU/Sombras | Dos shadow maps 2048² + ContactShadows globales. | Memoria y tiempo GPU persistentes. | Alta | Sí |
-| Memoria/Texturas | 14 thumbnails + 4 wall + pinscher se cargan al montar y no se limpian manualmente. | Working set de textura ambiental persistente. | Alta | Sí, renderer.info/devtools |
-| Carga inicial | Suspense del mundo incluye `useTexture` eager de ambient assets. | Puede retrasar primera presentación según red/cache. | Alta | Sí, waterfall |
-| React | Navegación rerenderiza `Experience` y props amplias; estado por frame usa refs correctamente. | Coste de reconciliación por navegación, no por frame. | Media/alta | React Profiler |
-| Raycasting | Cards/polaroid con handlers permanecen montados; flags active no garantizan exclusión de intersección. | Intersecciones de objetos inactivos posibles. | Media | Instrumentar raycaster |
-| Mobile/iPad | No quality tier/adaptive DPR; mismo pipeline en mobile, salvo fill/cámara. | Carga GPU equivalente con menor presupuesto térmico. | Alta | Safari/iPad real |
-| Navegación | Wall autoAdvance depende de RAF + timeout y estado React visitado de sesión. | Comportamiento temporal correcto en código, sensible a background throttling. | Alta | Prueba background/resume |
-| Carga | Phone desmonta subtree pero `useTexture` cache no se limpia. | Remontaje rápido; liberación real de GPU no garantizada. | Alta | Memory snapshot |
-| Mantenibilidad | `useCinematicCamera.ts` y `Experience.tsx` concentran reglas de varias capas. | Cambios cruzados y superficie amplia de regresión. | Alta | No |
-| Disposal | Composer, CanvasTexture y steam materials tienen cleanup; recursos de módulo persisten. | No hay fuga evidente en esos tres casos; working set dura la sesión. | Alta | Sí para confirmar GPU |
-| Visual | Drawer no es una Scene montable pese al ID; está embebido en Desk. | Riesgo de interpretación errónea en futuras métricas por Scene. | Alta | No |
+| Categoría        | Hallazgo y evidencia                                                                                   | Impacto probable                                                                    | Confianza  | ¿Medición?                 |
+| ---------------- | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- | ---------- | -------------------------- |
+| Arquitectura     | Scenes son ubicaciones, no boundaries de geometría (`Scene.tsx` monta todo).                           | Cualquier estrategia futura basada en “unmount Scene” no describe el estado actual. | Alta       | No                         |
+| Render loop/CPU  | `frameloop` default always y 4 `useFrame`, incluida proyección de laptop global.                       | Trabajo continuo aun idle.                                                          | Alta       | Sí, Performance panel      |
+| CPU              | Coffee steam world task permanece activa; otras tasks se lifecycle-gatean.                             | Coste continuo pequeño/no cuantificado.                                             | Alta       | Sí                         |
+| GPU              | Composer global con N8AO, DOF, Bloom, grading y vignette.                                              | Múltiples full-screen/render-target passes por frame.                               | Alta       | Sí, GPU profiler           |
+| GPU/Sombras      | Dos shadow maps 2048² + ContactShadows globales.                                                       | Memoria y tiempo GPU persistentes.                                                  | Alta       | Sí                         |
+| Memoria/Texturas | 14 thumbnails + 4 wall + pinscher se cargan al montar y no se limpian manualmente.                     | Working set de textura ambiental persistente.                                       | Alta       | Sí, renderer.info/devtools |
+| Carga inicial    | Suspense del mundo incluye `useTexture` eager de ambient assets.                                       | Puede retrasar primera presentación según red/cache.                                | Alta       | Sí, waterfall              |
+| React            | Navegación rerenderiza `Experience` y props amplias; estado por frame usa refs correctamente.          | Coste de reconciliación por navegación, no por frame.                               | Media/alta | React Profiler             |
+| Raycasting       | Cards/polaroid con handlers permanecen montados; flags active no garantizan exclusión de intersección. | Intersecciones de objetos inactivos posibles.                                       | Media      | Instrumentar raycaster     |
+| Mobile/iPad      | No quality tier/adaptive DPR; mismo pipeline en mobile, salvo fill/cámara.                             | Carga GPU equivalente con menor presupuesto térmico.                                | Alta       | Safari/iPad real           |
+| Navegación       | Wall autoAdvance depende de RAF + timeout y estado React visitado de sesión.                           | Comportamiento temporal correcto en código, sensible a background throttling.       | Alta       | Prueba background/resume   |
+| Carga            | Phone desmonta subtree pero `useTexture` cache no se limpia.                                           | Remontaje rápido; liberación real de GPU no garantizada.                            | Alta       | Memory snapshot            |
+| Mantenibilidad   | `useCinematicCamera.ts` y `Experience.tsx` concentran reglas de varias capas.                          | Cambios cruzados y superficie amplia de regresión.                                  | Alta       | No                         |
+| Disposal         | Composer, CanvasTexture y steam materials tienen cleanup; recursos de módulo persisten.                | No hay fuga evidente en esos tres casos; working set dura la sesión.                | Alta       | Sí para confirmar GPU      |
+| Visual           | Drawer no es una Scene montable pese al ID; está embebido en Desk.                                     | Riesgo de interpretación errónea en futuras métricas por Scene.                     | Alta       | No                         |
 
 Estos hallazgos identifican candidatos de medición; no constituyen una estrategia de optimización.
 
 ## 18. Información que no puede determinarse solo mediante análisis estático
 
-| Dato no determinable | Prueba necesaria |
-|---|---|
-| FPS, CPU frame time y dropped frames por Scene/dispositivo | Chrome Performance + R3F/Stats en sesiones repetibles. |
-| GPU frame time y coste de cada pass | Spector.js/WebGL inspector o EXT_disjoint_timer_query; capturas por Scene. |
-| Memoria GPU real de texturas, shadow maps y targets | Spector.js, `renderer.info`, snapshots antes/después y tooling del dispositivo. |
-| Residencia GPU después de unmount Phone | Comparar renderer info y capturas de recursos tras GC/context idle. |
-| Orden/tiempo real de chunks y assets | Network waterfall con cache cold/warm y throttling. |
-| Compilación de shaders y stutter del primer uso | Performance trace y `KHR_parallel_shader_compile`/captura WebGL. |
-| Número exacto de draw calls, triangles y shadow casters por encuadre | `renderer.info.render` y captura Spector por Scene. |
-| Intersecciones/raycast candidates por evento | Instrumentar event manager/raycaster y probar cada Scene. |
-| Coste de reconciliación de navegación | React Profiler. |
-| Safari iPad, precisión efectiva, WebGL limits y thermal throttling | Dispositivo físico, Safari Web Inspector y prueba sostenida. |
-| Garbage collection y leaks de larga sesión | Heap snapshots/timeline tras ciclos repetidos. |
-| Resolución interna/defaults exactos de ContactShadows/N8AO para la versión resuelta | Inspección runtime de targets o fuente empaquetada + captura. |
-| Cuándo el navegador decodifica imágenes HTML de poemas/certificados | Performance/Network/Image decode trace. |
-| Frustum culling efectivo por cámara | Inspección de renderer lists/captura por frame. |
-| Accesibilidad/latencia de input real | Pruebas de usuario y Event Timing API. |
+| Dato no determinable                                                                | Prueba necesaria                                                                |
+| ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| FPS, CPU frame time y dropped frames por Scene/dispositivo                          | Chrome Performance + R3F/Stats en sesiones repetibles.                          |
+| GPU frame time y coste de cada pass                                                 | Spector.js/WebGL inspector o EXT_disjoint_timer_query; capturas por Scene.      |
+| Memoria GPU real de texturas, shadow maps y targets                                 | Spector.js, `renderer.info`, snapshots antes/después y tooling del dispositivo. |
+| Residencia GPU después de unmount Phone                                             | Comparar renderer info y capturas de recursos tras GC/context idle.             |
+| Orden/tiempo real de chunks y assets                                                | Network waterfall con cache cold/warm y throttling.                             |
+| Compilación de shaders y stutter del primer uso                                     | Performance trace y `KHR_parallel_shader_compile`/captura WebGL.                |
+| Número exacto de draw calls, triangles y shadow casters por encuadre                | `renderer.info.render` y captura Spector por Scene.                             |
+| Intersecciones/raycast candidates por evento                                        | Instrumentar event manager/raycaster y probar cada Scene.                       |
+| Coste de reconciliación de navegación                                               | React Profiler.                                                                 |
+| Safari iPad, precisión efectiva, WebGL limits y thermal throttling                  | Dispositivo físico, Safari Web Inspector y prueba sostenida.                    |
+| Garbage collection y leaks de larga sesión                                          | Heap snapshots/timeline tras ciclos repetidos.                                  |
+| Resolución interna/defaults exactos de ContactShadows/N8AO para la versión resuelta | Inspección runtime de targets o fuente empaquetada + captura.                   |
+| Cuándo el navegador decodifica imágenes HTML de poemas/certificados                 | Performance/Network/Image decode trace.                                         |
+| Frustum culling efectivo por cámara                                                 | Inspección de renderer lists/captura por frame.                                 |
+| Accesibilidad/latencia de input real                                                | Pruebas de usuario y Event Timing API.                                          |
 
 ## 19. Preguntas abiertas
 

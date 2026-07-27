@@ -20,16 +20,16 @@ Three-run controlled comparisons use identical direct `/about` loads and 8 s win
 
 Single exploratory runs:
 
-| Scene | Avg FPS | 1% low | Avg frame ms | p95 ms | Calls | Triangles | Textures | CPU/GPU classification |
-|---|---:|---:|---:|---:|---:|---:|---:|---|
-| Opening | not available | not available | not available | not available | not available | not available | not available | Unmeasured |
-| About | 70.78 | 42.19 | 17.92 | 21.8 | 550 | 197,828 | 64 | GPU/pixel-pass |
-| Certificates | 61.27 | 22.94 | 23.17 | 29.7 | 645 | 256,426 | 64 | GPU + higher geometry/shadow |
-| Projects | 68.68 | 27.93 | 20.04 | 25.5 | 553 | 204,466 | 63 | GPU/pixel-pass |
-| Wall | not available | not available | not available | not available | not available | not available | not available | Unmeasured |
-| Phone | 70.85 | 31.15 | 18.30 | 22.7 | 548 | 195,640 | 65 | GPU/pixel-pass + first texture |
-| Poems | 70.32 | 40.49 | 17.92 | 22.2 | 556 | 193,606 | 66 | GPU/pixel-pass + dynamic texture |
-| Drawer | not available | not available | not available | not available | not available | not available | not available | Internal target, unmeasured |
+| Scene        |       Avg FPS |        1% low |  Avg frame ms |        p95 ms |         Calls |     Triangles |      Textures | CPU/GPU classification           |
+| ------------ | ------------: | ------------: | ------------: | ------------: | ------------: | ------------: | ------------: | -------------------------------- |
+| Opening      | not available | not available | not available | not available | not available | not available | not available | Unmeasured                       |
+| About        |         70.78 |         42.19 |         17.92 |          21.8 |           550 |       197,828 |            64 | GPU/pixel-pass                   |
+| Certificates |         61.27 |         22.94 |         23.17 |          29.7 |           645 |       256,426 |            64 | GPU + higher geometry/shadow     |
+| Projects     |         68.68 |         27.93 |         20.04 |          25.5 |           553 |       204,466 |            63 | GPU/pixel-pass                   |
+| Wall         | not available | not available | not available | not available | not available | not available | not available | Unmeasured                       |
+| Phone        |         70.85 |         31.15 |         18.30 |          22.7 |           548 |       195,640 |            65 | GPU/pixel-pass + first texture   |
+| Poems        |         70.32 |         40.49 |         17.92 |          22.2 |           556 |       193,606 |            66 | GPU/pixel-pass + dynamic texture |
+| Drawer       | not available | not available | not available | not available | not available | not available | not available | Internal target, unmeasured      |
 
 Average FPS is inflated by short deltas and must not be read as display refresh. Frame-time percentiles are the stronger signal.
 
@@ -37,41 +37,41 @@ Average FPS is inflated by short deltas and must not be read as display refresh.
 
 Strict post-settle reset windows were not captured in this environment. Static/runtime instrumentation confirms the continuing systems, but numerical cells remain unavailable.
 
-| Scene | Frames rendered | Active useFrame | Runtime tasks | Shadow passes | Post passes | React commits |
-|---|---|---|---|---|---|---|
-| All | Continuous (`frameloop=always`) | Runtime bridge, CameraRig, projection, DOF focus | coffee steam; Scene tasks lifecycle-dependent | Active by default | Active by default | not available |
-| Certificates | Continuous | same + 14 card callbacks | shelf lighting + steam | Active | Active | not available |
-| Phone | Continuous | same | phone screen + steam | Active | Active | not available |
-| Poems | Continuous | same | preview/cue/light/polaroid + steam | Active | Active | not available |
+| Scene        | Frames rendered                 | Active useFrame                                  | Runtime tasks                                 | Shadow passes     | Post passes       | React commits |
+| ------------ | ------------------------------- | ------------------------------------------------ | --------------------------------------------- | ----------------- | ----------------- | ------------- |
+| All          | Continuous (`frameloop=always`) | Runtime bridge, CameraRig, projection, DOF focus | coffee steam; Scene tasks lifecycle-dependent | Active by default | Active by default | not available |
+| Certificates | Continuous                      | same + 14 card callbacks                         | shelf lighting + steam                        | Active            | Active            | not available |
+| Phone        | Continuous                      | same                                             | phone screen + steam                          | Active            | Active            | not available |
+| Poems        | Continuous                      | same                                             | preview/cue/light/polaroid + steam            | Active            | Active            | not available |
 
 ## Transition cost
 
-| Transition | Duration | Avg frame ms | p95 ms | Longest frame | Dropped frames |
-|---|---|---|---|---|---|
-| Opening → About | not available | not available | not available | not available | not available |
-| About → Certificates | not available | not available | not available | not available | not available |
-| Certificates → Projects | not available | not available | not available | not available | not available |
-| Projects → Wall → Phone | not available | not available | not available | not available | not available |
-| Phone → Poems | not available | not available | not available | not available | not available |
-| Poems → Opening | not available | not available | not available | not available | not available |
+| Transition              | Duration      | Avg frame ms  | p95 ms        | Longest frame | Dropped frames |
+| ----------------------- | ------------- | ------------- | ------------- | ------------- | -------------- |
+| Opening → About         | not available | not available | not available | not available | not available  |
+| About → Certificates    | not available | not available | not available | not available | not available  |
+| Certificates → Projects | not available | not available | not available | not available | not available  |
+| Projects → Wall → Phone | not available | not available | not available | not available | not available  |
+| Phone → Poems           | not available | not available | not available | not available | not available  |
+| Poems → Opening         | not available | not available | not available | not available | not available  |
 
 The instrumentation is ready to separate these windows using Reset/export at transition boundaries.
 
 ## Controlled feature cost
 
-| Feature disabled/changed | Scenario | Baseline ms | Modified ms | Difference | Visual impact |
-|---|---|---:|---:|---:|---|
-| All postprocessing off | About direct-entry 8 s | 17.92 | 8.69 | −9.23 ms (−51.5%) | Major grading/AO/DOF/bloom/vignette loss |
-| Forced DPR 1.0 | Same | 17.92 | 11.18 | −6.74 ms (−37.6%) | Lower pixel density |
-| All realtime shadows off | Same | 17.92 | 16.76 | −1.16 ms (−6.5%) | Major grounding/lighting change |
+| Feature disabled/changed | Scenario               | Baseline ms | Modified ms |        Difference | Visual impact                            |
+| ------------------------ | ---------------------- | ----------: | ----------: | ----------------: | ---------------------------------------- |
+| All postprocessing off   | About direct-entry 8 s |       17.92 |        8.69 | −9.23 ms (−51.5%) | Major grading/AO/DOF/bloom/vignette loss |
+| Forced DPR 1.0           | Same                   |       17.92 |       11.18 | −6.74 ms (−37.6%) | Lower pixel density                      |
+| All realtime shadows off | Same                   |       17.92 |       16.76 |  −1.16 ms (−6.5%) | Major grounding/lighting change          |
 
 Ranges: baseline 17.87–18.22 ms; post off 8.68–8.69; DPR1 11.16–11.20; shadows off 16.67–19.29 (one run had a 596.9 ms startup outlier). All comparisons repeated three times. Individual AO/DOF/Bloom/light-shadow tests are not yet measured and the aggregate post result must not be assigned to one pass.
 
 ## Device comparison
 
-| Scenario | Desktop | Throttled desktop | Emulated tablet | Physical iPad |
-|---|---|---|---|---|
-| About direct-entry | 17.92 ms median | not available | 10.24 ms median | not available |
+| Scenario           | Desktop         | Throttled desktop | Emulated tablet | Physical iPad |
+| ------------------ | --------------- | ----------------- | --------------- | ------------- |
+| About direct-entry | 17.92 ms median | not available     | 10.24 ms median | not available |
 
 Tablet range was 9.95–10.29 ms with 1024×768 drawing buffer. The improvement reflects fewer pixels on the same Apple M4, not mobile GPU or thermals.
 
@@ -83,13 +83,13 @@ Cold/warm transferred bytes, decode timing, ready-vs-stable markers and certific
 
 ## Memory/resource lifetime
 
-| Checkpoint | Textures | Geometries | Programs | JS heap | GPU memory status |
-|---|---:|---:|---:|---|---|
-| About | 64 | 197 | 45 | not available | not measurable |
-| Certificates | 64 | not recorded in table export | not recorded | not available | not measurable |
-| Phone | 65 | not recorded | not recorded | not available | not measurable |
-| Poems | 66 | not recorded | not recorded | not available | not measurable |
-| After cycles/GC | not available | not available | not available | not available | not measurable |
+| Checkpoint      |      Textures |                   Geometries |      Programs | JS heap       | GPU memory status |
+| --------------- | ------------: | ---------------------------: | ------------: | ------------- | ----------------- |
+| About           |            64 |                          197 |            45 | not available | not measurable    |
+| Certificates    |            64 | not recorded in table export |  not recorded | not available | not measurable    |
+| Phone           |            65 |                 not recorded |  not recorded | not available | not measurable    |
+| Poems           |            66 |                 not recorded |  not recorded | not available | not measurable    |
+| After cycles/GC | not available |                not available | not available | not available | not measurable    |
 
 Counts show allocation, not bytes or proof of release. Physical GPU memory was not inferred.
 

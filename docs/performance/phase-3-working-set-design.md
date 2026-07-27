@@ -86,13 +86,13 @@ frames, dark phone screen, notebook and dark page/photo fallbacks.
 
 One store owns all timers. There are no per-component release timers.
 
-| Profile | Certificates | Projects | Phone | Poems | Speculation |
-| --- | ---: | ---: | ---: | ---: | --- |
-| Ultra | 30 s | 10 s | 20 s | 30 s | target preparation allowed |
-| High | 20 s | 8 s | 12 s | 20 s | target preparation allowed |
-| Balanced | 12 s | 5 s | 7 s | 10 s | target preparation allowed |
-| Mobile | 5 s | 1.5 s | 2.5 s | 4 s | no automatic upgrade; tight cache |
-| Fallback | 0 | 0 | 0 | 0 | no speculative preparation |
+| Profile  | Certificates | Projects | Phone | Poems | Speculation                       |
+| -------- | -----------: | -------: | ----: | ----: | --------------------------------- |
+| Ultra    |         30 s |     10 s |  20 s |  30 s | target preparation allowed        |
+| High     |         20 s |      8 s |  12 s |  20 s | target preparation allowed        |
+| Balanced |         12 s |      5 s |   7 s |  10 s | target preparation allowed        |
+| Mobile   |          5 s |    1.5 s | 2.5 s |   4 s | no automatic upgrade; tight cache |
+| Fallback |            0 |        0 |     0 |     0 | no speculative preparation        |
 
 Opening/About/Drawer physical resources and Wall images are shared session
 context. A return before expiry cancels release. Hidden tabs do not advance a

@@ -32,19 +32,19 @@ particle system, light, markdown document or other resource.
 
 ## Ownership audit
 
-| Resource | Owner | Current policy | Target policy | Cost rationale |
-| --- | --- | --- | --- | --- |
-| Room, desk, chair and shared architectural geometry | Portfolio | Persistent | Persistent | Always visible; shared geometry is cheaper than repeated mount work. |
-| Wall poster frames | Portfolio | Persistent | Persistent shell | Frames remain present in every scene. |
-| Wall poster textures | Portfolio | Eager | Persistent ambient resource | The wall is part of the room composition; removing the images creates empty frames. The set is small (about 208 KiB). |
-| Certificate shelf geometry/decor | Portfolio | Persistent | Persistent shell | The shelf is part of the room composition. |
-| Certificate thumbnails | Portfolio | Eager | Persistent ambient resource | Thumbnails keep the shelf visually populated; the complete set is small (about 508 KiB). |
-| Full certificate texture | Portfolio | Focus-gated | Focus-gated and disposed on unmount | Only the selected item needs the full-resolution image. |
-| Phone screen texture/light | Portfolio | Screen state gated | Collection-mounted and task-gated | The screen is useful only in the phone scene. |
-| Poems markdown/preview texture | Portfolio | Content already scene-gated | Keep lazy and replace on active slug | Markdown and canvas textures are content resources, never engine concerns. |
-| Coffee steam | Portfolio | World task | Persistent, low-cost task | Three sprites are negligible and provide continuity between scenes. |
-| Post-processing composer | Portfolio | Renderer-owned | Persistent while renderer is stable; dispose on replacement | Composer targets are renderer resources and are already explicitly disposed. |
-| Camera interpolation | Portfolio camera driver | Frame-driven | Persistent | It is presentation policy, not navigation state. |
+| Resource                                            | Owner                   | Current policy              | Target policy                                               | Cost rationale                                                                                                        |
+| --------------------------------------------------- | ----------------------- | --------------------------- | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Room, desk, chair and shared architectural geometry | Portfolio               | Persistent                  | Persistent                                                  | Always visible; shared geometry is cheaper than repeated mount work.                                                  |
+| Wall poster frames                                  | Portfolio               | Persistent                  | Persistent shell                                            | Frames remain present in every scene.                                                                                 |
+| Wall poster textures                                | Portfolio               | Eager                       | Persistent ambient resource                                 | The wall is part of the room composition; removing the images creates empty frames. The set is small (about 208 KiB). |
+| Certificate shelf geometry/decor                    | Portfolio               | Persistent                  | Persistent shell                                            | The shelf is part of the room composition.                                                                            |
+| Certificate thumbnails                              | Portfolio               | Eager                       | Persistent ambient resource                                 | Thumbnails keep the shelf visually populated; the complete set is small (about 508 KiB).                              |
+| Full certificate texture                            | Portfolio               | Focus-gated                 | Focus-gated and disposed on unmount                         | Only the selected item needs the full-resolution image.                                                               |
+| Phone screen texture/light                          | Portfolio               | Screen state gated          | Collection-mounted and task-gated                           | The screen is useful only in the phone scene.                                                                         |
+| Poems markdown/preview texture                      | Portfolio               | Content already scene-gated | Keep lazy and replace on active slug                        | Markdown and canvas textures are content resources, never engine concerns.                                            |
+| Coffee steam                                        | Portfolio               | World task                  | Persistent, low-cost task                                   | Three sprites are negligible and provide continuity between scenes.                                                   |
+| Post-processing composer                            | Portfolio               | Renderer-owned              | Persistent while renderer is stable; dispose on replacement | Composer targets are renderer resources and are already explicitly disposed.                                          |
+| Camera interpolation                                | Portfolio camera driver | Frame-driven                | Persistent                                                  | It is presentation policy, not navigation state.                                                                      |
 
 CPU/GPU/memory estimates are relative: geometry and steam are low; the
 certificate and poster texture sets are the dominant memory consumers; the

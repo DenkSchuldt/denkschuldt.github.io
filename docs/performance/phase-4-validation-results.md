@@ -13,12 +13,12 @@
 These 3.5-second direct-entry windows include initial publication and bounded
 settle work. They are not 30-second true-idle samples.
 
-| Destination | Frames | Continuous / periodic leases at capture | Unexplained idle frames | Projection / DOF updates |
-| --- | ---: | ---: | ---: | ---: |
-| About | 76 | 0 / 1 (steam 15 fps) | 3 | 1 / 0 |
-| Certificates | 186 | 0 / 1 (breathing 30 fps) | 2 | 132 / 0 |
-| Phone | 189 | 0 / 1 (breathing 30 fps) | 2 | 96 / 0 |
-| Poems | 186 | 0 / 1 (breathing 30 fps) | 2 | 50 / 0 |
+| Destination  | Frames | Continuous / periodic leases at capture | Unexplained idle frames | Projection / DOF updates |
+| ------------ | -----: | --------------------------------------: | ----------------------: | -----------------------: |
+| About        |     76 |                    0 / 1 (steam 15 fps) |                       3 |                    1 / 0 |
+| Certificates |    186 |                0 / 1 (breathing 30 fps) |                       2 |                  132 / 0 |
+| Phone        |    189 |                0 / 1 (breathing 30 fps) |                       2 |                   96 / 0 |
+| Poems        |    186 |                0 / 1 (breathing 30 fps) |                       2 |                   50 / 0 |
 
 The previous `always` About observation executed about 543 projection/steam
 updates in an exploratory window. The new short About window performed one

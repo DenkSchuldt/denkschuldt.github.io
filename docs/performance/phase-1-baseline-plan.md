@@ -8,19 +8,19 @@ Measure the current persistent-world architecture before Phase 2. Diagnostics ar
 
 ## Audit verification
 
-| Audit claim | Verified | Evidence | Difference |
-|---|---:|---|---|
-| One persistent Canvas/world | Yes | `Experience.tsx`, `Scene.tsx` | None |
-| Default continuous frameloop | Yes | Canvas has no `frameloop` prop | None |
-| DPR `[1,1.6]`, AA, ACES, exposure .68 | Yes | `Experience.tsx`, `renderingIntent.ts` | Output color space is a Three default, not assigned explicitly |
-| PCF shadows, two 2048² maps | Yes | `Experience.tsx`, `Lighting.tsx` | None |
-| ContactShadows global | Yes | `Lighting.tsx` | Internal target size not configured |
-| N8AO, DOF, Bloom, Hue/Saturation, Vignette; MSAA 0 | Yes | `CinematicEffects.tsx` | None |
-| Four direct frame systems | Yes | runtime bridge, CameraRig, laptop projection, DOF focus | Runtime bridge is now wrapped by portfolio diagnostics only when code is built; behavior is equivalent |
-| Runtime tasks listed in audit | Yes | `Primitives.tsx` | Fourteen CertificateCard callbacks additionally execute per frame |
-| Ambient textures eager | Yes | wall, certificate thumbnails, pinscher `useTexture` | Poem manifest also loads on mount, not only on Poems |
-| Phone behind RuntimeBoundary | Yes | `Primitives.tsx` | Loader cache can outlive boundary |
-| Scenes are camera destinations | Yes | registry + single `Scene` JSX tree | None |
+| Audit claim                                        | Verified | Evidence                                                | Difference                                                                                             |
+| -------------------------------------------------- | -------: | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| One persistent Canvas/world                        |      Yes | `Experience.tsx`, `Scene.tsx`                           | None                                                                                                   |
+| Default continuous frameloop                       |      Yes | Canvas has no `frameloop` prop                          | None                                                                                                   |
+| DPR `[1,1.6]`, AA, ACES, exposure .68              |      Yes | `Experience.tsx`, `renderingIntent.ts`                  | Output color space is a Three default, not assigned explicitly                                         |
+| PCF shadows, two 2048² maps                        |      Yes | `Experience.tsx`, `Lighting.tsx`                        | None                                                                                                   |
+| ContactShadows global                              |      Yes | `Lighting.tsx`                                          | Internal target size not configured                                                                    |
+| N8AO, DOF, Bloom, Hue/Saturation, Vignette; MSAA 0 |      Yes | `CinematicEffects.tsx`                                  | None                                                                                                   |
+| Four direct frame systems                          |      Yes | runtime bridge, CameraRig, laptop projection, DOF focus | Runtime bridge is now wrapped by portfolio diagnostics only when code is built; behavior is equivalent |
+| Runtime tasks listed in audit                      |      Yes | `Primitives.tsx`                                        | Fourteen CertificateCard callbacks additionally execute per frame                                      |
+| Ambient textures eager                             |      Yes | wall, certificate thumbnails, pinscher `useTexture`     | Poem manifest also loads on mount, not only on Poems                                                   |
+| Phone behind RuntimeBoundary                       |      Yes | `Primitives.tsx`                                        | Loader cache can outlive boundary                                                                      |
+| Scenes are camera destinations                     |      Yes | registry + single `Scene` JSX tree                      | None                                                                                                   |
 
 ## Instrumentation design
 
@@ -47,31 +47,31 @@ Browser CPU/GPU process utilization, JS heap and true GPU memory require externa
 
 ## Device matrix
 
-| Profile | Definition | Status |
-|---|---|---|
-| A desktop | Chromium 150, macOS, Apple M4, 1280×720 CSS, DPR 1.6 | Measured |
-| B throttled desktop | Same browser with controlled CPU throttle | Procedure prepared; not available through current browser surface |
-| C tablet emulation | 1024×768 viewport on same Apple M4 | Measured; pixel/layout comparison only |
-| D physical iPad | Exact model/iPadOS/Safari, power and thermal record | Mandatory manual run; no device connected |
+| Profile             | Definition                                           | Status                                                            |
+| ------------------- | ---------------------------------------------------- | ----------------------------------------------------------------- |
+| A desktop           | Chromium 150, macOS, Apple M4, 1280×720 CSS, DPR 1.6 | Measured                                                          |
+| B throttled desktop | Same browser with controlled CPU throttle            | Procedure prepared; not available through current browser surface |
+| C tablet emulation  | 1024×768 viewport on same Apple M4                   | Measured; pixel/layout comparison only                            |
+| D physical iPad     | Exact model/iPadOS/Safari, power and thermal record  | Mandatory manual run; no device connected                         |
 
 ## Deterministic scenarios
 
 All stable windows are 10 s after the camera and UI settle; transitions start immediately before the input and end on the engine arrival marker.
 
-| ID | URL/start | Cache | Actions / waits | Expected end | Invalid if |
-|---|---|---|---|---|---|
-| L1/L2 | `/` | cold/warm | load; wait first stable frame | About | request failure/context loss |
-| S1–S8 | direct Scene URL | warm | wait arrival + 2 s; reset; sample 10 s | requested Scene | transition remains active |
-| C1 | `/certificates` | warm | select next certificate; sample transition + 10 s | next focus | image incomplete |
-| P1 | `/phone` | warm | hover/click-safe pointer movement | Phone | external navigation |
-| O1 | `/poems` | warm | next focus | next poem | markdown incomplete |
-| O2–O4 | Poems | warm | open, scroll fixed 600 px, close | Poems | reader missing |
-| N1 | any non-Opening | warm | ESC; settle | Opening | focus overlay consumes ESC unexpectedly |
-| N2 | Opening after N1 | warm | forward once | resume checkpoint | wrong checkpoint |
-| J1 | `/` | warm | complete guided sequence with fixed inputs | Opening | Wall auto timing deviates >1 s |
-| J3 | J1 | warm | repeat 3 times | Opening | tab backgrounded |
-| I5 | each Scene | warm | no pointer/input 5 min | same Scene | visibility change |
-| T15 | `/` | warm | repeat navigation 15 min | active | context loss/reload recorded, not discarded |
+| ID    | URL/start        | Cache     | Actions / waits                                   | Expected end      | Invalid if                                  |
+| ----- | ---------------- | --------- | ------------------------------------------------- | ----------------- | ------------------------------------------- |
+| L1/L2 | `/`              | cold/warm | load; wait first stable frame                     | About             | request failure/context loss                |
+| S1–S8 | direct Scene URL | warm      | wait arrival + 2 s; reset; sample 10 s            | requested Scene   | transition remains active                   |
+| C1    | `/certificates`  | warm      | select next certificate; sample transition + 10 s | next focus        | image incomplete                            |
+| P1    | `/phone`         | warm      | hover/click-safe pointer movement                 | Phone             | external navigation                         |
+| O1    | `/poems`         | warm      | next focus                                        | next poem         | markdown incomplete                         |
+| O2–O4 | Poems            | warm      | open, scroll fixed 600 px, close                  | Poems             | reader missing                              |
+| N1    | any non-Opening  | warm      | ESC; settle                                       | Opening           | focus overlay consumes ESC unexpectedly     |
+| N2    | Opening after N1 | warm      | forward once                                      | resume checkpoint | wrong checkpoint                            |
+| J1    | `/`              | warm      | complete guided sequence with fixed inputs        | Opening           | Wall auto timing deviates >1 s              |
+| J3    | J1               | warm      | repeat 3 times                                    | Opening           | tab backgrounded                            |
+| I5    | each Scene       | warm      | no pointer/input 5 min                            | same Scene        | visibility change                           |
+| T15   | `/`              | warm      | repeat navigation 15 min                          | active            | context loss/reload recorded, not discarded |
 
 For cold runs disable cache in DevTools and reload once. Warm runs must first complete one identical journey. Record hidden/background intervals and discard only with a written reason.
 

@@ -1,15 +1,231 @@
-import type { QualityProfileId,RenderingQualityProfile } from "./types.ts";
+import type { QualityProfileId, RenderingQualityProfile } from "./types.ts";
 
-const profile=(value:RenderingQualityProfile)=>value;
-const postUltra={enabled:true,ao:{enabled:true,radius:1.7,intensity:.32,distanceFalloff:1.2,quality:"medium" as const,halfResolution:false},dof:{enabled:true,height:480,focalLength:.035,bokehScale:.45},bloom:{enabled:true,intensity:.08,luminanceThreshold:.84,luminanceSmoothing:.18,mipmapBlur:true},grading:{enabled:true,hue:-.012,saturation:-.12},vignette:{enabled:true,offset:.32,darkness:.22}};
-
-export const RENDERING_QUALITY_PROFILES:Record<QualityProfileId,RenderingQualityProfile>={
-  ultra:profile({id:"ultra",label:"Ultra",renderer:{dprMin:1,dprMax:1.6,dprLevels:[1,1.25,1.4,1.6],antialias:true,powerPreference:"high-performance"},shadows:{enabled:true,type:"pcf",directionalEnabled:true,directionalMapSize:2048,deskSpotEnabled:true,deskSpotMapSize:2048,contactEnabled:true,contactResolution:512,contactBlur:3.4,contactOpacity:.48},postprocessing:postUltra,runtime:{allowAdaptiveDpr:true,allowAutomaticDowngrade:true,allowAutomaticUpgrade:true,minimumStableDurationMs:12000,poorDurationMs:3500,cooldownMs:8000,targetFrameMs:16.67}}),
-  high:profile({id:"high",label:"High",renderer:{dprMin:1,dprMax:1.4,dprLevels:[1,1.25,1.4],antialias:true,powerPreference:"high-performance"},shadows:{enabled:true,type:"pcf",directionalEnabled:true,directionalMapSize:1536,deskSpotEnabled:true,deskSpotMapSize:1536,contactEnabled:true,contactResolution:384,contactBlur:3.2,contactOpacity:.46},postprocessing:{...postUltra,ao:{...postUltra.ao,quality:"medium",intensity:.28},dof:{...postUltra.dof,height:420}},runtime:{allowAdaptiveDpr:true,allowAutomaticDowngrade:true,allowAutomaticUpgrade:true,minimumStableDurationMs:14000,poorDurationMs:3500,cooldownMs:9000,targetFrameMs:16.67}}),
-  balanced:profile({id:"balanced",label:"Balanced",renderer:{dprMin:1,dprMax:1.25,dprLevels:[1,1.25],antialias:true,powerPreference:"high-performance"},shadows:{enabled:true,type:"pcf",directionalEnabled:true,directionalMapSize:1024,deskSpotEnabled:true,deskSpotMapSize:1024,contactEnabled:true,contactResolution:256,contactBlur:3,contactOpacity:.44},postprocessing:{...postUltra,ao:{...postUltra.ao,quality:"performance",halfResolution:true,intensity:.24,radius:1.5},dof:{...postUltra.dof,height:360,bokehScale:.38},bloom:{...postUltra.bloom,intensity:.065}},runtime:{allowAdaptiveDpr:true,allowAutomaticDowngrade:true,allowAutomaticUpgrade:true,minimumStableDurationMs:18000,poorDurationMs:3000,cooldownMs:10000,targetFrameMs:20}}),
-  mobile:profile({id:"mobile",label:"Mobile",renderer:{dprMin:1,dprMax:1.25,dprLevels:[1,1.25],antialias:true,powerPreference:"high-performance"},shadows:{enabled:true,type:"pcf",directionalEnabled:true,directionalMapSize:1024,deskSpotEnabled:false,deskSpotMapSize:512,contactEnabled:false,contactResolution:256,contactBlur:2.8,contactOpacity:.4},postprocessing:{...postUltra,ao:{...postUltra.ao,enabled:false,quality:"performance",halfResolution:true},dof:{...postUltra.dof,enabled:false,height:300},bloom:{...postUltra.bloom,intensity:.05},vignette:{...postUltra.vignette,darkness:.18}},runtime:{allowAdaptiveDpr:true,allowAutomaticDowngrade:true,allowAutomaticUpgrade:false,minimumStableDurationMs:25000,poorDurationMs:2500,cooldownMs:12000,targetFrameMs:22.22}}),
-  fallback:profile({id:"fallback",label:"Fallback",renderer:{dprMin:1,dprMax:1,dprLevels:[1],antialias:false,powerPreference:"default"},shadows:{enabled:false,type:"pcf",directionalEnabled:false,directionalMapSize:512,deskSpotEnabled:false,deskSpotMapSize:512,contactEnabled:false,contactResolution:128,contactBlur:2,contactOpacity:.35},postprocessing:{...postUltra,enabled:false,ao:{...postUltra.ao,enabled:false,quality:"performance",halfResolution:true},dof:{...postUltra.dof,enabled:false,height:240},bloom:{...postUltra.bloom,enabled:false},grading:{...postUltra.grading,enabled:false},vignette:{...postUltra.vignette,enabled:false}},runtime:{allowAdaptiveDpr:false,allowAutomaticDowngrade:false,allowAutomaticUpgrade:false,minimumStableDurationMs:30000,poorDurationMs:5000,cooldownMs:15000,targetFrameMs:33.33}}),
+const profile = (value: RenderingQualityProfile) => value;
+const postUltra = {
+  enabled: true,
+  ao: {
+    enabled: true,
+    radius: 1.7,
+    intensity: 0.32,
+    distanceFalloff: 1.2,
+    quality: "medium" as const,
+    halfResolution: false,
+  },
+  dof: { enabled: true, height: 480, focalLength: 0.035, bokehScale: 0.45 },
+  bloom: {
+    enabled: true,
+    intensity: 0.08,
+    luminanceThreshold: 0.84,
+    luminanceSmoothing: 0.18,
+    mipmapBlur: true,
+  },
+  grading: { enabled: true, hue: -0.012, saturation: -0.12 },
+  vignette: { enabled: true, offset: 0.32, darkness: 0.22 },
 };
 
-export const getRenderingQualityProfile=(id:QualityProfileId)=>RENDERING_QUALITY_PROFILES[id];
-export const validateRenderingQualityProfiles=()=>Object.values(RENDERING_QUALITY_PROFILES).every((entry)=>entry.renderer.dprMin<=entry.renderer.dprMax&&entry.renderer.dprLevels.every((dpr)=>dpr>=entry.renderer.dprMin&&dpr<=entry.renderer.dprMax));
+export const RENDERING_QUALITY_PROFILES: Record<QualityProfileId, RenderingQualityProfile> = {
+  ultra: profile({
+    id: "ultra",
+    label: "Ultra",
+    renderer: {
+      dprMin: 1,
+      dprMax: 1.6,
+      dprLevels: [1, 1.25, 1.4, 1.6],
+      antialias: true,
+      powerPreference: "high-performance",
+    },
+    shadows: {
+      enabled: true,
+      type: "pcf",
+      directionalEnabled: true,
+      directionalMapSize: 2048,
+      deskSpotEnabled: true,
+      deskSpotMapSize: 2048,
+      contactEnabled: true,
+      contactResolution: 512,
+      contactBlur: 3.4,
+      contactOpacity: 0.48,
+    },
+    postprocessing: postUltra,
+    runtime: {
+      allowAdaptiveDpr: true,
+      allowAutomaticDowngrade: true,
+      allowAutomaticUpgrade: true,
+      minimumStableDurationMs: 12000,
+      poorDurationMs: 3500,
+      cooldownMs: 8000,
+      targetFrameMs: 16.67,
+    },
+  }),
+  high: profile({
+    id: "high",
+    label: "High",
+    renderer: {
+      dprMin: 1,
+      dprMax: 1.4,
+      dprLevels: [1, 1.25, 1.4],
+      antialias: true,
+      powerPreference: "high-performance",
+    },
+    shadows: {
+      enabled: true,
+      type: "pcf",
+      directionalEnabled: true,
+      directionalMapSize: 1536,
+      deskSpotEnabled: true,
+      deskSpotMapSize: 1536,
+      contactEnabled: true,
+      contactResolution: 384,
+      contactBlur: 3.2,
+      contactOpacity: 0.46,
+    },
+    postprocessing: {
+      ...postUltra,
+      ao: { ...postUltra.ao, quality: "medium", intensity: 0.28 },
+      dof: { ...postUltra.dof, height: 420 },
+    },
+    runtime: {
+      allowAdaptiveDpr: true,
+      allowAutomaticDowngrade: true,
+      allowAutomaticUpgrade: true,
+      minimumStableDurationMs: 14000,
+      poorDurationMs: 3500,
+      cooldownMs: 9000,
+      targetFrameMs: 16.67,
+    },
+  }),
+  balanced: profile({
+    id: "balanced",
+    label: "Balanced",
+    renderer: {
+      dprMin: 1,
+      dprMax: 1.25,
+      dprLevels: [1, 1.25],
+      antialias: true,
+      powerPreference: "high-performance",
+    },
+    shadows: {
+      enabled: true,
+      type: "pcf",
+      directionalEnabled: true,
+      directionalMapSize: 1024,
+      deskSpotEnabled: true,
+      deskSpotMapSize: 1024,
+      contactEnabled: true,
+      contactResolution: 256,
+      contactBlur: 3,
+      contactOpacity: 0.44,
+    },
+    postprocessing: {
+      ...postUltra,
+      ao: {
+        ...postUltra.ao,
+        quality: "performance",
+        halfResolution: true,
+        intensity: 0.24,
+        radius: 1.5,
+      },
+      dof: { ...postUltra.dof, height: 360, bokehScale: 0.38 },
+      bloom: { ...postUltra.bloom, intensity: 0.065 },
+    },
+    runtime: {
+      allowAdaptiveDpr: true,
+      allowAutomaticDowngrade: true,
+      allowAutomaticUpgrade: true,
+      minimumStableDurationMs: 18000,
+      poorDurationMs: 3000,
+      cooldownMs: 10000,
+      targetFrameMs: 20,
+    },
+  }),
+  mobile: profile({
+    id: "mobile",
+    label: "Mobile",
+    renderer: {
+      dprMin: 1,
+      dprMax: 1.25,
+      dprLevels: [1, 1.25],
+      antialias: true,
+      powerPreference: "high-performance",
+    },
+    shadows: {
+      enabled: true,
+      type: "pcf",
+      directionalEnabled: true,
+      directionalMapSize: 1024,
+      deskSpotEnabled: false,
+      deskSpotMapSize: 512,
+      contactEnabled: false,
+      contactResolution: 256,
+      contactBlur: 2.8,
+      contactOpacity: 0.4,
+    },
+    postprocessing: {
+      ...postUltra,
+      ao: { ...postUltra.ao, enabled: false, quality: "performance", halfResolution: true },
+      dof: { ...postUltra.dof, enabled: false, height: 300 },
+      bloom: { ...postUltra.bloom, intensity: 0.05 },
+      vignette: { ...postUltra.vignette, darkness: 0.18 },
+    },
+    runtime: {
+      allowAdaptiveDpr: true,
+      allowAutomaticDowngrade: true,
+      allowAutomaticUpgrade: false,
+      minimumStableDurationMs: 25000,
+      poorDurationMs: 2500,
+      cooldownMs: 12000,
+      targetFrameMs: 22.22,
+    },
+  }),
+  fallback: profile({
+    id: "fallback",
+    label: "Fallback",
+    renderer: {
+      dprMin: 1,
+      dprMax: 1,
+      dprLevels: [1],
+      antialias: false,
+      powerPreference: "default",
+    },
+    shadows: {
+      enabled: false,
+      type: "pcf",
+      directionalEnabled: false,
+      directionalMapSize: 512,
+      deskSpotEnabled: false,
+      deskSpotMapSize: 512,
+      contactEnabled: false,
+      contactResolution: 128,
+      contactBlur: 2,
+      contactOpacity: 0.35,
+    },
+    postprocessing: {
+      ...postUltra,
+      enabled: false,
+      ao: { ...postUltra.ao, enabled: false, quality: "performance", halfResolution: true },
+      dof: { ...postUltra.dof, enabled: false, height: 240 },
+      bloom: { ...postUltra.bloom, enabled: false },
+      grading: { ...postUltra.grading, enabled: false },
+      vignette: { ...postUltra.vignette, enabled: false },
+    },
+    runtime: {
+      allowAdaptiveDpr: false,
+      allowAutomaticDowngrade: false,
+      allowAutomaticUpgrade: false,
+      minimumStableDurationMs: 30000,
+      poorDurationMs: 5000,
+      cooldownMs: 15000,
+      targetFrameMs: 33.33,
+    },
+  }),
+};
+
+export const getRenderingQualityProfile = (id: QualityProfileId) => RENDERING_QUALITY_PROFILES[id];
+export const validateRenderingQualityProfiles = () =>
+  Object.values(RENDERING_QUALITY_PROFILES).every(
+    (entry) =>
+      entry.renderer.dprMin <= entry.renderer.dprMax &&
+      entry.renderer.dprLevels.every(
+        (dpr) => dpr >= entry.renderer.dprMin && dpr <= entry.renderer.dprMax,
+      ),
+  );

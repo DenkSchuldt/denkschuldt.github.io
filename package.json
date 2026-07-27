@@ -16,7 +16,12 @@
     "test": "npm run build && npm run test:performance && node --test tests/*.test.mjs",
     "test:performance": "node scripts/check-performance-budget.mjs",
     "build:navigation": "tsc -p packages/cinematic-navigation/tsconfig.build.json",
-    "lint": "eslint . --ignore-pattern dist --ignore-pattern packages/cinematic-navigation/dist --ignore-pattern .next",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "quality": "npm run format:check && npm run lint && npm run typecheck",
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
@@ -45,6 +50,8 @@
     "drizzle-kit": "0.31.10",
     "eslint": "9.39.4",
     "eslint-config-next": "16.2.6",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.9.6",
     "react-server-dom-webpack": "19.2.6",
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",

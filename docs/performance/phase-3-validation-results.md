@@ -27,14 +27,14 @@ environment). This is a renderer inventory count, not a GPU-memory-byte value.
 
 ## Lifecycle checkpoints
 
-| Checkpoint | Renderer textures | Geometries | Programs | Working-set estimate | Tasks / raycast objects |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Ultra About | 50 | 136 | 55 | 0 owned MiB | 1 / 3 |
-| Certificates active | 63 | 196 | 49–69 | 12.0 MiB estimate | 16 / 17 |
-| Projects after immediate Certificates release | 49 | 136 | 60–68 | 0 owned MiB | 1 / 3 |
-| Phone active | 50 | 139 | 46 | 4.1 MiB estimate | 2 / 5 |
-| Poems active | 52 | 139–141 | 52–61 | 7.8 MiB estimate | 5 / 3 |
-| Opening after Poems release | 51 | 139 | 55 | 0 owned texture MiB; manifest retained | 1 / 3 |
+| Checkpoint                                    | Renderer textures | Geometries | Programs |                   Working-set estimate | Tasks / raycast objects |
+| --------------------------------------------- | ----------------: | ---------: | -------: | -------------------------------------: | ----------------------: |
+| Ultra About                                   |                50 |        136 |       55 |                            0 owned MiB |                   1 / 3 |
+| Certificates active                           |                63 |        196 |    49–69 |                      12.0 MiB estimate |                 16 / 17 |
+| Projects after immediate Certificates release |                49 |        136 |    60–68 |                            0 owned MiB |                   1 / 3 |
+| Phone active                                  |                50 |        139 |       46 |                       4.1 MiB estimate |                   2 / 5 |
+| Poems active                                  |                52 |    139–141 |    52–61 |                       7.8 MiB estimate |                   5 / 3 |
+| Opening after Poems release                   |                51 |        139 |       55 | 0 owned texture MiB; manifest retained |                   1 / 3 |
 
 Certificates therefore added fourteen texture entries and departure removed
 fourteen entries (63→49). The diagnostic history also records fourteen owned
@@ -54,13 +54,13 @@ unavailable.
 
 ## First and repeat arrival
 
-| Scenario | Median / p95 frame time | Texture result |
-| --- | --- | --- |
-| Cold direct Certificates | 25.5 / 27.7 ms | 63 active |
-| Return to Certificates after owned release | 21.0 / 27.1 ms | 63 active |
-| Projects after release | 23.5 / 27.5 ms mixed window | 49 |
-| Cold direct Phone | 18.3 / 21.0 ms | 50 |
-| Poems after Phone | 18.6 / 21.1 ms rolling window | 52 |
+| Scenario                                   | Median / p95 frame time       | Texture result |
+| ------------------------------------------ | ----------------------------- | -------------- |
+| Cold direct Certificates                   | 25.5 / 27.7 ms                | 63 active      |
+| Return to Certificates after owned release | 21.0 / 27.1 ms                | 63 active      |
+| Projects after release                     | 23.5 / 27.5 ms mixed window   | 49             |
+| Cold direct Phone                          | 18.3 / 21.0 ms                | 50             |
+| Poems after Phone                          | 18.6 / 21.1 ms rolling window | 52             |
 
 The repeat Certificate median was lower in this one warm-cache run, while p95
 was similar. It is insufficient for a causal latency percentage: the browser
@@ -83,12 +83,12 @@ so no millisecond saving is claimed.
 
 ## Profiles at About
 
-| Profile | DPR / buffer | Median / p95 | Textures / geometries / programs | Tasks / raycast |
-| --- | --- | --- | --- | --- |
-| Ultra | 1.6 / 2048×1152 | ~19.4 / 24.1 ms settled observed run | 50 / 136 / 55 | 1 / 3 |
-| Balanced | 1.25 / 1600×900 | 9.1 / 11.0 ms | 51 / 136 / 46 | 1 / 3 |
-| Mobile | 1.25 / 1600×900 | 8.3 / 9.1 ms | 25 / 98 / 24 | 1 / 3 |
-| Fallback | 1 / 1280×720 | 8.3 / 9.8 ms | 6 / 29 / 6 | 1 / 3 |
+| Profile  | DPR / buffer    | Median / p95                         | Textures / geometries / programs | Tasks / raycast |
+| -------- | --------------- | ------------------------------------ | -------------------------------- | --------------- |
+| Ultra    | 1.6 / 2048×1152 | ~19.4 / 24.1 ms settled observed run | 50 / 136 / 55                    | 1 / 3           |
+| Balanced | 1.25 / 1600×900 | 9.1 / 11.0 ms                        | 51 / 136 / 46                    | 1 / 3           |
+| Mobile   | 1.25 / 1600×900 | 8.3 / 9.1 ms                         | 25 / 98 / 24                     | 1 / 3           |
+| Fallback | 1 / 1280×720    | 8.3 / 9.8 ms                         | 6 / 29 / 6                       | 1 / 3           |
 
 Residency differs primarily through retention: Ultra 20–30 seconds,
 Balanced 5–12 seconds, Mobile 1.5–5 seconds, Fallback immediate. Shared Wall

@@ -1,4 +1,19 @@
-export type ShotId = "opening" | "workspace" | "about" | "projects" | "project-detail" | "certificates" | "certificate-detail" | "poems" | "poem-detail" | "phone" | "phone-qr" | "socials" | "wall" | "movie-detail" | "drawer";
+export type ShotId =
+  | "opening"
+  | "workspace"
+  | "about"
+  | "projects"
+  | "project-detail"
+  | "certificates"
+  | "certificate-detail"
+  | "poems"
+  | "poem-detail"
+  | "phone"
+  | "phone-qr"
+  | "socials"
+  | "wall"
+  | "movie-detail"
+  | "drawer";
 export type ShotViewport = "desktop" | "tablet" | "mobile";
 export type Vec3Tuple = [number, number, number];
 
@@ -14,12 +29,12 @@ export interface ShotFraming {
   fov: number;
   roll?: number;
   waypoint?: Vec3Tuple;
-  safeMargins?: { top:number; right:number; bottom:number; left:number };
+  safeMargins?: { top: number; right: number; bottom: number; left: number };
   alignment?: "center" | "left" | "right";
   composition?: string;
 }
 
-export interface ShotFramingOverride extends Partial<Omit<ShotFraming,"safeMargins">> {
+export interface ShotFramingOverride extends Partial<Omit<ShotFraming, "safeMargins">> {
   safeMargins?: ShotFraming["safeMargins"];
 }
 
@@ -45,11 +60,11 @@ export interface Shot {
   framing: ShotFraming;
   focus: ShotFocus;
   transition: ShotTransition;
-  responsive?: Partial<Record<ShotViewport,ShotFramingOverride>>;
+  responsive?: Partial<Record<ShotViewport, ShotFramingOverride>>;
   guided?: boolean;
 }
 
-export interface ResolvedShot extends Omit<Shot,"responsive"|"framing"> {
+export interface ResolvedShot extends Omit<Shot, "responsive" | "framing"> {
   viewport: ShotViewport;
   framing: ShotFraming;
 }

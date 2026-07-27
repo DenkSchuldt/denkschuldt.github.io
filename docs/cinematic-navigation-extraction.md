@@ -16,16 +16,16 @@ The package never imports from `app/` or `src/scene/`.
 
 ## Package boundary map
 
-| Boundary | Owns | Must not own |
-| --- | --- | --- |
+| Boundary                                 | Owns                                                                                                                     | Must not own                                         |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
 | `packages/cinematic-navigation/src/core` | registration, authoritative logical state, guided navigation, Focus navigation, spatial resolution, transition lifecycle | React, Three.js, DOM, storage, routes, portfolio IDs |
-| `react` | provider, external-store selectors, registration hooks | camera interpolation, portfolio components |
-| `r3f` | live `Object3D` subject registry | portfolio objects or framing values |
-| `input` | normalized generic intents | DOM listeners and portfolio priority overrides |
-| `router` | optional router contract and basename utilities | concrete URLs or History API policy |
-| `persistence` | injected web/memory storage adapters | persistence policy or deep-link precedence |
-| `testing` | state fixtures and subscription recorder | application fixtures |
-| `src/scene/camera` | portfolio registry, routes, controls, visual camera driver and compatibility API | reusable engine behavior |
+| `react`                                  | provider, external-store selectors, registration hooks                                                                   | camera interpolation, portfolio components           |
+| `r3f`                                    | live `Object3D` subject registry                                                                                         | portfolio objects or framing values                  |
+| `input`                                  | normalized generic intents                                                                                               | DOM listeners and portfolio priority overrides       |
+| `router`                                 | optional router contract and basename utilities                                                                          | concrete URLs or History API policy                  |
+| `persistence`                            | injected web/memory storage adapters                                                                                     | persistence policy or deep-link precedence           |
+| `testing`                                | state fixtures and subscription recorder                                                                                 | application fixtures                                 |
+| `src/scene/camera`                       | portfolio registry, routes, controls, visual camera driver and compatibility API                                         | reusable engine behavior                             |
 
 ## Concrete migration
 
