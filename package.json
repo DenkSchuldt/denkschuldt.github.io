@@ -21,8 +21,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
-    "quality": "npm run format:check && npm run lint && npm run typecheck",
-    "db:generate": "drizzle-kit generate"
+    "quality": "npm run format:check && npm run lint && npm run typecheck"
   },
   "dependencies": {
     "@denk/cinematic-navigation": "file:packages/cinematic-navigation",
@@ -31,7 +30,6 @@
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "@react-three/postprocessing": "^3.0.4",
-    "drizzle-orm": "0.45.2",
     "leva": "^0.10.1",
     "mixpanel-browser": "^2.81.0",
     "next": "16.2.6",
@@ -47,7 +45,6 @@
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.2",
     "@vitejs/plugin-rsc": "0.5.26",
-    "drizzle-kit": "0.31.10",
     "eslint": "9.39.4",
     "eslint-config-next": "16.2.6",
     "eslint-config-prettier": "^10.1.8",
