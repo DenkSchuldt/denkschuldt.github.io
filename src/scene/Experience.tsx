@@ -81,6 +81,10 @@ const ProjectsOverlay = lazy(() =>
   import("./components/ProjectsOverlay").then((module) => ({ default: module.ProjectsOverlay })),
 );
 let mixpanelInitialized = false;
+const trackEvent = (event: string, properties?: Record<string, unknown>) => {
+  if (process.env.NODE_ENV !== "production") return;
+  mixpanel.track(event, properties);
+};
 const RUNTIME_NODES: readonly RuntimeNodeRegistration[] = [
   { id: "world", scope: "world", mountPolicy: "persistent" },
   ...GUIDED_SCENE_IDS.map((sceneId) => ({
@@ -202,7 +206,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
   const screenProjectionRef = useRef<ScreenProjection | null>(null);
 
   useEffect(() => {
-    if (mixpanelInitialized) return;
+    if (mixpanelInitialized || process.env.NODE_ENV !== "production") return;
     mixpanel.init("ff576ce4c6538cde6328105772148efb", {
       autocapture: true,
       record_sessions_percent: 0,
@@ -319,7 +323,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
     if (!sceneReady || !pendingSceneFocus.current || skippedSceneFocus.current) return;
     const state = pendingSceneFocus.current;
     pendingSceneFocus.current = null;
-    mixpanel.track("scene_viewed", {
+    trackEvent("scene_viewed", {
       scene_id: state.sceneId,
       scene_name: SCENE_REGISTRY[state.sceneId]?.label ?? state.sceneId,
       camera_target: state.cameraTargetId,
@@ -338,7 +342,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
         pendingSceneFocus.current = state;
         return;
       }
-      mixpanel.track("scene_viewed", {
+      trackEvent("scene_viewed", {
         scene_id: state.sceneId,
         scene_name: SCENE_REGISTRY[state.sceneId]?.label ?? state.sceneId,
         camera_target: state.cameraTargetId,
@@ -350,11 +354,11 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
   useEffect(() => {
     const onPoemLoved = (event: Event) => {
       const detail = (event as CustomEvent<PoemInteractionDetail>).detail ?? {};
-      mixpanel.track("poem_loved", { slug: detail.slug, title: detail.title, url: detail.url });
+      trackEvent("poem_loved", { slug: detail.slug, title: detail.title, url: detail.url });
     };
     const onPoemCommented = (event: Event) => {
       const detail = (event as CustomEvent<PoemInteractionDetail>).detail ?? {};
-      mixpanel.track("poem_feedback", {
+      trackEvent("poem_feedback", {
         slug: detail.slug,
         title: detail.title,
         comment: detail.comment,
@@ -382,7 +386,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
     if (lastCertificateVisit.current === slug) return;
     const certificate = getFocusItem("certificates", slug);
     lastCertificateVisit.current = slug;
-    mixpanel.track("certificate_viewed", {
+    trackEvent("certificate_viewed", {
       slug,
       title: certificate?.label ?? slug,
       url: certificate?.metadata?.url,
@@ -402,7 +406,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
     const poem = poemsContent.poems.find(({ slug }) => slug === readerPoemSlug);
     if (!poem) return;
     lastPoemRead.current = readerPoemSlug;
-    mixpanel.track("poem_read", {
+    trackEvent("poem_read", {
       slug: poem.slug,
       title: poem.title,
       url: window.location.href,
