@@ -209,8 +209,32 @@ export function ProjectsOverlay({
 }) {
   const workingSet = useWorkingSetStore();
   const shellRef = useRef<HTMLDivElement | null>(null);
+  const scrollThumbRef = useRef<HTMLDivElement | null>(null);
   const [present, setPresent] = useState(visible);
   const [mobileTab, setMobileTab] = useState<"experience" | "projects">("experience");
+  // The shell has a live JS-driven `matrix3d` transform (the laptop-screen
+  // projection below), and native scrollbars don't render reliably on an
+  // element under a heavy 3D transform. Drive a plain div as the scroll
+  // indicator instead, so it's always visible regardless of browser/OS.
+  useEffect(() => {
+    const shell = shellRef.current,
+      thumb = scrollThumbRef.current;
+    if (!shell || !thumb) return;
+    const update = () => {
+      const { scrollTop, scrollHeight, clientHeight } = shell;
+      const ratio = clientHeight / scrollHeight;
+      thumb.style.height = `${Math.max(ratio * 100, 6)}%`;
+      thumb.style.top = `${(scrollTop / scrollHeight) * 100}%`;
+    };
+    update();
+    shell.addEventListener("scroll", update, { passive: true });
+    const resizeObserver = new ResizeObserver(update);
+    resizeObserver.observe(shell);
+    return () => {
+      shell.removeEventListener("scroll", update);
+      resizeObserver.disconnect();
+    };
+  }, [present]);
   useEffect(() => {
     workingSet.resourceEvent("prepare-end", "projects-overlay", {
       status: "resident",
@@ -275,6 +299,9 @@ export function ProjectsOverlay({
           visibility: "hidden",
         }}
       >
+        <div className="projects-overlay-scroll-track" aria-hidden="true">
+          <div className="projects-overlay-scroll-thumb" ref={scrollThumbRef} />
+        </div>
         <header className="projects-overlay-header">
           <div>
             <p className="projects-overlay-eyebrow">Denny K. Schuldt</p>
@@ -302,6 +329,20 @@ export function ProjectsOverlay({
           </button>
         </div>
         <div className="projects-overlay-columns">
+          <article
+            id="projects-projects-panel"
+            role="tabpanel"
+            className={`projects-overlay-column projects-overlay-projects${mobileTab === "projects" ? " is-mobile-active" : ""}`}
+          >
+            <div className="projects-overlay-column-heading">
+              <h2>Projects</h2>
+            </div>
+            <div className="projects-overlay-project-list">
+              {PROJECTS.map((project) => (
+                <ProjectLink key={project.title} project={project} />
+              ))}
+            </div>
+          </article>
           <article
             id="projects-experience-panel"
             role="tabpanel"
@@ -333,20 +374,6 @@ export function ProjectsOverlay({
                     </ul>
                   )}
                 </section>
-              ))}
-            </div>
-          </article>
-          <article
-            id="projects-projects-panel"
-            role="tabpanel"
-            className={`projects-overlay-column projects-overlay-projects${mobileTab === "projects" ? " is-mobile-active" : ""}`}
-          >
-            <div className="projects-overlay-column-heading">
-              <h2>Projects</h2>
-            </div>
-            <div className="projects-overlay-project-list">
-              {PROJECTS.map((project) => (
-                <ProjectLink key={project.title} project={project} />
               ))}
             </div>
           </article>

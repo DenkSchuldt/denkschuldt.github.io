@@ -72,6 +72,24 @@ interface Props {
   onClose: (slug: string | null) => void;
 }
 
+function easeInOutCubic(t: number) {
+  return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
+}
+
+// Native `scrollBy({ behavior: "smooth" })` duration/easing isn't
+// controllable and varies by browser, so the scroll-hint nudge animates
+// scrollTop by hand for a deliberately slow, eased motion.
+function smoothScrollBy(el: HTMLElement, distance: number, duration: number) {
+  const start = el.scrollTop;
+  const startTime = performance.now();
+  const step = (now: number) => {
+    const progress = Math.min((now - startTime) / duration, 1);
+    el.scrollTop = start + distance * easeInOutCubic(progress);
+    if (progress < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
 function readableDate(value: string) {
   const date = new Date(`${value}T00:00:00`);
   return Number.isNaN(date.valueOf())
@@ -125,6 +143,9 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
   const [commentSending, setCommentSending] = useState(false);
 
   const contentRef = useRef<HTMLElement | null>(null);
+  const columnRef = useRef<HTMLDivElement | null>(null);
+  const [hasMoreBelow, setHasMoreBelow] = useState(false);
+  const [scrollHintSeen, setScrollHintSeen] = useState(false);
 
   // The parent owns the URL-backed slug. Keeping a second local slug here can
   // briefly pair the previous selection with the new route during fast turns.
@@ -147,6 +168,32 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
   useEffect(() => {
     contentRef.current?.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [slug]);
+
+  // Long poems can overflow the reader on both desktop and mobile with no
+  // visible scrollbar cue (mobile hides it entirely). Show a down-arrow hint
+  // each time the reader (re)opens on content that overflows, without dimming
+  // the text itself; dismiss it for this visit once actually scrolled. Reruns
+  // on `open` because the reader's DOM — and these refs — unmount while closed.
+  useEffect(() => {
+    const el = contentRef.current;
+    const column = columnRef.current;
+    if (!el || !column) return;
+    const update = () => {
+      setHasMoreBelow(el.scrollHeight - el.scrollTop - el.clientHeight > 4);
+      if (el.scrollTop > 4) setScrollHintSeen(true);
+    };
+    setScrollHintSeen(false);
+    update();
+    el.addEventListener("scroll", update, { passive: true });
+    // Observe the content column, not the fixed-size scroll container itself
+    // — the container's own box never resizes as its content overflows it.
+    const resizeObserver = new ResizeObserver(update);
+    resizeObserver.observe(column);
+    return () => {
+      el.removeEventListener("scroll", update);
+      resizeObserver.disconnect();
+    };
+  }, [displayRecord, open]);
 
   useEffect(() => {
     try {
@@ -288,16 +335,6 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
       </button>
       <div className="poem-reader-shell">
         <header className="poem-reader-header">
-          <button
-            type="button"
-            className="poem-reader-mobile-close"
-            onClick={() => onClose(activeSlug)}
-            aria-label="Close reader"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5" />
-            </svg>
-          </button>
           <p className="poem-reader-kicker">Denny K. Schuldt · Poems</p>
           <div className="poem-reader-header-actions">
             <button
@@ -333,10 +370,20 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
             >
               {shareLabel}
             </button>
+            <button
+              type="button"
+              className="poem-reader-mobile-close"
+              onClick={() => onClose(activeSlug)}
+              aria-label="Close reader"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5" />
+              </svg>
+            </button>
           </div>
         </header>
         <main ref={contentRef} className="poem-reader-content" tabIndex={-1}>
-          <div className="poem-reader-column">
+          <div className="poem-reader-column" ref={columnRef}>
             {displayRecord && (
               <>
                 <p className="poem-reader-date">
@@ -363,6 +410,20 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
             {!displayRecord && <p className="poem-reader-status">Loading poem…</p>}
           </div>
         </main>
+        <button
+          type="button"
+          className={`poem-reader-scroll-hint${hasMoreBelow && !scrollHintSeen ? " is-visible" : ""}`}
+          aria-label="Scroll down"
+          aria-hidden={!(hasMoreBelow && !scrollHintSeen)}
+          tabIndex={hasMoreBelow && !scrollHintSeen ? 0 : -1}
+          onClick={() => {
+            if (contentRef.current) smoothScrollBy(contentRef.current, 320, 900);
+          }}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 10l6 6 6-6" />
+          </svg>
+        </button>
         <footer className="poem-reader-footer">
           <button
             type="button"

@@ -120,38 +120,19 @@ export interface SceneSettings {
   lampPosition: [number, number, number];
 }
 
-function transitionUsesOpening(cameraSystem: CinematicNavigationSystem) {
-  const state = cameraSystem.engine.getState();
-  return (
-    state.transitionStatus === "transitioning" &&
-    (state.sceneId === "opening") !== (state.requestedSceneId === "opening")
-  );
+function nearsOpening(engine: CinematicNavigationSystem["engine"]) {
+  const state = engine.getState();
+  return state.sceneId === "opening" || state.requestedSceneId === "opening";
 }
 
+// The chair only belongs at the Opening desk. It stays mounted for as long as
+// Opening is the current or destination scene — whether arriving there via
+// ESC/return, the guided tour looping back around, or a fresh load — and
+// unmounts once the camera has actually left for another scene.
 function useChairMountState(cameraSystem: CinematicNavigationSystem) {
-  const keepAtOpening = useRef(false);
-  const [mounted, setMounted] = useState(() => transitionUsesOpening(cameraSystem));
+  const [mounted, setMounted] = useState(() => nearsOpening(cameraSystem.engine));
   useEffect(() => {
-    const update = () => {
-      const state = cameraSystem.engine.getState();
-      const crossingOpening =
-        state.transitionStatus === "transitioning" &&
-        (state.sceneId === "opening") !== (state.requestedSceneId === "opening");
-      if (
-        crossingOpening &&
-        state.requestedSceneId === "opening" &&
-        state.transitionIntent === "return"
-      )
-        keepAtOpening.current = true;
-      if (state.transitionStatus === "idle" && state.sceneId !== "opening")
-        keepAtOpening.current = false;
-      setMounted(
-        crossingOpening ||
-          (state.transitionStatus === "idle" &&
-            state.sceneId === "opening" &&
-            keepAtOpening.current),
-      );
-    };
+    const update = () => setMounted(nearsOpening(cameraSystem.engine));
     update();
     return cameraSystem.engine.subscribe(update);
   }, [cameraSystem.engine]);

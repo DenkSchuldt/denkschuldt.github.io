@@ -158,11 +158,11 @@ export const SCENE_REGISTRY: Record<SceneId, SceneDefinition> = {
     },
     responsive: {
       mobile: {
-        position: poemsPageCameraPosition(3.55, 0.08),
+        position: poemsPageCameraPosition(2.4, 0.03),
         lookAt: POEMS_PAGE_LAYOUT.mobileReadingTarget,
-        fov: 37,
+        fov: 17,
         safeMargins: { top: 0.08, right: 0.07, bottom: 0.14, left: 0.07 },
-        composition: "single readable poem page with notebook spine context",
+        composition: "tight crop on the right-hand reading page only",
       },
       tablet: {
         position: poemsAlignedCameraPosition(3.72, 0.2),
@@ -364,6 +364,10 @@ export function getAdjacentScene(
     }
     return null;
   }
+  // Mirrors the forward wrap above: stepping back from Opening returns to the
+  // last guided stop instead of dead-ending, so the back arrow/gesture can
+  // undo a completed lap of the tour.
+  if (index === 0) return GUIDED_SCENE_IDS[GUIDED_SCENE_IDS.length - 1];
   let previousIndex = index - 1;
   while (previousIndex >= 0 && SCENE_REGISTRY[GUIDED_SCENE_IDS[previousIndex]].autoAdvance)
     previousIndex -= 1;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { FOCUS_COLLECTIONS, getAdjacentScene, getFocusItem, SCENE_REGISTRY } from "./sceneRegistry";
 
@@ -17,6 +18,7 @@ interface Props {
   onNext: () => SceneId | null;
   onEnterFocus: (collection: FocusCollectionId, item: string) => unknown;
   onExitFocus: () => unknown;
+  poemReaderOpen: boolean;
 }
 
 function Arrow({ direction }: { direction: "left" | "right" }) {
@@ -59,8 +61,21 @@ export function SceneNavigation({
   onNext,
   onEnterFocus,
   onExitFocus,
+  poemReaderOpen,
 }: Props) {
   const [introComplete, setIntroComplete] = useState(false);
+  const [hasClickedNav, setHasClickedNav] = useState(false);
+  // The portal below only exists client-side. Reading `typeof document` in
+  // render is itself a server/client branch — always false during SSR, always
+  // true on the client's first paint — which is exactly what causes a
+  // hydration mismatch. Gate on a mount flag instead, so both the server
+  // render and the client's *initial* render agree (nothing), and the portal
+  // only appears once mounted, after hydration has already reconciled.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    const markMounted = () => setMounted(true);
+    markMounted();
+  }, []);
   useEffect(() => {
     const update = () => setIntroComplete(stateRef.current.introComplete);
     update();
@@ -76,7 +91,12 @@ export function SceneNavigation({
   const previous = getAdjacentScene(current, -1, visitedAutoScenes);
   const resumeTarget = introComplete && current === "opening" ? resumeScene : null;
   const next = resumeTarget ?? getAdjacentScene(current, 1, visitedAutoScenes);
-  const currentLabel = current === "opening" ? "" : SCENE_REGISTRY[current].label;
+  const showNavHint = current === "opening" && !hasClickedNav;
+  const currentLabel = showNavHint
+    ? "Use the side buttons to navigate"
+    : current === "opening"
+      ? ""
+      : SCENE_REGISTRY[current].label;
   const collectionId = SCENE_REGISTRY[current].focusCollection ?? null;
   const collection = collectionId ? FOCUS_COLLECTIONS[collectionId] : null;
 
@@ -93,32 +113,55 @@ export function SceneNavigation({
   return (
     <>
       <nav className="scene-navigation" aria-label="Scene navigation">
-        <button
-          type="button"
-          className="scene-navigation-target scene-navigation-previous"
-          aria-label={
-            previous ? `Previous scene: ${SCENE_REGISTRY[previous].label}` : "No previous scene"
-          }
-          disabled={!introComplete || !previous}
-          onClick={() => previous && onNavigate(previous)}
+        <div
+          className={`scene-navigation-current camera-location${showNavHint ? " is-nav-hint" : ""}`}
+          aria-live="polite"
         >
-          <Arrow direction="left" />
-          <FadingSceneName label={previous ? SCENE_REGISTRY[previous].label : ""} />
-        </button>
-        <div className="scene-navigation-current camera-location" aria-live="polite">
           <FadingSceneName label={currentLabel} />
         </div>
-        <button
-          type="button"
-          className="scene-navigation-target scene-navigation-next"
-          aria-label={next ? `Next scene: ${SCENE_REGISTRY[next].label}` : "No next scene"}
-          disabled={!introComplete || !next}
-          onClick={() => onNext()}
-        >
-          <FadingSceneName label={next ? SCENE_REGISTRY[next].label : ""} />
-          <Arrow direction="right" />
-        </button>
       </nav>
+      {/* Portaled directly to <body> so the prev/next controls always paint
+          above every scene overlay (projects, certificates, poems), rather
+          than being trapped inside .canvas-stage's stacking/compositing tree
+          alongside JS-positioned (matrix3d-transformed) overlay content. Hidden
+          while a certificate or poem is open full-screen — those overlays have
+          their own close controls and scene navigation doesn't apply there. */}
+      {mounted &&
+        selectedFocusCollection !== "certificates" &&
+        !poemReaderOpen &&
+        createPortal(
+          <>
+            <button
+              type="button"
+              className="scene-navigation-target scene-navigation-previous"
+              aria-label={
+                previous ? `Previous scene: ${SCENE_REGISTRY[previous].label}` : "No previous scene"
+              }
+              disabled={!introComplete || !previous}
+              onClick={() => {
+                setHasClickedNav(true);
+                if (previous) onNavigate(previous);
+              }}
+            >
+              <Arrow direction="left" />
+              <FadingSceneName label={previous ? SCENE_REGISTRY[previous].label : ""} />
+            </button>
+            <button
+              type="button"
+              className="scene-navigation-target scene-navigation-next"
+              aria-label={next ? `Next scene: ${SCENE_REGISTRY[next].label}` : "No next scene"}
+              disabled={!introComplete || !next}
+              onClick={() => {
+                setHasClickedNav(true);
+                onNext();
+              }}
+            >
+              <FadingSceneName label={next ? SCENE_REGISTRY[next].label : ""} />
+              <Arrow direction="right" />
+            </button>
+          </>,
+          document.body,
+        )}
       {selectedFocusCollection && selectedFocusCollection !== "certificates" && (
         <button
           type="button"

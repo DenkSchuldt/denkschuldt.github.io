@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 
 import { CERTIFICATES } from "../objects/certificates";
 import { withSceneBasePath } from "../camera/sceneRoutes";
@@ -11,6 +11,7 @@ interface Props {
   selectedSlug: string | null;
   onSelect: (slug: string) => void;
   onClose: () => void;
+  onNavigateNext?: () => void;
 }
 
 function GalleryArrow({ direction }: { direction: "previous" | "next" }) {
@@ -27,9 +28,27 @@ function GalleryArrow({ direction }: { direction: "previous" | "next" }) {
  * never asks the camera to reframe or the GPU to keep every full-size image
  * resident in the scene.
  */
-export function CertificateGalleryOverlay({ open, selectedSlug, onSelect, onClose }: Props) {
+export function CertificateGalleryOverlay({
+  open,
+  selectedSlug,
+  onSelect,
+  onClose,
+  onNavigateNext,
+}: Props) {
   const workingSet = useWorkingSetStore();
   const panelRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const fitTitle = useCallback(() => {
+    const el = titleRef.current;
+    if (!el) return;
+    el.style.fontSize = "";
+    const baseSize = parseFloat(window.getComputedStyle(el).fontSize);
+    const available = el.clientWidth;
+    const needed = el.scrollWidth;
+    if (available > 0 && needed > available) {
+      el.style.fontSize = `${(baseSize * available) / needed}px`;
+    }
+  }, []);
   const selectedIndex = useMemo(() => {
     const index = CERTIFICATES.findIndex(({ slug }) => slug === selectedSlug);
     return index < 0 ? 0 : index;
@@ -65,6 +84,17 @@ export function CertificateGalleryOverlay({ open, selectedSlug, onSelect, onClos
     return () => window.cancelAnimationFrame(frame);
   }, [open, selectedIndex]);
 
+  useLayoutEffect(() => {
+    if (!open) return;
+    fitTitle();
+  }, [fitTitle, open, certificate?.slug]);
+
+  useEffect(() => {
+    if (!open) return;
+    window.addEventListener("resize", fitTitle);
+    return () => window.removeEventListener("resize", fitTitle);
+  }, [fitTitle, open]);
+
   useEffect(() => {
     if (!open) return;
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -83,11 +113,12 @@ export function CertificateGalleryOverlay({ open, selectedSlug, onSelect, onClos
         event.preventDefault();
         event.stopPropagation();
         if (next) onSelect(next.slug);
+        else onNavigateNext?.();
       }
     };
     panelRef.current?.addEventListener("keydown", handleKeyDown);
     return () => panelRef.current?.removeEventListener("keydown", handleKeyDown);
-  }, [next, onClose, onSelect, open, previous]);
+  }, [next, onClose, onNavigateNext, onSelect, open, previous]);
 
   if (!open || !certificate) return null;
 
@@ -143,13 +174,14 @@ export function CertificateGalleryOverlay({ open, selectedSlug, onSelect, onClos
                 className="certificate-gallery-image"
                 loading="eager"
                 decoding="async"
-                onLoad={() =>
+                onLoad={() => {
                   workingSet.resourceEvent("prepare-end", "certificate-original", {
                     status: "resident",
                     cache: "browser",
                     detail: certificate.image,
-                  })
-                }
+                  });
+                  fitTitle();
+                }}
                 onError={() =>
                   workingSet.resourceEvent("error", "certificate-original", {
                     status: "error",
@@ -160,26 +192,16 @@ export function CertificateGalleryOverlay({ open, selectedSlug, onSelect, onClos
               />
             </a>
             <figcaption className="certificate-gallery-caption">
-              <div>
-                <h2>{certificate.title}</h2>
-                <p>{certificate.date}</p>
-              </div>
-              <a
-                href={certificate.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="certificate-gallery-open"
-              >
-                Open certificate <span aria-hidden="true">↗</span>
-              </a>
+              <h2 ref={titleRef}>{certificate.title}</h2>
+              <p>{certificate.date}</p>
             </figcaption>
           </figure>
           <button
             type="button"
             className="certificate-gallery-nav certificate-gallery-nav-next"
-            onClick={() => next && onSelect(next.slug)}
-            disabled={!next}
-            aria-label="Next certificate"
+            onClick={() => (next ? onSelect(next.slug) : onNavigateNext?.())}
+            disabled={!next && !onNavigateNext}
+            aria-label={next ? "Next certificate" : "Next scene"}
           >
             <GalleryArrow direction="next" />
           </button>
