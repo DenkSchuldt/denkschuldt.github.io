@@ -459,7 +459,7 @@ PORTFOLIO_PAGE_GEOMETRY.center();
 PORTFOLIO_PAGE_GEOMETRY.rotateX(-Math.PI / 2);
 PORTFOLIO_PAGE_GEOMETRY.computeVertexNormals();
 const PORTFOLIO_PAGE_SURFACE_GEOMETRY = new THREE.PlaneGeometry(0.704, 0.682);
-const POEM_READ_CUE_GEOMETRY = new THREE.ShapeGeometry(roundedRectangleShape(0.28, 0.08, 0.04), 8);
+const POEM_READ_CUE_GEOMETRY = new THREE.ShapeGeometry(roundedRectangleShape(0.34, 0.08, 0.04), 8);
 const PORTFOLIO_RING_GEOMETRY = new THREE.TorusGeometry(0.032, 0.007, 4, 8, Math.PI * 1.75);
 // Small washers make the paper-to-ring connection legible at the close reading shot.
 // They sit on the top sheet only; the real binding is carried by the low-poly torus rings.
@@ -992,8 +992,10 @@ function PortfolioPolaroid({ active }: { active: boolean }) {
 }
 
 const POEM_PREVIEW_FONT_SIZE = 34;
+const POEM_PREVIEW_INTRO =
+  "Poetry is how I make sense of what I feel, what I lose, and what I still hope to find.\n\nI write about love, absence, identity, time, and the strange experience of being alive.";
 
-function createPoemPreviewTexture(poem: PoemRecord | null) {
+function createPoemPreviewTexture() {
   const canvas = document.createElement("canvas");
   canvas.width = 1024;
   canvas.height = 1160;
@@ -1004,50 +1006,41 @@ function createPoemPreviewTexture(poem: PoemRecord | null) {
   context.textBaseline = "top";
   context.fillStyle = "#17130f";
   context.font = '600 72px Georgia, "Times New Roman", serif';
-  context.fillText(poem?.title ?? "Poems", 78, 72, 868);
+  context.fillText("Poems", 78, 72, 868);
   context.fillStyle = "#332a23";
   context.fillRect(78, 150, 54, 2);
-  if (poem?.body) {
-    context.font = `${POEM_PREVIEW_FONT_SIZE}px Georgia, "Times New Roman", serif`;
-    context.fillStyle = "#211a15";
-    const paragraphs = poem.body
-      .split(/\n{2,}/)
-      .map((paragraph) => paragraph.replace(/\s+/g, " ").trim())
-      .filter(Boolean);
-    const lines: string[] = [];
-    for (const paragraph of paragraphs) {
-      const words = paragraph.split(" ");
-      let line = "";
-      for (const word of words) {
-        const candidate = line ? `${line} ${word}` : word;
-        if (line && context.measureText(candidate).width > 868) {
-          lines.push(line);
-          line = word;
-        } else line = candidate;
-      }
-      if (line) lines.push(line);
-      lines.push("");
+  context.font = `${POEM_PREVIEW_FONT_SIZE}px Georgia, "Times New Roman", serif`;
+  context.fillStyle = "#211a15";
+  const paragraphs = POEM_PREVIEW_INTRO.split(/\n{2,}/)
+    .map((paragraph) => paragraph.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+  const lines: string[] = [];
+  for (const paragraph of paragraphs) {
+    const words = paragraph.split(" ");
+    let line = "";
+    for (const word of words) {
+      const candidate = line ? `${line} ${word}` : word;
+      if (line && context.measureText(candidate).width > 868) {
+        lines.push(line);
+        line = word;
+      } else line = candidate;
     }
-    if (lines.at(-1) === "") lines.pop();
-    const visibleLines = lines.slice(0, 8);
-    if (lines.length > visibleLines.length && visibleLines.length)
-      visibleLines[visibleLines.length - 1] =
-        `${visibleLines[visibleLines.length - 1].replace(/[.…]+$/g, "")}…`;
-    visibleLines.forEach((line, index) =>
-      context.fillText(line, 78, 190 + index * POEM_PREVIEW_FONT_SIZE * 1.3),
-    );
-  } else {
-    context.fillStyle = "#6f6257";
-    context.font = '27px Georgia, "Times New Roman", serif';
-    context.fillText("Select a poem to read", 78, 194);
+    if (line) lines.push(line);
+    lines.push("");
   }
-  if (poem) {
-    context.textAlign = "right";
-    context.textBaseline = "top";
-    context.fillStyle = "#706356";
-    context.font = '24px Georgia, "Times New Roman", serif';
-    context.fillText(`${poem.date}  ·  Click to read`, 946, 1090);
-  }
+  if (lines.at(-1) === "") lines.pop();
+  const visibleLines = lines.slice(0, 8);
+  if (lines.length > visibleLines.length && visibleLines.length)
+    visibleLines[visibleLines.length - 1] =
+      `${visibleLines[visibleLines.length - 1].replace(/[.…]+$/g, "")}…`;
+  visibleLines.forEach((line, index) =>
+    context.fillText(line, 78, 190 + index * POEM_PREVIEW_FONT_SIZE * 1.3),
+  );
+  context.textAlign = "right";
+  context.textBaseline = "top";
+  context.fillStyle = "#706356";
+  context.font = '24px Georgia, "Times New Roman", serif';
+  context.fillText("Click to read", 946, 1090);
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = 8;
@@ -1069,7 +1062,7 @@ function usePoemPreviewTexture(poem: PoemRecord | null, enabled: boolean) {
       cache: "owned",
       detail: poem?.slug ?? "ambient",
     });
-    const next = createPoemPreviewTexture(poem);
+    const next = createPoemPreviewTexture();
     setTexture(next);
     if (next) {
       workingSet.resourceEvent("prepare-end", "poem-preview-texture", {
@@ -1175,12 +1168,12 @@ function PoemReadCue({
       </mesh>
       <Text
         position={[0, 0, 0.004]}
-        fontSize={0.022}
-        letterSpacing={0.045}
+        fontSize={0.02}
+        letterSpacing={0.02}
         anchorX="center"
         anchorY="middle"
       >
-        READ POEMS
+        READ MY POETRY
         <meshBasicMaterial
           ref={labelRef}
           color="#f4ecdf"
@@ -2297,6 +2290,33 @@ function CertificateGallery({
   );
 }
 
+const PLACEHOLDER_CERTIFICATE_COLOR = "#847e73";
+
+function CertificatePlaceholders() {
+  return (
+    <>
+      {CERTIFICATE_LAYOUT.map(({ index, x, y, rotation, tiltY, scale, depth }) => (
+        <RoundedBox
+          key={CERTIFICATES[index].image}
+          args={[0.482, 0.354, 0.035]}
+          radius={0.012}
+          position={[x, y, depth]}
+          rotation={[0, tiltY, rotation]}
+          scale={scale}
+          raycast={() => null}
+          castShadow
+        >
+          <meshStandardMaterial
+            color={PLACEHOLDER_CERTIFICATE_COLOR}
+            roughness={0.94}
+            metalness={0.02}
+          />
+        </RoundedBox>
+      ))}
+    </>
+  );
+}
+
 function ShelfPracticalLighting({ illuminated }: { illuminated: boolean }) {
   const lightRefs = useRef<THREE.RectAreaLight[]>([]);
   const ledRefs = useRef<THREE.MeshStandardMaterial[]>([]);
@@ -2516,8 +2536,10 @@ export function Shelf({
       </group>
       {/* Thumbnails are the ambient shelf artwork. Full-size certificate images
         are rendered by the HTML gallery, not as a second 3D card texture. */}
-      {thumbnailsResident && (
+      {thumbnailsResident ? (
         <CertificateGallery illuminated={illuminated} onCertificateSelect={onCertificateSelect} />
+      ) : (
+        <CertificatePlaceholders />
       )}
     </group>
   );

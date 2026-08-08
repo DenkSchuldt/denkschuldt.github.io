@@ -295,7 +295,11 @@ export function useCinematicNavigation(
   const [visitedAutoScenes, setVisitedAutoScenes] = useState<SceneId[]>([]);
 
   const routeLocation = normalizeLocation(initialValue);
-  const initialRequested = directEntry ? routeLocation : locationForScene("about");
+  // Requesting "about" here used to be what drove the camera onward once the
+  // intro cinematic finished. Now that nothing auto-navigates the visitor
+  // there, the initial request must match the resting shot ("opening") or
+  // the rig's per-frame shot-transition logic keeps chasing "about" forever.
+  const initialRequested = directEntry ? routeLocation : locationForScene("opening");
   const initialCurrent = directEntry ? routeLocation : locationForScene("opening");
 
   const [engine] = useState(() => {

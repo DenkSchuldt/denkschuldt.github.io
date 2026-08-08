@@ -131,22 +131,15 @@ export function usePoems(activeSlug: string | null, enabled = false): PoemsConte
         results.flatMap(({ poem }) => (poem ? [[poem.slug, poem] as const] : [])),
       );
       const error = results.find((result) => result.error)?.error ?? null;
-      setState((current) => {
-        const requested = state.poems[index]?.slug;
-        const keep = new Set([requested, ...targets.map(({ slug }) => slug)]);
-        return {
-          ...current,
-          error: error ?? current.error,
-          poems: current.poems.map((candidate) => {
-            const next = loaded.get(candidate.slug) ?? candidate;
-            return keep.has(candidate.slug) ? next : next.body ? { ...next, body: "" } : next;
-          }),
-        };
-      });
+      setState((current) => ({
+        ...current,
+        error: error ?? current.error,
+        poems: current.poems.map((candidate) => loaded.get(candidate.slug) ?? candidate),
+      }));
       workingSet.resourceEvent(error ? "error" : "prepare-end", "poem-markdown", {
         status: error ? "error" : "resident",
         cache: "browser",
-        detail: error ?? `${loaded.size} body reference(s); bounded to selected and neighbours`,
+        detail: error ?? `${loaded.size} body reference(s); retained for the session`,
       });
     });
     return () => {

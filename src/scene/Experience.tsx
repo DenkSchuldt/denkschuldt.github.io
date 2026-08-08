@@ -24,7 +24,6 @@ import {
   locationForScene,
   SCENE_REGISTRY,
 } from "./camera/sceneRegistry";
-import { INTRO_DESTINATION } from "./camera/shotRegistry";
 import {
   useAutoSceneNavigation,
   useCameraKeyboardNavigation,
@@ -306,7 +305,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
       })),
     [poemNavigationKey],
   );
-  const { syncRoute, goToScene, resumeFromStart, cameraState, introVersion } = cameraSystem;
+  const { syncRoute, goToScene, resumeFromStart } = cameraSystem;
 
   useEffect(() => {
     sceneReadyRef.current = sceneReady;
@@ -560,31 +559,12 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
     [cameraSystem],
   );
 
-  useCameraPinchNavigation(cameraSystem, goToWorkspace);
+  const navigateToNextScene = useCallback(() => {
+    cameraSystem.exitFocus();
+    cameraSystem.nextScene();
+  }, [cameraSystem]);
 
-  useEffect(() => {
-    if (route.path !== "/" || route.directEntry) return;
-    let frame = 0;
-    let sawOpening = false;
-    const waitForOpening = () => {
-      const state = cameraState.current;
-      if (state.isIntroActive) sawOpening = true;
-      if (
-        sawOpening &&
-        state.introComplete &&
-        state.currentTarget === "opening" &&
-        state.requestedTarget === "opening"
-      )
-        return;
-      if (sawOpening && state.introComplete && state.currentTarget === INTRO_DESTINATION) {
-        goToScene("about", INTRO_DESTINATION);
-        return;
-      }
-      frame = window.requestAnimationFrame(waitForOpening);
-    };
-    frame = window.requestAnimationFrame(waitForOpening);
-    return () => window.cancelAnimationFrame(frame);
-  }, [route.path, route.directEntry, cameraState, introVersion, goToScene]);
+  useCameraPinchNavigation(cameraSystem, goToWorkspace);
 
   const settings = SETTINGS;
   const onProfile = useCallback(
@@ -670,6 +650,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
           >
             <span>Entering workspace</span>
           </div>
+          <p className="workspace-badge">Denny&rsquo;s Workspace</p>
           <NavigationDebugPanel
             visible={cameraSystem.navigationDebug}
             stateRef={cameraSystem.cameraState}
@@ -688,6 +669,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
               onNext={cameraSystem.nextScene}
               onEnterFocus={cameraSystem.enterFocus}
               onExitFocus={cameraSystem.exitFocus}
+              poemReaderOpen={poemReaderOpen}
             />
           </Profiler>
           <CertificateGalleryOverlay
@@ -695,6 +677,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
             selectedSlug={cameraSystem.selectedFocusItem}
             onSelect={selectCertificate}
             onClose={cameraSystem.exitFocus}
+            onNavigateNext={navigateToNextScene}
           />
           {projectsResourcesResident && (
             <Suspense fallback={null}>

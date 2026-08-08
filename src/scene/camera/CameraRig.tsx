@@ -394,24 +394,15 @@ export function CameraRig(props: Props) {
         }
 
         const elapsed = now - transitionStart.current;
-
-        if (props.reducedMotion) {
+        // The intro cinematic used to always finish by panning on to "about"
+        // (INTRO_DESTINATION). Visitors now navigate there themselves, so the
+        // intro simply settles at "opening" and stops once its hold elapses.
+        const holdDuration = props.reducedMotion ? 0 : props.openingHold;
+        if (elapsed >= holdDuration && !transitioning.current) {
           introActive.current = false;
           introComplete.current = true;
-          beginTransition(INTRO_DESTINATION, now, 0.18);
-        } else if (elapsed >= props.openingHold && !transitioning.current) {
-          const aspect = size.width / size.height;
-          const workspace = tuneTarget(
-            resolveCameraTarget(INTRO_PAN_SHOT, aspect),
-            props.tuning,
-            aspect,
-          );
-          beginTransition(
-            INTRO_DESTINATION,
-            now,
-            props.openingDuration - props.openingHold,
-            workspace.position,
-          );
+          requestedId.current = "opening";
+          props.onTransitionComplete?.();
         }
       }
 
