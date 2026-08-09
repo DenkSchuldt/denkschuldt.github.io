@@ -1,7 +1,6 @@
 import type { CameraTargetMap } from "./types";
 
 export const PALETTE = {
-  wall: "#3c3934",
   floor: "#29231d",
   wood: "#38261b",
   woodEdge: "#211712",

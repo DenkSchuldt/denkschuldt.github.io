@@ -15,7 +15,7 @@ const luminanceReference = JSON.parse(
 test("desktop and mobile preserve the intended renderer and post-processing limits", () => {
   assert.deepEqual(RENDERING_INTENT.renderer, {
     toneMapping: "ACESFilmicToneMapping",
-    exposure: 0.68,
+    exposure: 0.82,
     outputColorSpace: "srgb",
     powerPreference: "high-performance",
     antialias: true,
@@ -32,7 +32,7 @@ test("desktop and mobile preserve the intended renderer and post-processing limi
       RENDERING_INTENT.postProcessing.vignetteLimit,
   );
   assert.deepEqual(RENDERING_INTENT.lighting.essentialLights, [
-    "moon-key",
+    "sun-key",
     "desk-key",
     "hemisphere-fill",
     "drawer-rim",
@@ -40,8 +40,8 @@ test("desktop and mobile preserve the intended renderer and post-processing limi
 });
 
 test("responsive fill preserves desktop and lifts mobile dark-surface separation", () => {
-  assert.equal(resolveHemisphereIntensity(0.62, 16 / 9), 0.0992);
-  assert.equal(resolveHemisphereIntensity(0.62, 390 / 720), 0.775);
+  assert.equal(resolveHemisphereIntensity(0.62, 16 / 9), 0.31);
+  assert.equal(resolveHemisphereIntensity(0.62, 390 / 720), 1.085);
   assert.ok(resolveHemisphereIntensity(0.62, 390 / 720) > resolveHemisphereIntensity(0.62, 16 / 9));
 });
 

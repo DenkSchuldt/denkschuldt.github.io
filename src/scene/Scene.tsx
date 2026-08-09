@@ -36,11 +36,42 @@ const LAPTOP_SCREEN_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vecto
     new THREE.Vector3(-0.5, -0.5, 0),
   ];
 
-function LaptopScreenProjection({
+// Half-extents of the paper's planeGeometry (0.708 x 1.008 scene units).
+const PAPER_SURFACE_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector3, THREE.Vector3] =
+  [
+    new THREE.Vector3(-0.354, 0.504, 0),
+    new THREE.Vector3(0.354, 0.504, 0),
+    new THREE.Vector3(0.354, -0.504, 0),
+    new THREE.Vector3(-0.354, -0.504, 0),
+  ];
+
+// Half-extents of the polaroid card's planeGeometry (0.26 x 0.37 scene
+// units) — see PolaroidPhoto's tracking mesh in objects/Primitives.tsx.
+const POLAROID_SCREEN_CORNERS: readonly [
+  THREE.Vector3,
+  THREE.Vector3,
+  THREE.Vector3,
+  THREE.Vector3,
+] = [
+  new THREE.Vector3(-0.13, 0.185, 0),
+  new THREE.Vector3(0.13, 0.185, 0),
+  new THREE.Vector3(0.13, -0.185, 0),
+  new THREE.Vector3(-0.13, -0.185, 0),
+];
+
+// Projects a flat mesh's four corners into screen-space pixel coordinates
+// every frame, so an HTML overlay can be perspective-warped (via CSS
+// matrix3d) to sit exactly over that mesh. Used for both the laptop screen
+// and the desk paper.
+function PlanarProjection({
+  label,
+  corners,
   screenRef,
   projectionRef,
   enabled = true,
 }: {
+  label: string;
+  corners: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector3, THREE.Vector3];
   screenRef: React.MutableRefObject<THREE.Mesh | null>;
   projectionRef: ScreenProjectionRef;
   enabled?: boolean;
@@ -48,14 +79,14 @@ function LaptopScreenProjection({
   const { camera, size } = useThree();
   const scheduler = useRenderSchedulerStore();
   const lastSignature = useRef("");
-  const projected = LAPTOP_SCREEN_CORNERS.map(() => new THREE.Vector3()) as [
+  const projected = corners.map(() => new THREE.Vector3()) as [
     THREE.Vector3,
     THREE.Vector3,
     THREE.Vector3,
     THREE.Vector3,
   ];
   useFrame(() =>
-    measurePerformanceTask("LaptopScreenProjection", () => {
+    measurePerformanceTask(label, () => {
       if (!enabled) return;
       const screen = screenRef.current;
       if (!screen) return;
@@ -73,7 +104,7 @@ function LaptopScreenProjection({
       if (signature === lastSignature.current) return;
       lastSignature.current = signature;
       projected.forEach((corner, index) => {
-        corner.copy(LAPTOP_SCREEN_CORNERS[index]).applyMatrix4(screen.matrixWorld).project(camera);
+        corner.copy(corners[index]).applyMatrix4(screen.matrixWorld).project(camera);
       });
       projectionRef.current = {
         points: projected.map(({ x, y }) => ({
@@ -97,8 +128,8 @@ const CinematicEffects = lazy(() => import("./effects/CinematicEffects"));
 
 export interface SceneSettings {
   desk: number;
-  moon: number;
-  moonColor: string;
+  sun: number;
+  sunColor: string;
   bounce: number;
   bloom: number;
   fog: number;
@@ -151,6 +182,11 @@ interface SceneProps {
   onReady?: () => void;
   laptopScreenRef: React.MutableRefObject<THREE.Mesh | null>;
   screenProjectionRef: ScreenProjectionRef;
+  paperScreenRef: React.MutableRefObject<THREE.Mesh | null>;
+  paperProjectionRef: ScreenProjectionRef;
+  polaroidScreenRef: React.MutableRefObject<THREE.Mesh | null>;
+  polaroidProjectionRef: ScreenProjectionRef;
+  onPhotoOpen?: () => void;
 }
 
 export function Scene({
@@ -165,6 +201,11 @@ export function Scene({
   onReady,
   laptopScreenRef,
   screenProjectionRef,
+  paperScreenRef,
+  paperProjectionRef,
+  polaroidScreenRef,
+  polaroidProjectionRef,
+  onPhotoOpen,
 }: SceneProps) {
   const { size } = useThree();
   const renderDemand = useRenderDemand("scene");
@@ -207,12 +248,12 @@ export function Scene({
 
   return (
     <>
-      <color attach="background" args={["#070707"]} />
-      <fog attach="fog" args={["#111216", 7, s.fog]} />
+      <color attach="background" args={["#2c3238"]} />
+      <fog attach="fog" args={["#31373d", 7, s.fog]} />
       <Lighting
         desk={s.desk}
-        moon={s.moon}
-        moonColor={s.moonColor}
+        sun={s.sun}
+        sunColor={s.sunColor}
         bounce={s.bounce}
         fillEnabled={renderIsolation.fillLighting}
         shadowsEnabled={renderIsolation.shadows}
@@ -227,10 +268,12 @@ export function Scene({
       <Room />
       <Desk />
       <Laptop position={s.laptopPosition} rotation={s.laptopRotation} screenRef={laptopScreenRef} />
-      <LaptopScreenProjection
+      <PlanarProjection
+        label="LaptopScreenProjection"
+        corners={LAPTOP_SCREEN_CORNERS}
         screenRef={laptopScreenRef}
         projectionRef={screenProjectionRef}
-        enabled={qualityFeatures.laptopProjection}
+        enabled={qualityFeatures.screenProjection}
       />
       <DeskObjects
         coffeePosition={s.coffeePosition}
@@ -241,12 +284,29 @@ export function Scene({
         paperRotation={s.paperRotation}
         penPosition={s.penPosition}
         penRotation={s.penRotation}
+        paperScreenRef={paperScreenRef}
+        photoScreenRef={polaroidScreenRef}
         activeScene={cameraSystem.selectedScene}
         poemsContent={poemsContent}
         activePoemSlug={
           cameraSystem.selectedFocusCollection === "poems" ? cameraSystem.selectedFocusItem : null
         }
         onPoemRead={onPoemRead}
+        onPhotoOpen={onPhotoOpen}
+      />
+      <PlanarProjection
+        label="PaperScreenProjection"
+        corners={PAPER_SURFACE_CORNERS}
+        screenRef={paperScreenRef}
+        projectionRef={paperProjectionRef}
+        enabled={qualityFeatures.screenProjection}
+      />
+      <PlanarProjection
+        label="PolaroidScreenProjection"
+        corners={POLAROID_SCREEN_CORNERS}
+        screenRef={polaroidScreenRef}
+        projectionRef={polaroidProjectionRef}
+        enabled={qualityFeatures.screenProjection}
       />
       {size.width > 760 && chairMounted && <Chair />}
       <Shelf
@@ -264,6 +324,7 @@ export function Scene({
             readingMode={
               cameraSystem.selectedScene === "about" ||
               cameraSystem.selectedScene === "certificates" ||
+              cameraSystem.selectedScene === "poems" ||
               cameraSystem.cameraState.current.introActive
             }
             isolation={renderIsolation}

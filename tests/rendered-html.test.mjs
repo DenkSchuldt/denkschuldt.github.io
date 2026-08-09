@@ -123,7 +123,7 @@ test("keeps heavy WebGL resources outside the initial loading boundary", async (
   );
   assert.match(effects, /multisampling=\{0\}/);
   assert.doesNotMatch(scene, /loadCertificates|loadTextures/);
-  assert.match(primitives, /<CertificateGallery illuminated=\{illuminated\}/);
+  assert.match(primitives, /<CertificateGallery\s+illuminated=\{illuminated\}/);
   assert.match(primitives, /<PosterImages \/>/);
   assert.match(primitives, /<PortfolioPhoto materialRef=\{photoMaterialRef\} \/>/);
   assert.match(

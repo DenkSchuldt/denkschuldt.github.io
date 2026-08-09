@@ -25,7 +25,7 @@ const thumbnailSizes = await Promise.all(
   thumbnailNames.map(async (name) => (await stat(new URL(name, thumbnailDirectory))).size),
 );
 const thumbnailBytes = thumbnailSizes.reduce((sum, size) => sum + size, 0);
-assert.equal(thumbnailNames.length, 14, "Every certificate must have one shelf thumbnail.");
+assert.equal(thumbnailNames.length, 15, "Every certificate must have one shelf thumbnail.");
 assert.ok(
   Math.max(...thumbnailSizes) <= 50 * 1024,
   "A certificate thumbnail exceeds the 50 KiB per-file budget.",

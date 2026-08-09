@@ -158,11 +158,11 @@ export const SCENE_REGISTRY: Record<SceneId, SceneDefinition> = {
     },
     responsive: {
       mobile: {
-        position: poemsPageCameraPosition(2.4, 0.03),
+        position: poemsPageCameraPosition(3.55, 0.08),
         lookAt: POEMS_PAGE_LAYOUT.mobileReadingTarget,
-        fov: 17,
+        fov: 37,
         safeMargins: { top: 0.08, right: 0.07, bottom: 0.14, left: 0.07 },
-        composition: "tight crop on the right-hand reading page only",
+        composition: "single readable poem page with notebook spine context",
       },
       tablet: {
         position: poemsAlignedCameraPosition(3.72, 0.2),

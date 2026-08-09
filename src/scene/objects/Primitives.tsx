@@ -17,6 +17,7 @@ import { useRuntimeSnapshot, useRuntimeTask } from "@denk/cinematic-navigation/r
 
 import { withSceneBasePath } from "../camera/sceneRoutes";
 import { PALETTE as C } from "../constants";
+import { RENDERING_INTENT } from "../rendering/renderingIntent";
 import {
   measurePerformanceTask,
   performanceDiagnostics,
@@ -585,7 +586,63 @@ function useMacBookShellGeometry(
   return geometry;
 }
 
+const WALL_GRAIN_TEXTURE_SIZE = 128;
+const WALL_GRAIN_TILE_SIZE = 0.35; // world units per grain repeat — fine, paint-like scale
+
+// Independent per-pixel noise, not smoothed/Perlin noise, so it tiles with
+// no visible seam by construction. Used as a roughnessMap only (see
+// useWallGrainTexture below) — a plain painted-plaster micro-variation, not
+// a normal/bump map and not a screen-space grain filter.
+function createWallGrainTexture(strength: number) {
+  const canvas = document.createElement("canvas");
+  canvas.width = WALL_GRAIN_TEXTURE_SIZE;
+  canvas.height = WALL_GRAIN_TEXTURE_SIZE;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+  const image = ctx.createImageData(WALL_GRAIN_TEXTURE_SIZE, WALL_GRAIN_TEXTURE_SIZE);
+  const low = 255 * (1 - strength);
+  for (let i = 0; i < image.data.length; i += 4) {
+    const value = Math.round(low + Math.random() * (255 - low));
+    image.data[i] = value;
+    image.data[i + 1] = value;
+    image.data[i + 2] = value;
+    image.data[i + 3] = 255;
+  }
+  ctx.putImageData(image, 0, 0);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  texture.colorSpace = THREE.NoColorSpace;
+  texture.anisotropy = 8;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function useWallGrainTexture(width: number, height: number) {
+  const base = useMemo(
+    () =>
+      typeof document === "undefined"
+        ? null
+        : createWallGrainTexture(RENDERING_INTENT.architecture.wallGrainStrength),
+    [],
+  );
+  const tiled = useMemo(() => {
+    if (!base) return null;
+    const texture = base.clone();
+    texture.repeat.set(
+      Math.round(width / WALL_GRAIN_TILE_SIZE),
+      Math.round(height / WALL_GRAIN_TILE_SIZE),
+    );
+    texture.needsUpdate = true;
+    return texture;
+  }, [base, width, height]);
+  useEffect(() => () => tiled?.dispose(), [tiled]);
+  useEffect(() => () => base?.dispose(), [base]);
+  return tiled;
+}
+
 export function Room() {
+  const backWallGrain = useWallGrainTexture(18, 8);
+  const accentWallGrain = useWallGrainTexture(8, 8);
   return (
     <group>
       <mesh rotation-x={-Math.PI / 2} receiveShadow>
@@ -594,7 +651,12 @@ export function Room() {
       </mesh>
       <mesh position={[0, 4, -4]} receiveShadow>
         <planeGeometry args={[18, 8]} />
-        <meshStandardMaterial color={C.wall} {...mat} />
+        <meshStandardMaterial
+          color={RENDERING_INTENT.architecture.lightWallColor}
+          roughness={RENDERING_INTENT.architecture.wallRoughness}
+          roughnessMap={backWallGrain}
+          metalness={0}
+        />
       </mesh>
       <mesh position={[-6, 4, 0]} rotation-y={Math.PI / 2} receiveShadow>
         <planeGeometry args={[8, 8]} />
@@ -602,15 +664,16 @@ export function Room() {
       </mesh>
       <mesh position={[5.85, 4, 0]} rotation-y={-Math.PI / 2} receiveShadow>
         <planeGeometry args={[8, 8]} />
-        <meshStandardMaterial color="#29292b" {...mat} />
+        <meshStandardMaterial
+          color={RENDERING_INTENT.architecture.accentWallColor}
+          roughness={RENDERING_INTENT.architecture.wallRoughness}
+          roughnessMap={accentWallGrain}
+          metalness={0}
+        />
       </mesh>
       <mesh position={[0, 8, 0]} rotation-x={Math.PI / 2}>
         <planeGeometry args={[18, 15]} />
         <meshStandardMaterial color="#24221f" {...mat} />
-      </mesh>
-      <mesh position={[-5.94, 3.65, -0.7]} rotation-y={Math.PI / 2}>
-        <planeGeometry args={[3.3, 3.8]} />
-        <meshStandardMaterial color="#151a20" roughness={0.5} />
       </mesh>
       <ArchitecturalWoodwork />
     </group>
@@ -802,10 +865,13 @@ interface DeskObjectsProps {
   paperRotation: number;
   penPosition: [number, number];
   penRotation: number;
+  paperScreenRef?: MutableRefObject<THREE.Mesh | null>;
+  photoScreenRef?: MutableRefObject<THREE.Mesh | null>;
   activeScene: SceneId;
   poemsContent: PoemsContentState;
   activePoemSlug: string | null;
   onPoemRead: () => void;
+  onPhotoOpen?: () => void;
 }
 
 export function DeskObjects({
@@ -817,10 +883,13 @@ export function DeskObjects({
   paperRotation,
   penPosition,
   penRotation,
+  paperScreenRef,
+  photoScreenRef,
   activeScene,
   poemsContent,
   activePoemSlug,
   onPoemRead,
+  onPhotoOpen,
 }: DeskObjectsProps) {
   // --------------------------------------------------------------------------
   // Derived State
@@ -831,6 +900,7 @@ export function DeskObjects({
   const isPhoneActive = activeScene === "phone";
   const isPoemsActive = activeScene === "poems";
   const isPoemsMounted = activeScene === "opening" || activeScene === "poems";
+  const isAboutActive = activeScene === "about";
 
   // --------------------------------------------------------------------------
   // Render
@@ -843,6 +913,10 @@ export function DeskObjects({
         rotation={paperRotation}
         penPosition={penPosition}
         penRotation={penRotation}
+        screenRef={paperScreenRef}
+        photoScreenRef={photoScreenRef}
+        photoActive={isAboutActive}
+        onPhotoOpen={onPhotoOpen}
       />
 
       <Phone active={isPhoneActive} />
@@ -1634,16 +1708,145 @@ function Phone({ active }: { active: boolean }) {
   );
 }
 
+// Source photo is 2653x3538 (portrait). Hardcoded like PosterImages' own
+// sourceAspect values, so the photo plane isn't stretched.
+const ME_PHOTO_ASPECT = 2653 / 3538;
+const POLAROID_CARD_WIDTH = 0.26;
+const POLAROID_CARD_HEIGHT = 0.37;
+const POLAROID_PHOTO_MARGIN = 0.016;
+const POLAROID_PHOTO_WIDTH = POLAROID_CARD_WIDTH - POLAROID_PHOTO_MARGIN * 2;
+const POLAROID_PHOTO_HEIGHT = POLAROID_PHOTO_WIDTH / ME_PHOTO_ASPECT;
+// Offsets the photo toward the top of the card, leaving the classic thicker
+// polaroid strip below it.
+const POLAROID_PHOTO_Z_OFFSET =
+  POLAROID_CARD_HEIGHT / 2 - POLAROID_PHOTO_MARGIN - POLAROID_PHOTO_HEIGHT / 2;
+const POLAROID_CLIP_WOOD_MATERIAL = new THREE.MeshStandardMaterial({
+  color: "#c9a876",
+  roughness: 0.68,
+});
+const POLAROID_CLIP_METAL_MATERIAL = new THREE.MeshStandardMaterial({
+  color: "#b7bcc2",
+  metalness: 0.7,
+  roughness: 0.35,
+});
+
+// A plain wooden clothespin — an elongated capsule with a thin metal band
+// around its middle — clipped across the top edge where the polaroid
+// overlaps the paper. Simpler and more unmistakably "a clip" than a
+// hand-modeled paperclip silhouette.
+function PolaroidClip() {
+  return (
+    <group position={[-POLAROID_CARD_WIDTH / 2 + 0.04, 0.009, -POLAROID_CARD_HEIGHT / 2 - 0.004]}>
+      <Capsule args={[0.0055, 0.05, 4, 8]} rotation-z={Math.PI / 2} castShadow>
+        <primitive object={POLAROID_CLIP_WOOD_MATERIAL} attach="material" />
+      </Capsule>
+      <mesh rotation-y={Math.PI / 2} castShadow>
+        <torusGeometry args={[0.0062, 0.0012, 8, 16]} />
+        <primitive object={POLAROID_CLIP_METAL_MATERIAL} attach="material" />
+      </mesh>
+    </group>
+  );
+}
+
+function PolaroidPhoto({
+  active,
+  onOpen,
+  screenRef,
+}: {
+  active: boolean;
+  onOpen?: () => void;
+  screenRef?: MutableRefObject<THREE.Mesh | null>;
+}) {
+  // Cache-busted: rules out a stale/broken texture cached under the plain
+  // "/me.jpeg" key from an earlier attempt this session.
+  const texture = useTexture(withSceneBasePath("/me.jpeg") + "?polaroid=1");
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 8;
+  const pointerDemand = useRenderDemand("polaroid-pointer");
+  const [hovered, setHovered] = useState(false);
+  const interactive = active;
+  useCursor(hovered && interactive);
+  return (
+    <group
+      position={[0.19, 0.008, -0.3]}
+      rotation-y={THREE.MathUtils.degToRad(-10)}
+      raycast={interactive ? undefined : () => null}
+      onPointerOver={
+        interactive
+          ? () => {
+              setHovered(true);
+              pointerDemand.invalidate("pointer-interaction");
+            }
+          : undefined
+      }
+      onPointerOut={
+        interactive
+          ? () => {
+              setHovered(false);
+              pointerDemand.invalidate("pointer-interaction");
+            }
+          : undefined
+      }
+      onClick={
+        interactive
+          ? (event) => {
+              event.stopPropagation();
+              onOpen?.();
+              pointerDemand.invalidate("pointer-interaction");
+            }
+          : undefined
+      }
+    >
+      <RoundedBox
+        args={[POLAROID_CARD_WIDTH, 0.004, POLAROID_CARD_HEIGHT]}
+        radius={0.004}
+        castShadow
+        receiveShadow
+      >
+        <meshStandardMaterial color="#f2ede2" roughness={0.82} />
+      </RoundedBox>
+      {/* Unlit on purpose: the photo should read the same regardless of
+        this scene's dramatic, direction-heavy lighting, and this rules out
+        any lighting/shadow interaction as a reason it wouldn't show. Y
+        offset intentionally generous to rule out z-fighting against the
+        card underneath it. */}
+      <mesh position={[0, 0.02, -POLAROID_PHOTO_Z_OFFSET]} rotation-x={-Math.PI / 2}>
+        <planeGeometry args={[POLAROID_PHOTO_WIDTH, POLAROID_PHOTO_HEIGHT]} />
+        <meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide} />
+      </mesh>
+      {/* Invisible — exists purely so PlanarProjection (Scene.tsx) can track
+        this card's screen-projected corners for the HTML caption overlay
+        (PolaroidCaptionOverlay), the same technique used for the laptop
+        screen and the paper. The caption is HTML, not 3D text, per the
+        same pixelation concern that moved the "About me" body text to
+        HTML. */}
+      <mesh ref={screenRef} visible={false} rotation-x={-Math.PI / 2}>
+        <planeGeometry args={[POLAROID_CARD_WIDTH, POLAROID_CARD_HEIGHT]} />
+        <meshBasicMaterial />
+      </mesh>
+      <PolaroidClip />
+    </group>
+  );
+}
+
 function PaperAndPen({
   position,
   rotation,
   penPosition,
   penRotation,
+  screenRef,
+  photoScreenRef,
+  photoActive,
+  onPhotoOpen,
 }: {
   position: [number, number];
   rotation: number;
   penPosition: [number, number];
   penRotation: number;
+  screenRef?: MutableRefObject<THREE.Mesh | null>;
+  photoScreenRef?: MutableRefObject<THREE.Mesh | null>;
+  photoActive: boolean;
+  onPhotoOpen?: () => void;
 }) {
   return (
     <group
@@ -1658,47 +1861,12 @@ function PaperAndPen({
           emissiveIntensity={0.08}
         />
       </RoundedBox>
-      <mesh position={[0, 0.004, 0]} rotation-x={-Math.PI / 2}>
+      <mesh ref={screenRef} position={[0, 0.004, 0]} rotation-x={-Math.PI / 2}>
         <planeGeometry args={[0.708, 1.008]} />
         <meshBasicMaterial color="#d2cec5" toneMapped={false} />
       </mesh>
       <Suspense fallback={null}>
-        <Text
-          position={[-0.32, 0.012, -0.46]}
-          rotation-x={-Math.PI / 2}
-          anchorX="left"
-          anchorY="top"
-          fontSize={0.044}
-          fontWeight={700}
-          outlineWidth={0.0012}
-          outlineColor="#000000"
-          font={withSceneBasePath("/fonts/PatrickHand-Regular.ttf")}
-        >
-          About me
-          <meshBasicMaterial color="#000000" toneMapped={false} />
-        </Text>
-        <Text
-          position={[-0.32, 0.011, -0.395]}
-          rotation-x={-Math.PI / 2}
-          anchorX="left"
-          anchorY="top"
-          maxWidth={0.64}
-          fontSize={0.027}
-          fontWeight={400}
-          lineHeight={1.18}
-          font={withSceneBasePath("/fonts/PatrickHand-Regular.ttf")}
-        >
-          {`I build products that think clearly and experiences that move with purpose.
-
-With over a decade of experience across software engineering, UX, and product strategy, I’ve worked between technology and human experience, translating complex flows into intuitive, scalable, and data-driven systems. My experience goes from hands-on development and real-time system design to redefining how a SaaS logistics platform connects technology, operations, and user experience, balancing structure with creativity and meaningful outcomes.
-
-Beyond product development, I’ve had the honor of teaching UX/UI at ESPOL’s coding bootcamp, the top university in my country, guiding professionals and students through usability, analytics, and the creative use of generative AI to enhance design thinking.
-
-Curiosity and precision guide everything I build, connecting logic and empathy to create technology that truly serves people.
-
-Hablante nativo de Español, fluent in English, and conversational in Brazilian Portuguese. Você pode me encontrar online como @DenkSchuldt.`}
-          <meshBasicMaterial color="#000000" toneMapped={false} />
-        </Text>
+        <PolaroidPhoto active={photoActive} onOpen={onPhotoOpen} screenRef={photoScreenRef} />
       </Suspense>
       <Pen position={penPosition} rotation={penRotation} />
     </group>
@@ -2064,6 +2232,84 @@ const AMBIENT_CERTIFICATE_LABEL_COLOR = new THREE.Color("#0c0a08");
 const CERTIFICATE_LIGHT_RISE = 0.44;
 const CERTIFICATE_LIGHT_FALL = 1.1;
 const FRAME_WOOD = ["#36241a", "#251c18", "#463022"] as const;
+const CERTIFICATE_HINT_COLOR = new THREE.Color("#e6a06d");
+
+// A pulsing ring + dot on the first certificate, hinting that cards are
+// clickable. Stays visible for as long as the shelf is illuminated and no
+// certificate has been opened yet; dismissed for the rest of the session
+// the moment the visitor clicks any certificate.
+function CertificateClickHint({
+  illuminated,
+  hovered,
+  dismissed,
+}: {
+  illuminated: boolean;
+  hovered: boolean;
+  dismissed: boolean;
+}) {
+  // Runs for as long as the hint should be visible rather than a bounded
+  // burst — Number.MAX_SAFE_INTEGER just avoids the lease's own expiry from
+  // ever cutting it off first; the effect's cleanup (on illuminated/dismissed
+  // flipping) still releases it immediately.
+  useFeatureSettleLease(
+    "certificate-click-hint",
+    illuminated && !dismissed,
+    "certificate-animation",
+    Number.MAX_SAFE_INTEGER,
+  );
+  const ringRef = useRef<THREE.Mesh>(null);
+  const ringMaterialRef = useRef<THREE.MeshBasicMaterial>(null);
+  const dotMaterialRef = useRef<THREE.MeshBasicMaterial>(null);
+  const active = illuminated && !dismissed && !hovered;
+  useMeasuredRuntimeTask({
+    id: "task:certificate-click-hint",
+    nodeId: "collection:certificates",
+    priority: 20,
+    update: ({ delta, elapsed }) => {
+      if (!ringRef.current || !ringMaterialRef.current || !dotMaterialRef.current) return;
+      const cycle = active ? Math.sin(elapsed * 2.6) * 0.5 + 0.5 : 0;
+      ringRef.current.scale.setScalar(1 + cycle * 0.9);
+      ringMaterialRef.current.opacity = THREE.MathUtils.damp(
+        ringMaterialRef.current.opacity,
+        active ? (1 - cycle) * 0.9 : 0,
+        8,
+        delta,
+      );
+      dotMaterialRef.current.opacity = THREE.MathUtils.damp(
+        dotMaterialRef.current.opacity,
+        active ? 0.95 : 0,
+        8,
+        delta,
+      );
+    },
+  });
+  return (
+    <group position={[0.196, 0.148, 0.05]}>
+      <mesh ref={ringRef}>
+        <ringGeometry args={[0.046, 0.066, 32]} />
+        <meshBasicMaterial
+          ref={ringMaterialRef}
+          color={CERTIFICATE_HINT_COLOR}
+          transparent
+          opacity={0}
+          depthWrite={false}
+          toneMapped={false}
+        />
+      </mesh>
+      <mesh>
+        <circleGeometry args={[0.04, 28]} />
+        <meshBasicMaterial
+          ref={dotMaterialRef}
+          color={CERTIFICATE_HINT_COLOR}
+          transparent
+          opacity={0}
+          depthWrite={false}
+          toneMapped={false}
+        />
+      </mesh>
+    </group>
+  );
+}
 
 function CertificateCard({
   record,
@@ -2076,6 +2322,7 @@ function CertificateCard({
   illuminated,
   runtimeUpdates,
   onSelect,
+  hintDismissed,
 }: {
   record: CertificateRecord;
   texture: THREE.Texture;
@@ -2087,6 +2334,7 @@ function CertificateCard({
   illuminated: boolean;
   runtimeUpdates: boolean;
   onSelect?: (slug: string) => void;
+  hintDismissed: boolean;
 }) {
   const pointerDemand = useRenderDemand(`certificate-pointer:${index}`);
   const ref = useRef<THREE.Group>(null);
@@ -2249,6 +2497,13 @@ function CertificateCard({
           roughness={0.52}
         />
       </mesh>
+      {index === 0 && (
+        <CertificateClickHint
+          illuminated={illuminated}
+          hovered={hovered}
+          dismissed={hintDismissed}
+        />
+      )}
     </group>
   );
 }
@@ -2256,9 +2511,11 @@ function CertificateCard({
 function CertificateGallery({
   illuminated,
   onCertificateSelect,
+  hintDismissed,
 }: {
   illuminated: boolean;
   onCertificateSelect?: (slug: string) => void;
+  hintDismissed: boolean;
 }) {
   const textures = useOwnedTextures(CERTIFICATE_THUMBNAILS, "certificate-thumbnails");
   const runtimeUpdates = useRuntimeSnapshot(
@@ -2284,13 +2541,75 @@ function CertificateGallery({
           illuminated={illuminated}
           runtimeUpdates={runtimeUpdates}
           onSelect={onCertificateSelect}
+          hintDismissed={hintDismissed}
         />
       ))}
     </>
   );
 }
 
-const PLACEHOLDER_CERTIFICATE_COLOR = "#847e73";
+const PLACEHOLDER_CERTIFICATE_SHADES = [
+  "#8c8579",
+  "#847e73",
+  "#7c766c",
+  "#928b7e",
+  "#787268",
+] as const;
+
+// A skeleton-loader layout (one wider "title" bar, a few shorter "body"
+// lines) hinting that a document with text is loading, without any font,
+// texture, or per-line mesh — see CertificatePlaceholderLines below.
+const PLACEHOLDER_LINE_LEFT_MARGIN = -0.19;
+const PLACEHOLDER_LINES = [
+  { y: 0.115, width: 0.24, height: 0.022 },
+  { y: 0.05, width: 0.34, height: 0.013 },
+  { y: 0.01, width: 0.3, height: 0.013 },
+  { y: -0.03, width: 0.32, height: 0.013 },
+  { y: -0.07, width: 0.2, height: 0.013 },
+] as const;
+const PLACEHOLDER_LINE_COUNT = CERTIFICATE_LAYOUT.length * PLACEHOLDER_LINES.length;
+const PLACEHOLDER_LINE_GEOMETRY = new THREE.BoxGeometry(1, 1, 1);
+const PLACEHOLDER_LINE_MATERIAL = new THREE.MeshStandardMaterial({
+  color: "#6d675d",
+  roughness: 0.96,
+});
+
+// One shared InstancedMesh draws every simulated text line across every
+// placeholder card in a single draw call, so the "loading" hint costs
+// effectively nothing regardless of how many cards are still placeholders.
+function CertificatePlaceholderLines() {
+  const linesRef = useRef<THREE.InstancedMesh>(null);
+  useLayoutEffect(() => {
+    const mesh = linesRef.current;
+    if (!mesh) return;
+    const card = new THREE.Object3D();
+    const line = new THREE.Object3D();
+    let instance = 0;
+    CERTIFICATE_LAYOUT.forEach(({ x, y, rotation, tiltY, scale, depth }) => {
+      card.position.set(x, y, depth);
+      card.rotation.set(0, tiltY, rotation);
+      card.scale.setScalar(scale);
+      card.updateMatrix();
+      PLACEHOLDER_LINES.forEach((lineSpec) => {
+        line.position.set(PLACEHOLDER_LINE_LEFT_MARGIN + lineSpec.width / 2, lineSpec.y, 0.021);
+        line.scale.set(lineSpec.width, lineSpec.height, 0.006);
+        line.updateMatrix();
+        line.matrix.premultiply(card.matrix);
+        mesh.setMatrixAt(instance, line.matrix);
+        instance++;
+      });
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.computeBoundingSphere();
+  }, []);
+  return (
+    <instancedMesh
+      ref={linesRef}
+      args={[PLACEHOLDER_LINE_GEOMETRY, PLACEHOLDER_LINE_MATERIAL, PLACEHOLDER_LINE_COUNT]}
+      raycast={() => null}
+    />
+  );
+}
 
 function CertificatePlaceholders() {
   return (
@@ -2307,12 +2626,13 @@ function CertificatePlaceholders() {
           castShadow
         >
           <meshStandardMaterial
-            color={PLACEHOLDER_CERTIFICATE_COLOR}
+            color={PLACEHOLDER_CERTIFICATE_SHADES[index % PLACEHOLDER_CERTIFICATE_SHADES.length]}
             roughness={0.94}
             metalness={0.02}
           />
         </RoundedBox>
       ))}
+      <CertificatePlaceholderLines />
     </>
   );
 }
@@ -2476,6 +2796,17 @@ export function Shelf({
   const workingSet = useDestinationWorkingSet("certificates");
   const thumbnailsResident = isResourceResidentState(workingSet.state);
   const localLightingRelevant = workingSet.state === "preparing" || workingSet.state === "active";
+  // Lives here (not in CertificateGallery) so the click hint stays
+  // dismissed even if the gallery itself unmounts/remounts as its
+  // thumbnails resource is released and reloaded later in the session.
+  const [hasSelectedCertificate, setHasSelectedCertificate] = useState(false);
+  const handleCertificateSelect = useCallback(
+    (slug: string) => {
+      setHasSelectedCertificate(true);
+      onCertificateSelect?.(slug);
+    },
+    [onCertificateSelect],
+  );
   return (
     <group position={[-3.8, 2, -3.63]}>
       <group position={[0.07, 0, 0.08]} rotation-y={THREE.MathUtils.degToRad(6)}>
@@ -2537,7 +2868,11 @@ export function Shelf({
       {/* Thumbnails are the ambient shelf artwork. Full-size certificate images
         are rendered by the HTML gallery, not as a second 3D card texture. */}
       {thumbnailsResident ? (
-        <CertificateGallery illuminated={illuminated} onCertificateSelect={onCertificateSelect} />
+        <CertificateGallery
+          illuminated={illuminated}
+          onCertificateSelect={handleCertificateSelect}
+          hintDismissed={hasSelectedCertificate}
+        />
       ) : (
         <CertificatePlaceholders />
       )}

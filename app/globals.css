@@ -21,6 +21,20 @@
     U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
     U+A720-A7FF;
 }
+@font-face {
+  font-family: "Patrick Hand";
+  src: url("/fonts/PatrickHand-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Coming Soon";
+  src: url("/fonts/ComingSoon-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
 
 :root {
   color-scheme: dark;
@@ -206,6 +220,23 @@ body {
   visibility: hidden;
   pointer-events: none;
 }
+.scene-navigation-target.is-nav-hint-target {
+  animation: nav-hint-pulse 1.8s ease-in-out infinite;
+}
+@keyframes nav-hint-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(244, 239, 229, 0.32);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(244, 239, 229, 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scene-navigation-target.is-nav-hint-target {
+    animation-duration: 0.01ms;
+  }
+}
 .camera-location {
   grid-column: 2;
   min-width: 9rem;
@@ -217,8 +248,20 @@ body {
   white-space: nowrap;
 }
 .camera-location.is-nav-hint {
+  /* Escapes the grid entirely (that base rule's narrow minmax(0,1fr) column
+     between the two 42px button columns, combined with the inherited
+     uppercase + 0.18em letter-spacing, was clipping this string to nothing
+     visible on narrow phones via overflow:hidden/white-space:nowrap). */
+  position: fixed;
+  right: max(28px, env(safe-area-inset-right));
+  bottom: max(100px, calc(env(safe-area-inset-bottom) + 100px));
+  left: max(28px, env(safe-area-inset-left));
+  overflow: visible;
   font-size: 14px;
-  transform: translateY(-75px);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  white-space: normal;
 }
 .workspace-badge {
   position: fixed;
@@ -475,10 +518,10 @@ body {
   color: #c7d2de;
   font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
   pointer-events: none;
-  animation: projects-overlay-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: overlay-fade-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .projects-overlay.is-exiting {
-  animation: projects-overlay-out 0.48s cubic-bezier(0.65, 0, 0.35, 1) both;
+  animation: overlay-fade-out 0.48s cubic-bezier(0.65, 0, 0.35, 1) both;
 }
 .projects-overlay.is-exiting .projects-overlay-shell {
   pointer-events: none;
@@ -502,22 +545,6 @@ body {
 }
 .projects-overlay-shell::-webkit-scrollbar {
   display: none;
-}
-.projects-overlay-scroll-track {
-  position: absolute;
-  top: 0;
-  right: 4px;
-  bottom: 0;
-  z-index: 2;
-  width: 5px;
-  pointer-events: none;
-}
-.projects-overlay-scroll-thumb {
-  position: absolute;
-  right: 0;
-  left: 0;
-  border-radius: 999px;
-  background: rgba(122, 149, 173, 0.55);
 }
 .projects-overlay-header {
   display: flex;
@@ -739,7 +766,115 @@ body {
   color: #71889b;
   letter-spacing: 0.1em;
 }
-@keyframes projects-overlay-in {
+.about-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 34;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  pointer-events: none;
+  animation: overlay-fade-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.about-overlay.is-exiting {
+  animation: overlay-fade-out 0.48s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+.about-overlay.is-exiting .about-overlay-shell {
+  pointer-events: none;
+}
+.about-overlay-shell {
+  position: fixed;
+  top: 0;
+  left: 0;
+  overflow: auto;
+  padding: 44px 34px 60px;
+  background: transparent;
+  color: #14110c;
+  font-family: "Patrick Hand", "Roboto", cursive;
+  transform-origin: 0 0;
+  pointer-events: auto;
+  /* Punches a genuine geometric hole over the polaroid photo (see
+     PolaroidPhoto in objects/Primitives.tsx — card spans roughly logical
+     x:[414,674] y:[19,389] in this element's own 708x1008 coordinate
+     space, buffered here) so clicks reach the canvas underneath. This
+     clips the element's own box, which does NOT move when its content
+     scrolls, unlike a pointer-events:none child (still covered by this
+     auto shell) or making descendants opt back into pointer-events (relies
+     on text hit-testing never painting into the float-reserved area, which
+     isn't a reliable guarantee across browsers/layout states — this is why
+     the photo wasn't always clickable). Coordinates are in the un-scaled
+     708x1008 space; the transform (matrix3d) is applied after clipping.
+   */
+  clip-path: path(evenodd, "M0 0 H708 V1008 H0 Z M400 0 H690 V400 H400 Z");
+  scrollbar-width: none;
+}
+.about-overlay-shell::-webkit-scrollbar {
+  display: none;
+}
+/* Reserves the polaroid photo's footprint (top-right of the page — see
+   PolaroidPhoto in objects/Primitives.tsx) so surrounding text wraps
+   narrower only where it's actually beside the photo, then reverts to the
+   full content width once text scrolls past it, like text wrapping an
+   image float. The margin-left is the gap between the photo and the text. */
+.about-overlay-photo-spacer {
+  float: right;
+  width: 260px;
+  height: 390px;
+  margin-left: 24px;
+}
+.about-overlay-shell h1 {
+  margin: 0 0 18px;
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+.about-overlay-shell p {
+  margin: 0 0 22px;
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1.18;
+  font-family: "Coming Soon", "Patrick Hand", cursive;
+}
+.about-overlay-shell p:last-child {
+  margin-bottom: 0;
+}
+.about-overlay-shell a {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-color: rgba(20, 17, 12, 0.45);
+  text-underline-offset: 3px;
+}
+.about-overlay-shell a:hover {
+  text-decoration-color: currentcolor;
+}
+/* Homography-projected onto the polaroid card (see PolaroidCaptionOverlay
+   and PolaroidPhoto's tracking mesh in objects/Primitives.tsx) — the
+   caption strip below the photo, matching the paper's handwritten look.
+   pointer-events:none throughout so it never blocks clicking the polaroid
+   itself (which opens the photo lightbox). */
+.polaroid-caption-shell {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 34;
+  pointer-events: none;
+  transform-origin: 0 0;
+}
+.polaroid-caption-text {
+  position: absolute;
+  right: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  color: #14110c;
+  font-family: "Patrick Hand", "Coming Soon", cursive;
+  font-size: 22px;
+  letter-spacing: 0.01em;
+}
+@keyframes overlay-fade-in {
   from {
     opacity: 0;
     transform: scale(0.985);
@@ -749,7 +884,7 @@ body {
     transform: scale(1);
   }
 }
-@keyframes projects-overlay-out {
+@keyframes overlay-fade-out {
   from {
     opacity: 1;
     transform: scale(1);
@@ -890,6 +1025,50 @@ body {
   stroke-linejoin: round;
   stroke-width: 1.35;
 }
+.photo-lightbox-content {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+}
+.photo-lightbox-content .certificate-gallery-figure {
+  /* certificate-gallery-figure's margin:0 auto centers it within a wide grid
+     track in CertificateGalleryOverlay. In this flex row, auto margins
+     instead absorb all free space and push the socials list away from the
+     16px gap above — reset it here. */
+  margin: 0;
+}
+.photo-lightbox-socials {
+  flex: 0 0 auto;
+}
+.photo-lightbox-socials ul {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.photo-lightbox-socials a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: rgba(244, 239, 229, 0.78);
+  text-decoration: none;
+  font:
+    500 15px/1 ui-sans-serif,
+    system-ui,
+    sans-serif;
+  letter-spacing: 0.01em;
+  transition: color 0.2s ease;
+}
+.photo-lightbox-socials a:hover {
+  color: #fffdf8;
+}
+.photo-lightbox-socials a span {
+  color: rgba(244, 239, 229, 0.4);
+  font-size: 12px;
+}
 .certificate-gallery-figure {
   min-width: 0;
   width: fit-content;
@@ -960,10 +1139,6 @@ body {
     font-size: 9px;
     letter-spacing: 0.18em;
   }
-  .camera-location.is-nav-hint {
-    font-size: 14px;
-    transform: translateY(-70px);
-  }
   .workspace-badge {
     top: max(18px, env(safe-area-inset-top));
     left: max(18px, env(safe-area-inset-left));
@@ -1008,19 +1183,27 @@ body {
   }
   .scene-navigation-target {
     display: grid;
-    width: 42px;
-    min-height: 42px;
+    width: 44px;
+    min-height: 44px;
     padding: 0;
     place-items: center;
-    border: 1px solid rgba(238, 233, 223, 0.22);
+    /* Without the "Previous/Next scene" text label (hidden below on
+       mobile), a faint outline circle doesn't read as a tappable control on
+       its own — noticeably more opaque/bordered than the desktop version,
+       which leans on the adjacent label instead. */
+    border: 1.5px solid rgba(238, 233, 223, 0.55);
     border-radius: 999px;
-    color: rgba(244, 239, 229, 0.72);
-    background: rgba(12, 12, 12, 0.16);
+    color: rgba(244, 239, 229, 0.95);
+    background: rgba(20, 18, 16, 0.55);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.025),
-      0 8px 24px rgba(0, 0, 0, 0.14);
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 8px 24px rgba(0, 0, 0, 0.28);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
+  }
+  .scene-navigation-target:active {
+    background: rgba(30, 27, 24, 0.7);
+    border-color: rgba(238, 233, 223, 0.75);
   }
   .scene-navigation-target .scene-name {
     display: none;
@@ -1050,6 +1233,16 @@ body {
   .certificate-gallery-content {
     grid-template-columns: 38px minmax(0, 1fr) 38px;
     gap: 5px;
+  }
+  .photo-lightbox-content {
+    flex-direction: column;
+    gap: 20px;
+  }
+  .photo-lightbox-socials ul {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px 18px;
   }
   .certificate-gallery-nav {
     width: 36px;
@@ -1215,6 +1408,18 @@ body {
   }
   .projects-overlay-project time {
     font-size: 19px;
+  }
+  .about-overlay-shell {
+    padding: 64px 46px 80px;
+  }
+  .about-overlay-shell h1 {
+    margin-bottom: 26px;
+    font-size: 76px;
+  }
+  .about-overlay-shell p {
+    margin-bottom: 34px;
+    font-size: 46px;
+    line-height: 1.24;
   }
 }
 @media (prefers-reduced-motion: reduce) {
