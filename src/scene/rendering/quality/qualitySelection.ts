@@ -105,7 +105,7 @@ export function resolveFeatureFlags(
     directionalShadow: profile.shadows.directionalEnabled && !off.has("directionalShadow"),
     deskShadow: profile.shadows.deskSpotEnabled && !off.has("deskShadow"),
     antialias: profile.renderer.antialias && !off.has("aa"),
-    laptopProjection: !off.has("projection"),
+    screenProjection: !off.has("projection"),
     coffeeSteam: !off.has("steam"),
     nonCameraTasks: !off.has("tasks"),
   };

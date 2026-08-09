@@ -227,9 +227,10 @@ test("the root route does not overwrite the intro destination", () => {
 });
 
 test("certificate archive preserves the supplied newest-to-oldest order", () => {
-  assert.equal(CERTIFICATES.length, 14);
-  assert.equal(CERTIFICATES[0].title, "UX Management: Strategy and Tactics");
-  assert.equal(CERTIFICATES[9].title, "Product Management");
+  assert.equal(CERTIFICATES.length, 15);
+  assert.equal(CERTIFICATES[0].title, "Business Analytics");
+  assert.equal(CERTIFICATES[1].title, "UX Management: Strategy and Tactics");
+  assert.equal(CERTIFICATES[10].title, "Product Management");
   assert.equal(CERTIFICATES.at(-1).title, "Data-Driven Design: Quantitative Research for UX");
   assert.equal(new Set(CERTIFICATES.map(({ image }) => image)).size, CERTIFICATES.length);
   assert.equal(new Set(CERTIFICATES.map(({ slug }) => slug)).size, CERTIFICATES.length);

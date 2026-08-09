@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { solveHomography } from "../homography";
 import { useWorkingSetStore } from "../runtime/working-set";
 
 import type { ScreenProjectionRef } from "../screenProjection";
@@ -9,45 +10,6 @@ import type { ScreenProjectionRef } from "../screenProjection";
 const SCREEN_LOGICAL_WIDTH = 1000;
 const SCREEN_LOGICAL_HEIGHT = 548;
 const ASSET_BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH ?? "").replace(/\/$/, "");
-
-function solveHomography(
-  source: readonly { x: number; y: number }[],
-  destination: readonly { x: number; y: number }[],
-) {
-  const matrix: number[][] = [],
-    values: number[] = [];
-  source.forEach(({ x, y }, index) => {
-    const { x: X, y: Y } = destination[index];
-    matrix.push([x, y, 1, 0, 0, 0, -X * x, -X * y]);
-    values.push(X);
-    matrix.push([0, 0, 0, x, y, 1, -Y * x, -Y * y]);
-    values.push(Y);
-  });
-  for (let pivot = 0; pivot < 8; pivot++) {
-    let row = pivot;
-    for (let candidate = pivot + 1; candidate < 8; candidate++)
-      if (Math.abs(matrix[candidate][pivot]) > Math.abs(matrix[row][pivot])) row = candidate;
-    [matrix[pivot], matrix[row]] = [matrix[row], matrix[pivot]];
-    [values[pivot], values[row]] = [values[row], values[pivot]];
-    const divisor = matrix[pivot][pivot];
-    if (Math.abs(divisor) < 1e-8) return null;
-    for (let column = pivot; column < 8; column++) matrix[pivot][column] /= divisor;
-    values[pivot] /= divisor;
-    for (let candidate = 0; candidate < 8; candidate++) {
-      if (candidate === pivot) continue;
-      const factor = matrix[candidate][pivot];
-      for (let column = pivot; column < 8; column++)
-        matrix[candidate][column] -= factor * matrix[pivot][column];
-      values[candidate] -= factor * values[pivot];
-    }
-  }
-  const [a, b, c, d, e, f, g, h] = values;
-  // CSS matrix3d is column-major. The fourth column carries the projective
-  // denominator so the rectangle follows the screen's perspective exactly.
-  // The solved coefficients are ordered as x' = (a*x + b*y + c) / w and
-  // y' = (d*x + e*y + f) / w; CSS stores the x/y terms in column-major order.
-  return `matrix3d(${a},${d},0,${g},${b},${e},0,${h},0,0,1,0,${c},${f},0,1)`;
-}
 
 interface ExperienceEntry {
   role: string;
@@ -209,32 +171,8 @@ export function ProjectsOverlay({
 }) {
   const workingSet = useWorkingSetStore();
   const shellRef = useRef<HTMLDivElement | null>(null);
-  const scrollThumbRef = useRef<HTMLDivElement | null>(null);
   const [present, setPresent] = useState(visible);
   const [mobileTab, setMobileTab] = useState<"experience" | "projects">("experience");
-  // The shell has a live JS-driven `matrix3d` transform (the laptop-screen
-  // projection below), and native scrollbars don't render reliably on an
-  // element under a heavy 3D transform. Drive a plain div as the scroll
-  // indicator instead, so it's always visible regardless of browser/OS.
-  useEffect(() => {
-    const shell = shellRef.current,
-      thumb = scrollThumbRef.current;
-    if (!shell || !thumb) return;
-    const update = () => {
-      const { scrollTop, scrollHeight, clientHeight } = shell;
-      const ratio = clientHeight / scrollHeight;
-      thumb.style.height = `${Math.max(ratio * 100, 6)}%`;
-      thumb.style.top = `${(scrollTop / scrollHeight) * 100}%`;
-    };
-    update();
-    shell.addEventListener("scroll", update, { passive: true });
-    const resizeObserver = new ResizeObserver(update);
-    resizeObserver.observe(shell);
-    return () => {
-      shell.removeEventListener("scroll", update);
-      resizeObserver.disconnect();
-    };
-  }, [present]);
   useEffect(() => {
     workingSet.resourceEvent("prepare-end", "projects-overlay", {
       status: "resident",
@@ -299,9 +237,6 @@ export function ProjectsOverlay({
           visibility: "hidden",
         }}
       >
-        <div className="projects-overlay-scroll-track" aria-hidden="true">
-          <div className="projects-overlay-scroll-thumb" ref={scrollThumbRef} />
-        </div>
         <header className="projects-overlay-header">
           <div>
             <p className="projects-overlay-eyebrow">Denny K. Schuldt</p>

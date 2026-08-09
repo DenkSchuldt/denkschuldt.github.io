@@ -9,8 +9,8 @@ import type { RenderingQualityProfile, ResolvedQualityFeatures } from "../render
 
 export function Lighting({
   desk,
-  moon,
-  moonColor,
+  sun,
+  sunColor,
   bounce,
   fillEnabled = true,
   shadowsEnabled = true,
@@ -18,8 +18,8 @@ export function Lighting({
   features,
 }: {
   desk: number;
-  moon: number;
-  moonColor: string;
+  sun: number;
+  sunColor: string;
   bounce: number;
   fillEnabled?: boolean;
   shadowsEnabled?: boolean;
@@ -34,15 +34,15 @@ export function Lighting({
       {fillEnabled && (
         <hemisphereLight
           name="hemisphere-fill"
-          args={["#536173", "#160f0b", resolveHemisphereIntensity(bounce, aspect)]}
+          args={["#dde4e6", "#4a3c30", resolveHemisphereIntensity(bounce, aspect)]}
         />
       )}
       <directionalLight
-        key={`moon-key:${profile.shadows.directionalMapSize}`}
-        name="moon-key"
-        position={[-5.7, 4.8, 1.2]}
-        color={moonColor}
-        intensity={moon}
+        key={`sun-key:${profile.shadows.directionalMapSize}`}
+        name="sun-key"
+        position={[-5.7, 6.4, 1.6]}
+        color={sunColor}
+        intensity={sun}
         castShadow={directionalShadows}
         shadow-mapSize={[profile.shadows.directionalMapSize, profile.shadows.directionalMapSize]}
         shadow-camera-left={-6}
@@ -50,6 +50,7 @@ export function Lighting({
         shadow-camera-top={6}
         shadow-camera-bottom={-3}
         shadow-bias={-0.00018}
+        shadow-radius={RENDERING_INTENT.lighting.sunShadowRadius}
       />
       <spotLight
         key={`desk-key:${profile.shadows.deskSpotMapSize}`}
@@ -70,20 +71,9 @@ export function Lighting({
           name="desk-fill"
           position={[-1.55, 1.72, -1.05]}
           color="#ff9b50"
-          intensity={desk * 0.2}
+          intensity={desk * 0.24}
           distance={2.7}
           decay={2}
-        />
-      )}
-      {fillEnabled && (
-        <rectAreaLight
-          name="wall-bounce"
-          position={[0.3, 1.55, -3.55]}
-          rotation={[0, 0, 0]}
-          color="#b56d3e"
-          intensity={bounce}
-          width={4.4}
-          height={1.6}
         />
       )}
       {fillEnabled && (
@@ -94,17 +84,6 @@ export function Lighting({
           intensity={bounce * RENDERING_INTENT.lighting.drawerRimFactor}
           distance={3.2}
           decay={2}
-        />
-      )}
-      {fillEnabled && (
-        <rectAreaLight
-          name="upper-warm-fill"
-          position={[2.55, 3.7, -3.28]}
-          rotation={[0, 0, 0]}
-          color="#ffad62"
-          intensity={1.35}
-          width={5.2}
-          height={1.35}
         />
       )}
       {shadowsEnabled && features.allShadows && features.contactShadows && (

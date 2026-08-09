@@ -41,7 +41,10 @@ export const WORKING_SET_DEFINITIONS: Readonly<Record<SceneId, DestinationWorkin
     preparationLeadMs: 0,
     retentionMs: retain(Infinity, Infinity, Infinity, Infinity, Infinity),
     speculative: false,
-    resources: [resource("about", "desk-ambient", "ambient", "Scene", { shared: true })],
+    resources: [
+      resource("about", "desk-ambient", "ambient", "Scene", { shared: true }),
+      resource("about", "about-overlay", "active-only", "AboutOverlay"),
+    ],
   },
   certificates: {
     id: "certificates",

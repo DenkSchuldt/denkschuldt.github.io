@@ -16,7 +16,7 @@ export interface PerformanceSwitches {
   allShadows: boolean;
   antialias: boolean;
   dpr: 1 | 1.25 | 1.6 | null;
-  laptopProjection: boolean;
+  screenProjection: boolean;
   coffeeSteam: boolean;
   nonCameraTasks: boolean;
 }
@@ -91,7 +91,7 @@ const defaults: PerformanceSwitches = {
   allShadows: true,
   antialias: true,
   dpr: null,
-  laptopProjection: true,
+  screenProjection: true,
   coffeeSteam: true,
   nonCameraTasks: true,
 };
@@ -155,7 +155,7 @@ class PerformanceDiagnosticStore {
       allShadows: !disabled.has("shadows"),
       antialias: !disabled.has("aa"),
       dpr: dpr === 1 || dpr === 1.25 || dpr === 1.6 ? dpr : null,
-      laptopProjection: !disabled.has("projection"),
+      screenProjection: !disabled.has("projection"),
       coffeeSteam: !disabled.has("steam"),
       nonCameraTasks: !disabled.has("tasks"),
     };

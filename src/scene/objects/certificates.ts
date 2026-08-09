@@ -17,6 +17,12 @@ const slugifyCertificate = (title: string) =>
 
 const CERTIFICATE_SOURCES: CertificateSource[] = [
   {
+    url: "https://online.hbs.edu/verify-certificate?dvid=PTKC6R24",
+    image: "business-analytics.jpeg",
+    title: "Business Analytics",
+    date: "November 2025",
+  },
+  {
     url: "https://www.interaction-design.org/members/denny-k-schuldt/certificate/course/aab8be7b-092b-4381-9ad4-c6c6388b1196?r=denny-k-schuldt",
     image: "course-certificate-ux-management-strategy-and-tactics.jpg",
     title: "UX Management: Strategy and Tactics",
@@ -234,7 +240,7 @@ export const CERTIFICATE_LAYOUT = [
     index: 11,
     row: 3,
     column: 0,
-    x: -0.62,
+    x: -0.825,
     y: -1.275,
     rotation: 0.026,
     tiltY: -0.016,
@@ -245,7 +251,7 @@ export const CERTIFICATE_LAYOUT = [
     index: 12,
     row: 3,
     column: 1,
-    x: 0,
+    x: -0.275,
     y: -1.275,
     rotation: -0.016,
     tiltY: 0.012,
@@ -256,12 +262,23 @@ export const CERTIFICATE_LAYOUT = [
     index: 13,
     row: 3,
     column: 2,
-    x: 0.62,
+    x: 0.275,
     y: -1.275,
     rotation: 0.018,
     tiltY: -0.018,
     scale: 0.91,
     depth: 0.362,
+  },
+  {
+    index: 14,
+    row: 3,
+    column: 3,
+    x: 0.825,
+    y: -1.275,
+    rotation: -0.022,
+    tiltY: 0.02,
+    scale: 0.94,
+    depth: 0.366,
   },
 ] as const;
 export interface CertificateFocus {

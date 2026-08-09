@@ -133,7 +133,7 @@ export function SceneNavigation({
           <>
             <button
               type="button"
-              className="scene-navigation-target scene-navigation-previous"
+              className={`scene-navigation-target scene-navigation-previous${showNavHint ? " is-nav-hint-target" : ""}`}
               aria-label={
                 previous ? `Previous scene: ${SCENE_REGISTRY[previous].label}` : "No previous scene"
               }
@@ -148,7 +148,7 @@ export function SceneNavigation({
             </button>
             <button
               type="button"
-              className="scene-navigation-target scene-navigation-next"
+              className={`scene-navigation-target scene-navigation-next${showNavHint ? " is-nav-hint-target" : ""}`}
               aria-label={next ? `Next scene: ${SCENE_REGISTRY[next].label}` : "No next scene"}
               disabled={!introComplete || !next}
               onClick={() => {

@@ -33,6 +33,7 @@ import {
 } from "./camera/useCinematicCamera";
 import { useSceneRouter } from "./camera/useSceneRouter";
 import { CertificateGalleryOverlay } from "./components/CertificateGalleryOverlay";
+import { PhotoLightbox } from "./components/PhotoLightbox";
 import { usePoems } from "./content/usePoems";
 import {
   MeasuredRuntimeFrameBridge,
@@ -78,6 +79,14 @@ const PoemReader = lazy(() =>
 );
 const ProjectsOverlay = lazy(() =>
   import("./components/ProjectsOverlay").then((module) => ({ default: module.ProjectsOverlay })),
+);
+const AboutOverlay = lazy(() =>
+  import("./components/AboutOverlay").then((module) => ({ default: module.AboutOverlay })),
+);
+const PolaroidCaptionOverlay = lazy(() =>
+  import("./components/PolaroidCaptionOverlay").then((module) => ({
+    default: module.PolaroidCaptionOverlay,
+  })),
 );
 let mixpanelInitialized = false;
 const trackEvent = (event: string, properties?: Record<string, unknown>) => {
@@ -140,8 +149,8 @@ function PortfolioRuntimeDeclaration({
 }
 const SETTINGS: SceneSettings = {
   desk: 19,
-  moon: 1.05,
-  moonColor: "#91a8c2",
+  sun: 2.6,
+  sunColor: "#e9eef0",
   bounce: 0.62,
   bloom: 0.08,
   fog: 16.5,
@@ -189,12 +198,16 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
   const [cinematicFadeReady, setCinematicFadeReady] = useState(false);
   const [projectsCameraFocused, setProjectsCameraFocused] = useState(false);
   const [projectsOverlayReady, setProjectsOverlayReady] = useState(false);
+  const [aboutCameraFocused, setAboutCameraFocused] = useState(false);
+  const [aboutOverlayReady, setAboutOverlayReady] = useState(false);
   const [poemReaderOpen, setPoemReaderOpen] = useState(false);
   const [readerPoemSlug, setReaderPoemSlug] = useState<string | null>(null);
+  const [photoLightboxOpen, setPhotoLightboxOpen] = useState(false);
 
   const directPoemEntry = useRef(/^\/poems\/[^/]+(?:\/)?$/.test(initialPath));
   const directPoemOpened = useRef(false);
   const previousProjectsScene = useRef<SceneId | null>(null);
+  const previousAboutScene = useRef<SceneId | null>(null);
   const lastCertificateVisit = useRef<string | null>(null);
   const lastPoemRead = useRef<string | null>(null);
   const sceneReadyRef = useRef(false);
@@ -203,6 +216,10 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
   const lastSkipVersion = useRef(0);
   const laptopScreenRef = useRef<THREE.Mesh | null>(null);
   const screenProjectionRef = useRef<ScreenProjection | null>(null);
+  const paperScreenRef = useRef<THREE.Mesh | null>(null);
+  const paperProjectionRef = useRef<ScreenProjection | null>(null);
+  const polaroidScreenRef = useRef<THREE.Mesh | null>(null);
+  const polaroidProjectionRef = useRef<ScreenProjection | null>(null);
 
   useEffect(() => {
     if (mixpanelInitialized || process.env.NODE_ENV !== "production") return;
@@ -276,6 +293,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
   const poemsSceneActive = cameraSystem.selectedScene === "poems";
   const poemsResourcesResident = useDestinationResources("poems");
   const projectsResourcesResident = useDestinationResources("projects");
+  const aboutResourcesResident = useDestinationResources("about");
 
   const poemsContent = usePoems(
     poemsSceneActive && routeFocusCollection === "poems" ? (route.slug ?? null) : null,
@@ -286,8 +304,9 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
       ...(poemReaderOpen ? ["poem-reader-chunk", "poem-markdown"] : []),
       ...(cameraSystem.selectedFocusCollection === "certificates" ? ["certificate-original"] : []),
       ...(projectsOverlayReady ? ["projects-overlay"] : []),
+      ...(aboutOverlayReady ? ["about-overlay"] : []),
     ],
-    [poemReaderOpen, cameraSystem.selectedFocusCollection, projectsOverlayReady],
+    [poemReaderOpen, cameraSystem.selectedFocusCollection, projectsOverlayReady, aboutOverlayReady],
   );
   const poemNavigationKey = poemsContent.poems
     .map(
@@ -332,6 +351,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
   useEffect(() => {
     const unsubscribe = cameraSystem.engine.onSceneFocused((state) => {
       setProjectsCameraFocused(state.sceneId === "projects" && state.cameraTargetId === "projects");
+      setAboutCameraFocused(state.sceneId === "about" && state.cameraTargetId === "about");
       if (skippedSceneFocus.current) {
         skippedSceneFocus.current = false;
         pendingSceneFocus.current = null;
@@ -427,6 +447,25 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
     if (previous !== null && previous !== cameraSystem.selectedScene) {
       setProjectsCameraFocused(false);
       setProjectsOverlayReady(false);
+    }
+  }, [cameraSystem.selectedScene]);
+
+  useEffect(() => {
+    setAboutOverlayReady(
+      sceneReady &&
+        cameraSystem.selectedScene === "about" &&
+        aboutCameraFocused &&
+        cinematicFadeReady,
+    );
+  }, [cameraSystem.selectedScene, aboutCameraFocused, cinematicFadeReady, sceneReady]);
+
+  useEffect(() => {
+    const previous = previousAboutScene.current;
+    previousAboutScene.current = cameraSystem.selectedScene;
+    if (previous !== null && previous !== cameraSystem.selectedScene) {
+      setAboutCameraFocused(false);
+      setAboutOverlayReady(false);
+      setPhotoLightboxOpen(false);
     }
   }, [cameraSystem.selectedScene]);
 
@@ -638,6 +677,11 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
                     onReady={onSceneReady}
                     laptopScreenRef={laptopScreenRef}
                     screenProjectionRef={screenProjectionRef}
+                    paperScreenRef={paperScreenRef}
+                    paperProjectionRef={paperProjectionRef}
+                    polaroidScreenRef={polaroidScreenRef}
+                    polaroidProjectionRef={polaroidProjectionRef}
+                    onPhotoOpen={() => setPhotoLightboxOpen(true)}
                   />
                 </Suspense>
               </Profiler>
@@ -679,11 +723,24 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
             onClose={cameraSystem.exitFocus}
             onNavigateNext={navigateToNextScene}
           />
+          <PhotoLightbox open={photoLightboxOpen} onClose={() => setPhotoLightboxOpen(false)} />
           {projectsResourcesResident && (
             <Suspense fallback={null}>
               <ProjectsOverlay
                 visible={cameraSystem.selectedScene === "projects" && projectsOverlayReady}
                 projectionRef={screenProjectionRef}
+              />
+            </Suspense>
+          )}
+          {aboutResourcesResident && (
+            <Suspense fallback={null}>
+              <AboutOverlay
+                visible={cameraSystem.selectedScene === "about" && aboutOverlayReady}
+                projectionRef={paperProjectionRef}
+              />
+              <PolaroidCaptionOverlay
+                visible={cameraSystem.selectedScene === "about" && aboutOverlayReady}
+                projectionRef={polaroidProjectionRef}
               />
             </Suspense>
           )}

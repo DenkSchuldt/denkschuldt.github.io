@@ -6,7 +6,7 @@ const postUltra = {
   ao: {
     enabled: true,
     radius: 1.7,
-    intensity: 0.32,
+    intensity: 0.21,
     distanceFalloff: 1.2,
     quality: "medium" as const,
     halfResolution: false,
@@ -20,7 +20,7 @@ const postUltra = {
     mipmapBlur: true,
   },
   grading: { enabled: true, hue: -0.012, saturation: -0.12 },
-  vignette: { enabled: true, offset: 0.32, darkness: 0.22 },
+  vignette: { enabled: true, offset: 0.32, darkness: 0.13 },
 };
 
 export const RENDERING_QUALITY_PROFILES: Record<QualityProfileId, RenderingQualityProfile> = {
@@ -81,7 +81,7 @@ export const RENDERING_QUALITY_PROFILES: Record<QualityProfileId, RenderingQuali
     },
     postprocessing: {
       ...postUltra,
-      ao: { ...postUltra.ao, quality: "medium", intensity: 0.28 },
+      ao: { ...postUltra.ao, quality: "medium", intensity: 0.18 },
       dof: { ...postUltra.dof, height: 420 },
     },
     runtime: {
@@ -122,7 +122,7 @@ export const RENDERING_QUALITY_PROFILES: Record<QualityProfileId, RenderingQuali
         ...postUltra.ao,
         quality: "performance",
         halfResolution: true,
-        intensity: 0.24,
+        intensity: 0.16,
         radius: 1.5,
       },
       dof: { ...postUltra.dof, height: 360, bokehScale: 0.38 },
@@ -165,7 +165,7 @@ export const RENDERING_QUALITY_PROFILES: Record<QualityProfileId, RenderingQuali
       ao: { ...postUltra.ao, enabled: false, quality: "performance", halfResolution: true },
       dof: { ...postUltra.dof, enabled: false, height: 300 },
       bloom: { ...postUltra.bloom, intensity: 0.05 },
-      vignette: { ...postUltra.vignette, darkness: 0.18 },
+      vignette: { ...postUltra.vignette, darkness: 0.09 },
     },
     runtime: {
       allowAdaptiveDpr: true,
