@@ -409,7 +409,7 @@ const PORTFOLIO_COVER_GEOMETRY = new THREE.ExtrudeGeometry(
   {
     depth: 0.045,
     steps: 1,
-    curveSegments: 2,
+    curveSegments: 20,
     bevelEnabled: true,
     bevelSegments: 1,
     bevelSize: 0.01,
@@ -421,7 +421,7 @@ PORTFOLIO_COVER_GEOMETRY.rotateX(-Math.PI / 2);
 PORTFOLIO_COVER_GEOMETRY.computeVertexNormals();
 const PORTFOLIO_LINING_GEOMETRY = new THREE.ShapeGeometry(
   roundedRectangleShape(0.77, 0.71, 0.045),
-  1,
+  20,
 );
 PORTFOLIO_LINING_GEOMETRY.rotateX(-Math.PI / 2);
 const PORTFOLIO_POCKET_GEOMETRY = new THREE.ExtrudeGeometry(
@@ -429,7 +429,7 @@ const PORTFOLIO_POCKET_GEOMETRY = new THREE.ExtrudeGeometry(
   {
     depth: 0.014,
     steps: 1,
-    curveSegments: 1,
+    curveSegments: 20,
     bevelEnabled: true,
     bevelSegments: 1,
     bevelSize: 0.006,
@@ -442,7 +442,7 @@ PORTFOLIO_POCKET_GEOMETRY.computeVertexNormals();
 const PORTFOLIO_PAGE_GEOMETRY = new THREE.ExtrudeGeometry(roundedRectangleShape(0.72, 0.7, 0.025), {
   depth: 0.007,
   steps: 1,
-  curveSegments: 2,
+  curveSegments: 20,
   bevelEnabled: true,
   bevelSegments: 1,
   bevelSize: 0.003,
@@ -563,7 +563,7 @@ function useMacBookShellGeometry(
     const result = new THREE.ExtrudeGeometry(roundedRectangleShape(width, height, radius), {
       depth,
       steps: 1,
-      curveSegments: 2,
+      curveSegments: 16,
       bevelEnabled: true,
       bevelSegments: 1,
       bevelSize: bevel,

@@ -1026,6 +1026,7 @@ body {
   color: inherit;
   font-family: inherit;
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition:

@@ -101,30 +101,21 @@ function RealityIcon() {
   );
 }
 
-function NotificationCard({
-  className,
+function NotificationCardContent({
   icon,
   label,
   timestamp,
   primary,
   secondary,
-  onSelect,
 }: {
-  className: string;
   icon: React.ReactNode;
   label: string;
   timestamp?: string;
   primary: string;
   secondary?: string;
-  onSelect?: () => void;
 }) {
   return (
-    <button
-      type="button"
-      className={`denkos-notification ${className}`}
-      onClick={onSelect}
-      disabled={!onSelect}
-    >
+    <>
       <span className="denkos-notification-icon" aria-hidden="true">
         {icon}
       </span>
@@ -136,6 +127,57 @@ function NotificationCard({
         <span className="denkos-notification-primary">{primary}</span>
         {secondary && <span className="denkos-notification-secondary">{secondary}</span>}
       </span>
+    </>
+  );
+}
+
+function NotificationCard({
+  className,
+  icon,
+  label,
+  timestamp,
+  primary,
+  secondary,
+  onSelect,
+  href,
+}: {
+  className: string;
+  icon: React.ReactNode;
+  label: string;
+  timestamp?: string;
+  primary: string;
+  secondary?: string;
+  onSelect?: () => void;
+  href?: string;
+}) {
+  const content = (
+    <NotificationCardContent
+      icon={icon}
+      label={label}
+      timestamp={timestamp}
+      primary={primary}
+      secondary={secondary}
+    />
+  );
+  if (href)
+    return (
+      <a
+        className={`denkos-notification ${className}`}
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {content}
+      </a>
+    );
+  return (
+    <button
+      type="button"
+      className={`denkos-notification ${className}`}
+      onClick={onSelect}
+      disabled={!onSelect}
+    >
+      {content}
     </button>
   );
 }
@@ -265,6 +307,7 @@ export function PhoneOverlay({
             label="Music"
             primary="Now Playing"
             secondary={`${NOW_PLAYING_TRACK.title} — ${NOW_PLAYING_TRACK.artist}`}
+            href={NOW_PLAYING_TRACK.url}
           />
           <NotificationCard
             className="denkos-notification-reality"
