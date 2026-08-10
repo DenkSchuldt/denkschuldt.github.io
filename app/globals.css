@@ -941,6 +941,189 @@ body {
   font-size: 22px;
   letter-spacing: 0.01em;
 }
+/* denkOS lock screen — homography-projected onto the phone's screen mesh
+   (see Phone/PhoneScreen's screenRef in objects/Primitives.tsx), same
+   technique as the laptop/paper/poems overlays above. All content here is
+   real DOM/CSS rather than a baked texture so text stays sharp at any
+   distance/DPR. */
+.denkos-lockscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 34;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  pointer-events: none;
+  animation: overlay-fade-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.denkos-lockscreen.is-exiting {
+  animation: overlay-fade-out 0.48s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+.denkos-lockscreen.is-exiting .denkos-lockscreen-shell {
+  pointer-events: none;
+}
+.denkos-lockscreen-shell {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 46px 20px 22px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background:
+    radial-gradient(120% 70% at 50% -10%, rgba(150, 170, 192, 0.16), transparent 60%),
+    radial-gradient(140% 90% at 84% 108%, rgba(46, 61, 76, 0.55), transparent 65%),
+    linear-gradient(165deg, #262d34 0%, #181e24 45%, #0b0e12 100%);
+  color: #eef2f6;
+  font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
+  transform-origin: 0 0;
+  pointer-events: auto;
+  /* IPHONE_SCREEN_GEOMETRY (objects/Primitives.tsx) now rounds its corners
+     with IPHONE_SCREEN_CORNER_RADIUS (0.06 world units) tessellated at
+     curveSegments: 16 — a genuinely smooth arc, not a facet — so a plain
+     round clip matches it: 78px ≈ 0.06 world units at this box's
+     ~1305px/unit scale (390px / 0.299 world units). Uses clip-path rather
+     than border-radius + overflow:hidden — the latter silently loses its
+     clipping on elements carrying a real-perspective matrix3d transform
+     (see solveHomography), the same reason AboutOverlay's shell below
+     already relies on clip-path for its own transformed shape. */
+  clip-path: inset(0 round 78px);
+}
+.denkos-lockscreen-header {
+  text-align: center;
+}
+.denkos-lockscreen-time {
+  margin: 0;
+  color: #f4f7fa;
+  font-size: 84px;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+.denkos-lockscreen-date {
+  margin: 8px 0 0;
+  color: #aab6c4;
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.denkos-notification-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: auto;
+}
+.denkos-notification {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  width: 100%;
+  padding: 16px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: rgba(22, 26, 31, 0.6);
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+.denkos-notification:disabled {
+  cursor: default;
+  opacity: 1;
+}
+.denkos-notification:not(:disabled):hover {
+  background: rgba(30, 35, 41, 0.78);
+  transform: translateY(-1px);
+}
+.denkos-notification:not(:disabled):active {
+  transform: scale(0.98);
+}
+.denkos-notification:focus-visible {
+  outline: 2px solid rgba(238, 242, 246, 0.55);
+  outline-offset: 2px;
+}
+.denkos-notification-icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  color: #d7cdae;
+  background: rgba(215, 205, 174, 0.16);
+}
+.denkos-notification-music .denkos-notification-icon {
+  color: #c6bdef;
+  background: rgba(198, 189, 239, 0.16);
+}
+.denkos-notification-reality .denkos-notification-icon {
+  color: #a4d6dc;
+  background: rgba(164, 214, 220, 0.16);
+}
+.denkos-notification-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.denkos-notification-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.denkos-notification-label {
+  margin: 0;
+  color: rgba(238, 242, 246, 0.6);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.denkos-notification-timestamp {
+  flex-shrink: 0;
+  color: rgba(238, 242, 246, 0.44);
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+.denkos-notification-primary {
+  margin: 4px 0 0;
+  overflow: hidden;
+  color: #f1f4f7;
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.denkos-notification-placeholder {
+  color: rgba(238, 242, 246, 0.45);
+  font-style: italic;
+  font-weight: 500;
+}
+.denkos-notification-secondary {
+  margin: 3px 0 0;
+  overflow: hidden;
+  color: rgba(238, 242, 246, 0.64);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.3;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.denkos-lockscreen-wordmark {
+  margin: 18px 0 0;
+  color: rgba(238, 242, 246, 0.26);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-align: center;
+}
 @keyframes overlay-fade-in {
   from {
     opacity: 0;

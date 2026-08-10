@@ -69,6 +69,16 @@ const POEMS_SCREEN_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector
     new THREE.Vector3(-0.352, -0.341, 0),
   ];
 
+// Half-extents of the phone screen's planeGeometry (0.299 x 0.618 scene
+// units) — see PhoneScreen's screenRef mesh in objects/Primitives.tsx.
+const PHONE_SCREEN_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector3, THREE.Vector3] =
+  [
+    new THREE.Vector3(-0.1495, 0.309, 0),
+    new THREE.Vector3(0.1495, 0.309, 0),
+    new THREE.Vector3(0.1495, -0.309, 0),
+    new THREE.Vector3(-0.1495, -0.309, 0),
+  ];
+
 // Projects a flat mesh's four corners into screen-space pixel coordinates
 // every frame, so an HTML overlay can be perspective-warped (via CSS
 // matrix3d) to sit exactly over that mesh. Used for both the laptop screen
@@ -196,6 +206,8 @@ interface SceneProps {
   polaroidProjectionRef: ScreenProjectionRef;
   poemsScreenRef: React.MutableRefObject<THREE.Mesh | null>;
   poemsProjectionRef: ScreenProjectionRef;
+  phoneScreenRef: React.MutableRefObject<THREE.Mesh | null>;
+  phoneProjectionRef: ScreenProjectionRef;
   onPhotoOpen?: () => void;
 }
 
@@ -215,6 +227,8 @@ export function Scene({
   polaroidProjectionRef,
   poemsScreenRef,
   poemsProjectionRef,
+  phoneScreenRef,
+  phoneProjectionRef,
   onPhotoOpen,
 }: SceneProps) {
   const { size } = useThree();
@@ -297,6 +311,7 @@ export function Scene({
         paperScreenRef={paperScreenRef}
         photoScreenRef={polaroidScreenRef}
         poemsScreenRef={poemsScreenRef}
+        phoneScreenRef={phoneScreenRef}
         activeScene={cameraSystem.selectedScene}
         onPhotoOpen={onPhotoOpen}
       />
@@ -319,6 +334,13 @@ export function Scene({
         corners={POEMS_SCREEN_CORNERS}
         screenRef={poemsScreenRef}
         projectionRef={poemsProjectionRef}
+        enabled={qualityFeatures.screenProjection}
+      />
+      <PlanarProjection
+        label="PhoneScreenProjection"
+        corners={PHONE_SCREEN_CORNERS}
+        screenRef={phoneScreenRef}
+        projectionRef={phoneProjectionRef}
         enabled={qualityFeatures.screenProjection}
       />
       {!isMobileRenderingViewport(size.width / size.height) && chairMounted && <Chair />}
