@@ -91,6 +91,9 @@ const PolaroidCaptionOverlay = lazy(() =>
     default: module.PolaroidCaptionOverlay,
   })),
 );
+const PhoneOverlay = lazy(() =>
+  import("./components/PhoneOverlay").then((module) => ({ default: module.PhoneOverlay })),
+);
 let mixpanelInitialized = false;
 const trackEvent = (event: string, properties?: Record<string, unknown>) => {
   if (process.env.NODE_ENV !== "production") return;
@@ -205,6 +208,8 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
   const [aboutOverlayReady, setAboutOverlayReady] = useState(false);
   const [poemsCameraFocused, setPoemsCameraFocused] = useState(false);
   const [poemsOverlayReady, setPoemsOverlayReady] = useState(false);
+  const [phoneCameraFocused, setPhoneCameraFocused] = useState(false);
+  const [phoneOverlayReady, setPhoneOverlayReady] = useState(false);
   const [poemReaderOpen, setPoemReaderOpen] = useState(false);
   const [readerPoemSlug, setReaderPoemSlug] = useState<string | null>(null);
   const [photoLightboxOpen, setPhotoLightboxOpen] = useState(() =>
@@ -216,6 +221,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
   const previousProjectsScene = useRef<SceneId | null>(null);
   const previousAboutScene = useRef<SceneId | null>(null);
   const previousPoemsScene = useRef<SceneId | null>(null);
+  const previousPhoneScene = useRef<SceneId | null>(null);
   const lastCertificateVisit = useRef<string | null>(null);
   const lastPoemRead = useRef<string | null>(null);
   const sceneReadyRef = useRef(false);
@@ -230,6 +236,8 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
   const polaroidProjectionRef = useRef<ScreenProjection | null>(null);
   const poemsScreenRef = useRef<THREE.Mesh | null>(null);
   const poemsProjectionRef = useRef<ScreenProjection | null>(null);
+  const phoneScreenRef = useRef<THREE.Mesh | null>(null);
+  const phoneProjectionRef = useRef<ScreenProjection | null>(null);
 
   useEffect(() => {
     if (mixpanelInitialized || process.env.NODE_ENV !== "production") return;
@@ -304,11 +312,17 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
   const poemsResourcesResident = useDestinationResources("poems");
   const projectsResourcesResident = useDestinationResources("projects");
   const aboutResourcesResident = useDestinationResources("about");
+  const phoneResourcesResident = useDestinationResources("phone");
 
   const poemsContent = usePoems(
     poemsSceneActive && routeFocusCollection === "poems" ? (route.slug ?? null) : null,
     poemsResourcesResident,
   );
+  // The lock screen's Poetry notification needs the poems manifest even
+  // while the visitor is on the Phone scene, not just once Poems itself
+  // becomes resident — same usePoems/manifest source of truth as above, just
+  // gated by the Phone destination instead.
+  const phonePoemsContent = usePoems(null, phoneResourcesResident);
   const workingSetOverlays = useMemo(
     () => [
       ...(poemReaderOpen ? ["poem-reader-chunk", "poem-markdown"] : []),
@@ -316,6 +330,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
       ...(projectsOverlayReady ? ["projects-overlay"] : []),
       ...(aboutOverlayReady ? ["about-overlay"] : []),
       ...(poemsOverlayReady ? ["poems-overlay"] : []),
+      ...(phoneOverlayReady ? ["phone-overlay"] : []),
     ],
     [
       poemReaderOpen,
@@ -323,6 +338,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
       projectsOverlayReady,
       aboutOverlayReady,
       poemsOverlayReady,
+      phoneOverlayReady,
     ],
   );
   const poemNavigationKey = poemsContent.poems
@@ -370,6 +386,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
       setProjectsCameraFocused(state.sceneId === "projects" && state.cameraTargetId === "projects");
       setAboutCameraFocused(state.sceneId === "about" && state.cameraTargetId === "about");
       setPoemsCameraFocused(state.sceneId === "poems" && state.cameraTargetId === "poems");
+      setPhoneCameraFocused(state.sceneId === "phone" && state.cameraTargetId === "phone");
       if (skippedSceneFocus.current) {
         skippedSceneFocus.current = false;
         pendingSceneFocus.current = null;
@@ -506,6 +523,24 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
   }, [cameraSystem.selectedScene]);
 
   useEffect(() => {
+    setPhoneOverlayReady(
+      sceneReady &&
+        cameraSystem.selectedScene === "phone" &&
+        phoneCameraFocused &&
+        cinematicFadeReady,
+    );
+  }, [cameraSystem.selectedScene, phoneCameraFocused, cinematicFadeReady, sceneReady]);
+
+  useEffect(() => {
+    const previous = previousPhoneScene.current;
+    previousPhoneScene.current = cameraSystem.selectedScene;
+    if (previous !== null && previous !== cameraSystem.selectedScene) {
+      setPhoneCameraFocused(false);
+      setPhoneOverlayReady(false);
+    }
+  }, [cameraSystem.selectedScene]);
+
+  useEffect(() => {
     setCinematicFadeReady(false);
   }, [cameraSystem.introVersion, cameraSystem.skipVersion]);
 
@@ -618,6 +653,24 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
       replaceWithinScene(pathForScene("poems"));
     }
   }, [cameraSystem, replaceWithinScene]);
+
+  const openLatestPoemFromPhone = useCallback(() => {
+    const slug = phonePoemsContent.poems[0]?.slug;
+    if (!slug) return;
+    // Reuses the same scene-navigation and poem-reader machinery as the
+    // Poems folder's own "Read my poetry" button (openPoemReader above) —
+    // just triggered from the phone instead of from within Poems itself.
+    navigateScene("poems");
+    setReaderPoemSlug(slug);
+    setPoemReaderOpen(true);
+    replaceWithinScene(pathForFocus("poems", slug));
+  }, [phonePoemsContent.poems, navigateScene, replaceWithinScene]);
+
+  // No visual-style switcher exists in the scene yet (see
+  // content/phoneConfig.ts). This keeps the lock screen's Reality
+  // notification wired to a real handler slot rather than doing nothing, so
+  // a future style selector only has to be plugged in here.
+  const openRealityStyleSelector = useCallback(() => {}, []);
 
   const openPhotoLightbox = useCallback(() => {
     setPhotoLightboxOpen(true);
@@ -737,6 +790,8 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
                     polaroidProjectionRef={polaroidProjectionRef}
                     poemsScreenRef={poemsScreenRef}
                     poemsProjectionRef={poemsProjectionRef}
+                    phoneScreenRef={phoneScreenRef}
+                    phoneProjectionRef={phoneProjectionRef}
                     onPhotoOpen={openPhotoLightbox}
                   />
                 </Suspense>
@@ -807,6 +862,18 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
                 visible={cameraSystem.selectedScene === "poems" && poemsOverlayReady}
                 projectionRef={poemsProjectionRef}
                 onRead={openPoemReader}
+              />
+            </Suspense>
+          )}
+          {phoneResourcesResident && (
+            <Suspense fallback={null}>
+              <PhoneOverlay
+                visible={cameraSystem.selectedScene === "phone" && phoneOverlayReady}
+                projectionRef={phoneProjectionRef}
+                latestPoem={phonePoemsContent.poems[0] ?? null}
+                poemsLoading={phonePoemsContent.loading}
+                onOpenPoetry={openLatestPoemFromPhone}
+                onOpenReality={openRealityStyleSelector}
               />
             </Suspense>
           )}

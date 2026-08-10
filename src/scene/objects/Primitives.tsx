@@ -122,10 +122,10 @@ const IPHONE_FLASH_MATERIAL = new THREE.MeshStandardMaterial({
   roughness: 0.68,
   metalness: 0,
 });
-const IPHONE_BODY_GEOMETRY = new THREE.ExtrudeGeometry(roundedRectangleShape(0.325, 0.65, 0.057), {
+const IPHONE_BODY_GEOMETRY = new THREE.ExtrudeGeometry(roundedRectangleShape(0.325, 0.65, 0.07), {
   depth: 0.026,
   steps: 1,
-  curveSegments: 2,
+  curveSegments: 16,
   bevelEnabled: true,
   bevelSegments: 1,
   bevelSize: 0.004,
@@ -134,22 +134,30 @@ const IPHONE_BODY_GEOMETRY = new THREE.ExtrudeGeometry(roundedRectangleShape(0.3
 IPHONE_BODY_GEOMETRY.center();
 IPHONE_BODY_GEOMETRY.rotateX(-Math.PI / 2);
 IPHONE_BODY_GEOMETRY.computeVertexNormals();
+const IPHONE_SCREEN_CORNER_RADIUS = 0.06;
 const IPHONE_SCREEN_GEOMETRY = new THREE.ShapeGeometry(
-  roundedRectangleShape(0.299, 0.618, 0.047),
-  2,
+  roundedRectangleShape(0.299, 0.618, IPHONE_SCREEN_CORNER_RADIUS),
+  16,
 );
 IPHONE_SCREEN_GEOMETRY.rotateX(-Math.PI / 2);
-const IPHONE_SCREEN_IMAGE_GEOMETRY = IPHONE_SCREEN_GEOMETRY.clone();
-{
-  const positions = IPHONE_SCREEN_IMAGE_GEOMETRY.getAttribute("position");
-  const uvs = new Float32Array(positions.count * 2);
-  for (let index = 0; index < positions.count; index++) {
-    uvs[index * 2] = positions.getX(index) / 0.299 + 0.5;
-    uvs[index * 2 + 1] = 0.5 - positions.getZ(index) / 0.618;
-  }
-  IPHONE_SCREEN_IMAGE_GEOMETRY.setAttribute("uv", new THREE.BufferAttribute(uvs, 2));
-}
-const IPHONE_BACK_GEOMETRY = new THREE.ShapeGeometry(roundedRectangleShape(0.305, 0.63, 0.05), 2);
+// Same rounded footprint as IPHONE_SCREEN_GEOMETRY above (not a plain
+// rectangle) — the DOM overlay's clip-path (denkos-lockscreen-shell in
+// globals.css) only rounds its own *content*, so if this backing mesh were a
+// sharp-cornered rectangle, its exposed corners would show through as solid
+// black wedges wherever the overlay's rounded clip cuts them away.
+// PHONE_SCREEN_CORNERS/PlanarProjection (Scene.tsx) still use this shape's
+// full bounding-box corners for the homography source quad — the rounding
+// only removes area, it doesn't move the corners the transform is solved
+// against.
+// Rotation is applied via the mesh's own rotation-x prop below (not baked
+// into the geometry, unlike IPHONE_SCREEN_GEOMETRY above) so its corners
+// stay in the flat XY-plane — the convention PHONE_SCREEN_CORNERS in
+// Scene.tsx expects, matching PortfolioPoemPreview's screenRef mesh.
+const IPHONE_SCREEN_GLASS_GEOMETRY = new THREE.ShapeGeometry(
+  roundedRectangleShape(0.299, 0.618, IPHONE_SCREEN_CORNER_RADIUS),
+  16,
+);
+const IPHONE_BACK_GEOMETRY = new THREE.ShapeGeometry(roundedRectangleShape(0.305, 0.63, 0.062), 16);
 IPHONE_BACK_GEOMETRY.rotateX(Math.PI / 2);
 const IPHONE_CAMERA_ISLAND_GEOMETRY = new THREE.ExtrudeGeometry(
   roundedRectangleShape(0.135, 0.135, 0.03),
@@ -165,17 +173,6 @@ const IPHONE_DYNAMIC_ISLAND_GEOMETRY = new THREE.ShapeGeometry(
 IPHONE_DYNAMIC_ISLAND_GEOMETRY.rotateX(-Math.PI / 2);
 const IPHONE_LENS_GEOMETRY = new THREE.CylinderGeometry(0.026, 0.026, 0.004, 8, 1, false);
 const IPHONE_FLASH_GEOMETRY = new THREE.CircleGeometry(0.011, 8);
-const IPHONE_WHATSAPP_BUTTON_GEOMETRY = new THREE.ShapeGeometry(
-  roundedRectangleShape(0.22, 0.052, 0.018),
-  2,
-);
-IPHONE_WHATSAPP_BUTTON_GEOMETRY.rotateX(-Math.PI / 2);
-const IPHONE_WHATSAPP_BUTTON_MATERIAL = new THREE.MeshBasicMaterial({
-  color: "#25d366",
-  toneMapped: false,
-});
-const IPHONE_SCREEN_TEXTURE_REPEAT_X = 0.299 / 0.618 / (675 / 1200);
-const PHONE_CONTACT_URL = "https://wa.me/+593964198839?text=Hello%20from%20your%20website%21";
 const ZZ_LEAF_DARK_MATERIAL = new THREE.MeshStandardMaterial({
   color: "#334f36",
   roughness: 0.8,
@@ -862,6 +859,7 @@ interface DeskObjectsProps {
   paperScreenRef?: MutableRefObject<THREE.Mesh | null>;
   photoScreenRef?: MutableRefObject<THREE.Mesh | null>;
   poemsScreenRef?: MutableRefObject<THREE.Mesh | null>;
+  phoneScreenRef?: MutableRefObject<THREE.Mesh | null>;
   activeScene: SceneId;
   onPhotoOpen?: () => void;
 }
@@ -878,6 +876,7 @@ export function DeskObjects({
   paperScreenRef,
   photoScreenRef,
   poemsScreenRef,
+  phoneScreenRef,
   activeScene,
   onPhotoOpen,
 }: DeskObjectsProps) {
@@ -909,7 +908,7 @@ export function DeskObjects({
         onPhotoOpen={onPhotoOpen}
       />
 
-      <Phone active={isPhoneActive} />
+      <Phone active={isPhoneActive} screenRef={phoneScreenRef} />
 
       {isPoemsMounted && (
         <PoemsPortfolio
@@ -1256,120 +1255,31 @@ function PoemsPortfolio({
   );
 }
 
-function PhoneScreen({ active }: { active: boolean }) {
-  const pointerDemand = useRenderDemand("phone-pointer");
-  const texture = useOwnedTexture(withSceneBasePath("/phone.jpeg"), "phone-screen");
-  const materialRef = useRef<THREE.MeshBasicMaterial>(null);
-  const [hovered, setHovered] = useState(false);
-  if (texture) {
-    texture.anisotropy = 8;
-    texture.repeat.set(IPHONE_SCREEN_TEXTURE_REPEAT_X, 1);
-    texture.offset.set((1 - IPHONE_SCREEN_TEXTURE_REPEAT_X) / 2, 0);
-  }
-  useCursor(active && hovered);
-  useEffect(() => {
-    if (!active) setHovered(false);
-  }, [active]);
-  useEffect(() => {
-    // The phone collection can sleep as soon as focus leaves the scene. Set
-    // the visual state here as well as in the runtime task so a sleeping node
-    // cannot leave the last screen glow behind.
-    if (materialRef.current) {
-      const channel = active ? 1 : 0;
-      materialRef.current.color.setRGB(channel, channel, channel);
-    }
-  }, [active]);
-  const updateScreen = useCallback(
-    ({ delta }: { delta: number }) => {
-      const material = materialRef.current;
-      const easing = 16;
-      if (material) {
-        let channel = THREE.MathUtils.damp(material.color.r, active ? 1 : 0, easing, delta);
-        if (!active && channel < 0.001) channel = 0;
-        material.color.setRGB(channel, channel, channel);
-      }
-    },
-    [active],
-  );
-  useMeasuredRuntimeTask({
-    id: "task:phone-screen",
-    nodeId: "collection:phone",
-    priority: 10,
-    update: updateScreen,
-  });
+// The QR/WhatsApp screen image used to be a baked texture on this mesh. The
+// denkOS lock screen is rendered entirely as DOM (see PhoneOverlay,
+// homography-projected via screenRef/PlanarProjection in Scene.tsx) for
+// crisp text — same reasoning as PortfolioPoemPreview above. This mesh is
+// just the screen's inert glass backdrop underneath that overlay.
+function PhoneScreen({ screenRef }: { screenRef?: MutableRefObject<THREE.Mesh | null> }) {
   return (
-    <>
-      <mesh
-        geometry={IPHONE_SCREEN_IMAGE_GEOMETRY}
-        position={[0, 0.0182, 0]}
-        raycast={active ? undefined : () => null}
-        onPointerOver={
-          active
-            ? (event) => {
-                event.stopPropagation();
-                setHovered(true);
-                pointerDemand.invalidate("pointer-interaction");
-              }
-            : undefined
-        }
-        onPointerOut={
-          active
-            ? () => {
-                setHovered(false);
-                pointerDemand.invalidate("pointer-interaction");
-              }
-            : undefined
-        }
-        onClick={
-          active
-            ? (event) => {
-                event.stopPropagation();
-                window.open(PHONE_CONTACT_URL, "_blank", "noopener,noreferrer");
-              }
-            : undefined
-        }
-      >
-        <meshBasicMaterial ref={materialRef} map={texture} color="#050505" toneMapped={false} />
-      </mesh>
-      {active && (
-        <group
-          position={[0, 0.022, 0.245]}
-          onPointerOver={(event) => {
-            event.stopPropagation();
-            setHovered(true);
-            pointerDemand.invalidate("pointer-interaction");
-          }}
-          onPointerOut={() => {
-            setHovered(false);
-            pointerDemand.invalidate("pointer-interaction");
-          }}
-          onClick={(event) => {
-            event.stopPropagation();
-            window.open(PHONE_CONTACT_URL, "_blank", "noopener,noreferrer");
-          }}
-        >
-          <mesh geometry={IPHONE_WHATSAPP_BUTTON_GEOMETRY}>
-            <primitive object={IPHONE_WHATSAPP_BUTTON_MATERIAL} attach="material" />
-          </mesh>
-          <Suspense fallback={null}>
-            <Text
-              position={[0, 0.004, 0]}
-              rotation-x={-Math.PI / 2}
-              fontSize={0.015}
-              anchorX="center"
-              anchorY="middle"
-            >
-              Open WhatsApp
-              <meshBasicMaterial color="#ffffff" toneMapped={false} />
-            </Text>
-          </Suspense>
-        </group>
-      )}
-    </>
+    <mesh
+      ref={screenRef}
+      geometry={IPHONE_SCREEN_GLASS_GEOMETRY}
+      position={[0, 0.0182, 0]}
+      rotation-x={-Math.PI / 2}
+    >
+      <primitive object={IPHONE_GLASS_MATERIAL} attach="material" />
+    </mesh>
   );
 }
 
-function Phone({ active }: { active: boolean }) {
+function Phone({
+  active,
+  screenRef,
+}: {
+  active: boolean;
+  screenRef?: MutableRefObject<THREE.Mesh | null>;
+}) {
   useFeatureSettleLease("phone-feature", active, "phone-screen");
   const workingSet = useDestinationWorkingSet("phone");
   const screenResident = isResourceResidentState(workingSet.state);
@@ -1388,7 +1298,7 @@ function Phone({ active }: { active: boolean }) {
       <mesh geometry={IPHONE_DYNAMIC_ISLAND_GEOMETRY} position={[0, 0.0185, -0.255]}>
         <primitive object={IPHONE_GLASS_MATERIAL} attach="material" />
       </mesh>
-      {screenResident && <PhoneScreen active={active} />}
+      {screenResident && <PhoneScreen screenRef={screenRef} />}
       <mesh geometry={IPHONE_BACK_GEOMETRY} position={[0, -0.0172, 0]}>
         <primitive object={IPHONE_BACK_MATERIAL} attach="material" />
       </mesh>

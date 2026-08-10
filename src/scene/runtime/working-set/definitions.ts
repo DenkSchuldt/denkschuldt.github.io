@@ -98,9 +98,9 @@ export const WORKING_SET_DEFINITIONS: Readonly<Record<SceneId, DestinationWorkin
       resource("phone", "phone-body", "ambient", "Phone", { shared: true }),
       resource("phone", "phone-screen", "preparable", "PhoneScreen", {
         preparationRequired: true,
-        estimatedDecodedBytes: Math.round((675 * 1200 * 4 * 4) / 3),
       }),
       resource("phone", "phone-local-light", "active-only", "PhoneScreen"),
+      resource("phone", "phone-overlay", "active-only", "PhoneOverlay"),
     ],
   },
   poems: {
