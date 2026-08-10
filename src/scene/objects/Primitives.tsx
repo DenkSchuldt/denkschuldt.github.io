@@ -27,7 +27,6 @@ import {
   useDestinationWorkingSet,
   useOwnedTexture,
   useOwnedTextures,
-  useWorkingSetStore,
 } from "../runtime/working-set";
 import { useRenderDemand } from "../runtime/render-scheduler";
 import { PHONE_LAYOUT } from "../sceneLayout";
@@ -36,8 +35,6 @@ import { CERTIFICATES, CERTIFICATE_LAYOUT } from "./certificates";
 import type { MutableRefObject, RefObject } from "react";
 import type { RuntimeTaskRegistration } from "@denk/cinematic-navigation";
 import type { SceneId } from "../camera/navigationTypes";
-import type { PoemRecord } from "../content/poems";
-import type { PoemsContentState } from "../content/usePoems";
 import type { RenderReason } from "../runtime/render-scheduler";
 import type { CertificateRecord } from "./certificates";
 
@@ -97,8 +94,6 @@ const DESK_LAMP_DIFFUSER_MATERIAL = new THREE.MeshStandardMaterial({
   color: "#d9b483",
   roughness: 0.72,
   metalness: 0,
-  emissive: "#ff9c4a",
-  emissiveIntensity: 0.58,
 });
 const DESK_LAMP_BASE_GEOMETRY = new THREE.CylinderGeometry(0.28, 0.3, 0.065, 16, 1, false);
 const DESK_LAMP_BASE_INSET_GEOMETRY = new THREE.CylinderGeometry(0.19, 0.22, 0.016, 12, 1, false);
@@ -460,7 +455,6 @@ PORTFOLIO_PAGE_GEOMETRY.center();
 PORTFOLIO_PAGE_GEOMETRY.rotateX(-Math.PI / 2);
 PORTFOLIO_PAGE_GEOMETRY.computeVertexNormals();
 const PORTFOLIO_PAGE_SURFACE_GEOMETRY = new THREE.PlaneGeometry(0.704, 0.682);
-const POEM_READ_CUE_GEOMETRY = new THREE.ShapeGeometry(roundedRectangleShape(0.34, 0.08, 0.04), 8);
 const PORTFOLIO_RING_GEOMETRY = new THREE.TorusGeometry(0.032, 0.007, 4, 8, Math.PI * 1.75);
 // Small washers make the paper-to-ring connection legible at the close reading shot.
 // They sit on the top sheet only; the real binding is carried by the low-poly torus rings.
@@ -867,10 +861,8 @@ interface DeskObjectsProps {
   penRotation: number;
   paperScreenRef?: MutableRefObject<THREE.Mesh | null>;
   photoScreenRef?: MutableRefObject<THREE.Mesh | null>;
+  poemsScreenRef?: MutableRefObject<THREE.Mesh | null>;
   activeScene: SceneId;
-  poemsContent: PoemsContentState;
-  activePoemSlug: string | null;
-  onPoemRead: () => void;
   onPhotoOpen?: () => void;
 }
 
@@ -885,10 +877,8 @@ export function DeskObjects({
   penRotation,
   paperScreenRef,
   photoScreenRef,
+  poemsScreenRef,
   activeScene,
-  poemsContent,
-  activePoemSlug,
-  onPoemRead,
   onPhotoOpen,
 }: DeskObjectsProps) {
   // --------------------------------------------------------------------------
@@ -926,9 +916,7 @@ export function DeskObjects({
           position={folderPosition}
           rotation={folderRotation}
           active={isPoemsActive}
-          poemsContent={poemsContent}
-          activePoemSlug={activePoemSlug}
-          onRead={onPoemRead}
+          screenRef={poemsScreenRef}
         />
       )}
 
@@ -1065,269 +1053,21 @@ function PortfolioPolaroid({ active }: { active: boolean }) {
   );
 }
 
-const POEM_PREVIEW_FONT_SIZE = 34;
-const POEM_PREVIEW_INTRO =
-  "Poetry is how I make sense of what I feel, what I lose, and what I still hope to find.\n\nI write about love, absence, identity, time, and the strange experience of being alive.";
-
-function createPoemPreviewTexture() {
-  const canvas = document.createElement("canvas");
-  canvas.width = 1024;
-  canvas.height = 1160;
-  const context = canvas.getContext("2d");
-  if (!context) return null;
-  context.fillStyle = "#eee4cf";
-  context.fillRect(0, 0, canvas.width, canvas.height);
-  context.textBaseline = "top";
-  context.fillStyle = "#17130f";
-  context.font = '600 72px Georgia, "Times New Roman", serif';
-  context.fillText("Poems", 78, 72, 868);
-  context.fillStyle = "#332a23";
-  context.fillRect(78, 150, 54, 2);
-  context.font = `${POEM_PREVIEW_FONT_SIZE}px Georgia, "Times New Roman", serif`;
-  context.fillStyle = "#211a15";
-  const paragraphs = POEM_PREVIEW_INTRO.split(/\n{2,}/)
-    .map((paragraph) => paragraph.replace(/\s+/g, " ").trim())
-    .filter(Boolean);
-  const lines: string[] = [];
-  for (const paragraph of paragraphs) {
-    const words = paragraph.split(" ");
-    let line = "";
-    for (const word of words) {
-      const candidate = line ? `${line} ${word}` : word;
-      if (line && context.measureText(candidate).width > 868) {
-        lines.push(line);
-        line = word;
-      } else line = candidate;
-    }
-    if (line) lines.push(line);
-    lines.push("");
-  }
-  if (lines.at(-1) === "") lines.pop();
-  const visibleLines = lines.slice(0, 8);
-  if (lines.length > visibleLines.length && visibleLines.length)
-    visibleLines[visibleLines.length - 1] =
-      `${visibleLines[visibleLines.length - 1].replace(/[.…]+$/g, "")}…`;
-  visibleLines.forEach((line, index) =>
-    context.fillText(line, 78, 190 + index * POEM_PREVIEW_FONT_SIZE * 1.3),
-  );
-  context.textAlign = "right";
-  context.textBaseline = "top";
-  context.fillStyle = "#706356";
-  context.font = '24px Georgia, "Times New Roman", serif';
-  context.fillText("Click to read", 946, 1090);
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = 8;
-  texture.needsUpdate = true;
-  return texture;
-}
-
-function usePoemPreviewTexture(poem: PoemRecord | null, enabled: boolean) {
-  const workingSet = useWorkingSetStore();
-  const renderDemand = useRenderDemand("poem-preview-texture");
-  const [texture, setTexture] = useState<THREE.CanvasTexture | null>(null);
-  useEffect(() => {
-    if (!enabled) {
-      setTexture(null);
-      return;
-    }
-    workingSet.resourceEvent("prepare-start", "poem-preview-texture", {
-      status: "preparing",
-      cache: "owned",
-      detail: poem?.slug ?? "ambient",
-    });
-    const next = createPoemPreviewTexture();
-    setTexture(next);
-    if (next) {
-      workingSet.resourceEvent("prepare-end", "poem-preview-texture", {
-        status: "resident",
-        cache: "owned",
-        detail: poem?.slug ?? "ambient",
-      });
-      renderDemand.invalidate("asset-ready");
-    }
-    return () => {
-      if (!next) return;
-      next.dispose();
-      workingSet.resourceEvent("dispose", "poem-preview-texture", {
-        status: "released",
-        cache: "owned",
-        detail: "CanvasTexture.dispose() called; renderer/GPU reclamation not directly observable",
-        evidence: [
-          "unmounted",
-          "references-released",
-          "texture-disposed",
-          "browser-memory-unverified",
-          "gpu-memory-unverified",
-        ],
-      });
-    };
-  }, [enabled, poem?.slug, poem?.title, poem?.body, poem?.date, renderDemand, workingSet]);
-  return texture;
-}
-
-function PoemReadCue({
-  active,
-  hovered,
-  onHover,
-  onRead,
-}: {
-  active: boolean;
-  hovered: boolean;
-  onHover: (value: boolean) => void;
-  onRead: () => void;
-}) {
-  const pointerDemand = useRenderDemand("poems-read-cue-pointer");
-  const groupRef = useRef<THREE.Group>(null),
-    backgroundRef = useRef<THREE.MeshBasicMaterial>(null),
-    labelRef = useRef<THREE.MeshBasicMaterial>(null);
-  useMeasuredRuntimeTask({
-    id: "task:poems-read-cue",
-    nodeId: "collection:poems",
-    priority: 6,
-    update: ({ delta }) => {
-      const group = groupRef.current,
-        background = backgroundRef.current,
-        label = labelRef.current;
-      if (group) {
-        const target = active ? (hovered ? 1.08 : 1) : 0.92;
-        group.scale.x = THREE.MathUtils.damp(group.scale.x, target, 7, delta);
-        group.scale.y = THREE.MathUtils.damp(group.scale.y, target, 7, delta);
-      }
-      if (background)
-        background.opacity = THREE.MathUtils.damp(
-          background.opacity,
-          active ? (hovered ? 0.98 : 0.88) : 0,
-          6,
-          delta,
-        );
-      if (label)
-        label.opacity = THREE.MathUtils.damp(
-          label.opacity,
-          active ? (hovered ? 1 : 0.92) : 0,
-          6,
-          delta,
-        );
-    },
-  });
+// The page's title, intro copy, and "read my poetry" cue are HTML (see
+// PoemsOverlay, homography-projected via poemsScreenRef/PlanarProjection in
+// Scene.tsx) rather than a baked CanvasTexture or drei <Text> mesh — same
+// pixelation concern that moved the "About me" body text to HTML. This mesh
+// is just the page's plain paper backdrop.
+function PortfolioPoemPreview({ screenRef }: { screenRef?: MutableRefObject<THREE.Mesh | null> }) {
   return (
-    <group
-      ref={groupRef}
-      visible={active}
-      position={[0.395, 0.078, 0.205]}
+    <mesh
+      ref={screenRef}
+      geometry={PORTFOLIO_PAGE_SURFACE_GEOMETRY}
+      position={[0.395, 0.071, 0]}
       rotation-x={-Math.PI / 2}
-      onPointerOver={(event) => {
-        event.stopPropagation();
-        onHover(true);
-        pointerDemand.invalidate("pointer-interaction");
-      }}
-      onPointerOut={() => {
-        onHover(false);
-        pointerDemand.invalidate("pointer-interaction");
-      }}
-      onClick={(event) => {
-        event.stopPropagation();
-        onRead();
-        pointerDemand.invalidate("pointer-interaction");
-      }}
     >
-      <mesh geometry={POEM_READ_CUE_GEOMETRY}>
-        <meshBasicMaterial
-          ref={backgroundRef}
-          color="#2b211b"
-          transparent
-          opacity={0}
-          depthWrite={false}
-        />
-      </mesh>
-      <Text
-        position={[0, 0, 0.004]}
-        fontSize={0.02}
-        letterSpacing={0.02}
-        anchorX="center"
-        anchorY="middle"
-      >
-        READ MY POETRY
-        <meshBasicMaterial
-          ref={labelRef}
-          color="#f4ecdf"
-          transparent
-          opacity={0}
-          depthWrite={false}
-        />
-      </Text>
-    </group>
-  );
-}
-
-function PortfolioPoemPreview({
-  poem,
-  active,
-  prepare,
-  onRead,
-}: {
-  poem: PoemRecord | null;
-  active: boolean;
-  prepare: boolean;
-  onRead: () => void;
-}) {
-  const pointerDemand = useRenderDemand("poems-preview-pointer");
-  const texture = usePoemPreviewTexture(poem, (active || prepare) && Boolean(poem?.body));
-  const materialRef = useRef<THREE.MeshBasicMaterial>(null);
-  const [hovered, setHovered] = useState(false);
-  useCursor(active && hovered);
-  useMeasuredRuntimeTask({
-    id: "task:poems-preview",
-    nodeId: "collection:poems",
-    priority: 5,
-    update: ({ delta }) => {
-      if (!materialRef.current) return;
-      // The generated canvas texture is asynchronous. Keep the preview dark
-      // until it exists so a newly-mounted active page never flashes white.
-      const channel = THREE.MathUtils.damp(
-        materialRef.current.color.r,
-        active && texture ? 1 : 0.018,
-        3.2,
-        delta,
-      );
-      materialRef.current.color.setRGB(channel, channel, channel);
-    },
-  });
-  return (
-    <>
-      <mesh
-        geometry={PORTFOLIO_PAGE_SURFACE_GEOMETRY}
-        position={[0.395, 0.071, 0]}
-        rotation-x={-Math.PI / 2}
-        onPointerOver={(event) => {
-          if (!active) return;
-          event.stopPropagation();
-          setHovered(true);
-          pointerDemand.invalidate("pointer-interaction");
-        }}
-        onPointerOut={() => {
-          setHovered(false);
-          pointerDemand.invalidate("pointer-interaction");
-        }}
-        onClick={(event) => {
-          if (!active) return;
-          event.stopPropagation();
-          onRead();
-        }}
-      >
-        {/* WebKit can retain the no-map shader variant when a CanvasTexture is
-          attached after the material's first compile. Remounting at that
-          boundary guarantees that Safari compiles the mapped variant. */}
-        <meshBasicMaterial
-          key={texture?.uuid ?? "poem-preview-empty"}
-          ref={materialRef}
-          map={texture}
-          color={active && texture ? "#ffffff" : "#242424"}
-          toneMapped={false}
-        />
-      </mesh>
-      <PoemReadCue active={active} hovered={hovered} onHover={setHovered} onRead={onRead} />
-    </>
+      <meshBasicMaterial color="#eee4cf" toneMapped={false} />
+    </mesh>
   );
 }
 
@@ -1335,19 +1075,14 @@ function PoemsPortfolio({
   position,
   rotation,
   active,
-  poemsContent,
-  activePoemSlug,
-  onRead,
+  screenRef,
 }: {
   position: [number, number];
   rotation: number;
   active: boolean;
-  poemsContent: PoemsContentState;
-  activePoemSlug: string | null;
-  onRead: () => void;
+  screenRef?: MutableRefObject<THREE.Mesh | null>;
 }) {
   useFeatureSettleLease("poems-feature", active, "poems-preview");
-  const poemsWorkingSet = useDestinationWorkingSet("poems");
   const coversRef = useRef<THREE.InstancedMesh>(null),
     liningsRef = useRef<THREE.InstancedMesh>(null),
     pagesRef = useRef<THREE.InstancedMesh>(null);
@@ -1355,11 +1090,6 @@ function PoemsPortfolio({
     eyeletsRef = useRef<THREE.InstancedMesh>(null),
     stitchesRef = useRef<THREE.InstancedMesh>(null);
   const readingLightRef = useRef<THREE.PointLight>(null);
-  const requestedIndex = activePoemSlug
-    ? poemsContent.poems.findIndex(({ slug }) => slug === activePoemSlug)
-    : -1;
-  const activeIndex = requestedIndex >= 0 ? requestedIndex : 0;
-  const activePoem = poemsContent.poems[activeIndex] ?? null;
   const updateReadingLight = useCallback(
     ({ delta }: { delta: number }) => {
       if (readingLightRef.current)
@@ -1478,20 +1208,17 @@ function PoemsPortfolio({
         args={[PORTFOLIO_PAGE_GEOMETRY, PORTFOLIO_PAPER_MATERIAL, 6]}
         castShadow
       />
-      <PortfolioPoemPreview
-        poem={activePoem}
-        active={active}
-        prepare={poemsWorkingSet.state === "preparing"}
-        onRead={onRead}
-      />
-      <pointLight
-        ref={readingLightRef}
-        position={[0.43, 0.62, 0.02]}
-        color="#ffd39a"
-        intensity={0}
-        distance={1.4}
-        decay={2}
-      />
+      <PortfolioPoemPreview screenRef={screenRef} />
+      {active && (
+        <pointLight
+          ref={readingLightRef}
+          position={[0.43, 0.62, 0.02]}
+          color="#ffd39a"
+          intensity={0}
+          distance={1.4}
+          decay={2}
+        />
+      )}
       <instancedMesh
         ref={ringsRef}
         args={[PORTFOLIO_RING_GEOMETRY, PORTFOLIO_METAL_MATERIAL, 6]}
@@ -1533,7 +1260,6 @@ function PhoneScreen({ active }: { active: boolean }) {
   const pointerDemand = useRenderDemand("phone-pointer");
   const texture = useOwnedTexture(withSceneBasePath("/phone.jpeg"), "phone-screen");
   const materialRef = useRef<THREE.MeshBasicMaterial>(null);
-  const lightRef = useRef<THREE.PointLight>(null);
   const [hovered, setHovered] = useState(false);
   if (texture) {
     texture.anisotropy = 8;
@@ -1552,21 +1278,15 @@ function PhoneScreen({ active }: { active: boolean }) {
       const channel = active ? 1 : 0;
       materialRef.current.color.setRGB(channel, channel, channel);
     }
-    if (lightRef.current) lightRef.current.intensity = active ? 0.26 : 0;
   }, [active]);
   const updateScreen = useCallback(
     ({ delta }: { delta: number }) => {
-      const material = materialRef.current,
-        light = lightRef.current;
+      const material = materialRef.current;
       const easing = 16;
       if (material) {
         let channel = THREE.MathUtils.damp(material.color.r, active ? 1 : 0, easing, delta);
         if (!active && channel < 0.001) channel = 0;
         material.color.setRGB(channel, channel, channel);
-      }
-      if (light) {
-        light.intensity = THREE.MathUtils.damp(light.intensity, active ? 0.26 : 0, 12, delta);
-        if (!active && light.intensity < 0.001) light.intensity = 0;
       }
     },
     [active],
@@ -1645,14 +1365,6 @@ function PhoneScreen({ active }: { active: boolean }) {
           </Suspense>
         </group>
       )}
-      <pointLight
-        ref={lightRef}
-        position={[0, 0.11, 0]}
-        color="#dce7f2"
-        intensity={0}
-        distance={0.9}
-        decay={2}
-      />
     </>
   );
 }
@@ -1937,11 +1649,6 @@ function Pen({ position, rotation }: { position: [number, number]; rotation: num
 }
 
 function DeskLamp({ position }: { position: [number, number, number] }) {
-  const lightRef = useRef<THREE.SpotLight>(null);
-  const targetRef = useRef<THREE.Object3D>(null);
-  useEffect(() => {
-    if (lightRef.current && targetRef.current) lightRef.current.target = targetRef.current;
-  }, []);
   return (
     <group position={position} rotation-y={THREE.MathUtils.degToRad(6)} dispose={null}>
       <mesh geometry={DESK_LAMP_BASE_GEOMETRY} position={[0, 0.0325, 0]} castShadow receiveShadow>
@@ -1999,17 +1706,6 @@ function DeskLamp({ position }: { position: [number, number, number] }) {
           <primitive object={DESK_LAMP_DIFFUSER_MATERIAL} attach="material" />
         </mesh>
       </group>
-      <spotLight
-        ref={lightRef}
-        position={[0.31, 1.07, 0]}
-        color="#ffad68"
-        intensity={7.2}
-        distance={2.15}
-        angle={0.55}
-        penumbra={0.86}
-        decay={2}
-      />
-      <object3D ref={targetRef} position={[0.82, 0, 0.28]} />
     </group>
   );
 }
@@ -2638,21 +2334,11 @@ function CertificatePlaceholders() {
 }
 
 function ShelfPracticalLighting({ illuminated }: { illuminated: boolean }) {
-  const lightRefs = useRef<THREE.RectAreaLight[]>([]);
   const ledRefs = useRef<THREE.MeshStandardMaterial[]>([]);
-  const [initialLightIntensity] = useState(() => (illuminated ? 2.35 : 0.01));
   const [initialStripEmission] = useState(() => (illuminated ? 0.018 : 0));
   const updateShelfLighting = useCallback(
     ({ delta }: { delta: number }) => {
       const easing = illuminated ? 0.4 : 0.72;
-      lightRefs.current.forEach((light) => {
-        light.intensity = THREE.MathUtils.damp(
-          light.intensity,
-          illuminated ? 2.35 : 0.01,
-          easing,
-          delta,
-        );
-      });
       ledRefs.current.forEach((material) => {
         material.emissiveIntensity = THREE.MathUtils.damp(
           material.emissiveIntensity,
@@ -2686,18 +2372,6 @@ function ShelfPracticalLighting({ illuminated }: { illuminated: boolean }) {
               roughness={0.76}
             />
           </mesh>
-          <rectAreaLight
-            ref={(light) => {
-              if (light) lightRefs.current[rowIndex] = light;
-            }}
-            name={`shelf-led-row-${rowIndex}`}
-            width={2.22}
-            height={0.035}
-            color="#e6a06d"
-            intensity={initialLightIntensity}
-            position={[0, -0.018, 0.415]}
-            rotation-x={-0.99}
-          />
         </group>
       ))}
     </>

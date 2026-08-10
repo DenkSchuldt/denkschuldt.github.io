@@ -18,14 +18,13 @@ export const RENDERING_INTENT = {
     paperMultisampling: 2,
   },
   lighting: {
-    essentialLights: ["sun-key", "desk-key", "hemisphere-fill", "drawer-rim"] as const,
+    essentialLights: ["sun-key", "hemisphere-fill"] as const,
     // Soft, direction-aware skylight fill standing in for midday daylight —
     // not a flat ambientLight boost. Mobile gets extra lift on top of this
     // because its tighter framing and stronger vignette read darker at the
     // same raw light levels.
     hemisphereDesktopFactor: 0.5,
     hemisphereMobileFactor: 1.75,
-    drawerRimFactor: 0.7,
     // PCF blur-kernel radius for sun-key's shadow (still PCFShadowMap, not
     // PCFSoftShadowMap — that type is deprecated in the installed three.js
     // and silently downgrades with a console warning, see Experience.tsx).

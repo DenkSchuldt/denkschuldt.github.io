@@ -31,12 +31,7 @@ test("desktop and mobile preserve the intended renderer and post-processing limi
     RENDERING_INTENT.postProcessing.vignetteDarkness <=
       RENDERING_INTENT.postProcessing.vignetteLimit,
   );
-  assert.deepEqual(RENDERING_INTENT.lighting.essentialLights, [
-    "sun-key",
-    "desk-key",
-    "hemisphere-fill",
-    "drawer-rim",
-  ]);
+  assert.deepEqual(RENDERING_INTENT.lighting.essentialLights, ["sun-key", "hemisphere-fill"]);
 });
 
 test("responsive fill preserves desktop and lifts mobile dark-surface separation", () => {

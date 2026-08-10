@@ -32,8 +32,12 @@ export function getAdjacentShot(
 export const getAdjacentCameraTarget = getAdjacentShot;
 
 export const isTrackpadPinchOut = (accumulatedDelta: number) => accumulatedDelta >= 48;
+// "about" is excluded alongside focus-collection scenes because its polaroid
+// photo is a clickable canvas object too: R3F's onClick doesn't stop the
+// underlying native touch event from also reaching the window-level tap
+// handler below, so tapping the photo would otherwise also advance the scene.
 export const allowsCanvasTapNavigation = (sceneId: SceneId) =>
-  !SCENE_REGISTRY[sceneId].focusCollection;
+  !SCENE_REGISTRY[sceneId].focusCollection && sceneId !== "about";
 export const isSceneReadyForAutoAdvance = (
   state: Pick<
     CameraNavigationState,

@@ -19,6 +19,7 @@ interface Props {
   onEnterFocus: (collection: FocusCollectionId, item: string) => unknown;
   onExitFocus: () => unknown;
   poemReaderOpen: boolean;
+  photoLightboxOpen: boolean;
 }
 
 function Arrow({ direction }: { direction: "left" | "right" }) {
@@ -62,6 +63,7 @@ export function SceneNavigation({
   onEnterFocus,
   onExitFocus,
   poemReaderOpen,
+  photoLightboxOpen,
 }: Props) {
   const [introComplete, setIntroComplete] = useState(false);
   const [hasClickedNav, setHasClickedNav] = useState(false);
@@ -124,11 +126,13 @@ export function SceneNavigation({
           above every scene overlay (projects, certificates, poems), rather
           than being trapped inside .canvas-stage's stacking/compositing tree
           alongside JS-positioned (matrix3d-transformed) overlay content. Hidden
-          while a certificate or poem is open full-screen — those overlays have
-          their own close controls and scene navigation doesn't apply there. */}
+          while a certificate, poem, or the about-photo lightbox is open
+          full-screen — those overlays have their own close controls and scene
+          navigation doesn't apply there. */}
       {mounted &&
         selectedFocusCollection !== "certificates" &&
         !poemReaderOpen &&
+        !photoLightboxOpen &&
         createPortal(
           <>
             <button

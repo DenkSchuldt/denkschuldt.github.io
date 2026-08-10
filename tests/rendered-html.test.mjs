@@ -77,9 +77,7 @@ test("collection focus is explicit and the responsive navigation stays scene-bas
   assert.match(primitives, /bevelSegments: 1/);
   assert.match(primitives, /new THREE\.CylinderGeometry\(0\.026, 0\.026, 1\.18, 8, 1, false\)/);
   assert.doesNotMatch(primitives, /\[-\.48,-\.24,0,\.24,\.48\]\.flatMap/);
-  assert.match(primitives, /shelf-led-row-/);
   assert.match(primitives, /emissiveIntensity=\{initialImageEmission\}/);
-  assert.match(primitives, /intensity=\{initialLightIntensity\}/);
   assert.match(primitives, /ref=\{imageMaterialRef\}\s+map=\{texture\}/s);
   assert.match(primitives, /withSceneBasePath\("\/phone\.jpeg"\)/);
   assert.match(primitives, /PHONE_CONTACT_URL = "https:\/\/wa\.me\/\+593964198839(?:\?[^\"]*)?"/);

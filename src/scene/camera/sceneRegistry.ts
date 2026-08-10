@@ -36,7 +36,7 @@ export const SCENE_REGISTRY: Record<SceneId, SceneDefinition> = {
     framing: framing([-3.1, 3.35, 4.9], [-0.15, 1.45, -1.35], 45),
     cameraFocus: { enabled: true, focusDistance: 0.016 },
     transition: { duration: 1 },
-    responsive: { mobile: { position: [-2.55, 3.3, 5.75], lookAt: [-0.1, 1.45, -1.35], fov: 50 } },
+    responsive: { mobile: { position: [-2.55, 3.3, 5.75], lookAt: [-0.1, 1.45, -1.35], fov: 68 } },
   },
   about: {
     id: "about",
@@ -58,7 +58,9 @@ export const SCENE_REGISTRY: Record<SceneId, SceneDefinition> = {
     transition: { duration: 4.3 },
     revisitTransition: { duration: 4.8 },
     returnTransition: { duration: 4.8 },
-    responsive: { mobile: { position: [-1.897, 3.16, -0.578], fov: 46, roll: 0 } },
+    responsive: {
+      mobile: { position: [-1.897, 3.16, -0.578], lookAt: [-2, 1.05, -1.022], fov: 40, roll: 0 },
+    },
   },
   certificates: {
     id: "certificates",

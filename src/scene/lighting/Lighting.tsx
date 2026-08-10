@@ -28,7 +28,6 @@ export function Lighting({
 }) {
   const aspect = useThree((state) => state.size.width / state.size.height);
   const directionalShadows = shadowsEnabled && features.allShadows && features.directionalShadow;
-  const deskShadows = shadowsEnabled && features.allShadows && features.deskShadow;
   return (
     <>
       {fillEnabled && (
@@ -52,20 +51,6 @@ export function Lighting({
         shadow-bias={-0.00018}
         shadow-radius={RENDERING_INTENT.lighting.sunShadowRadius}
       />
-      <spotLight
-        key={`desk-key:${profile.shadows.deskSpotMapSize}`}
-        name="desk-key"
-        position={[-1.65, 2.95, -0.82]}
-        color="#ffad62"
-        intensity={desk}
-        angle={0.48}
-        penumbra={0.92}
-        distance={7}
-        decay={2}
-        castShadow={deskShadows}
-        shadow-mapSize={[profile.shadows.deskSpotMapSize, profile.shadows.deskSpotMapSize]}
-        shadow-bias={-0.00012}
-      />
       {fillEnabled && (
         <pointLight
           name="desk-fill"
@@ -73,16 +58,6 @@ export function Lighting({
           color="#ff9b50"
           intensity={desk * 0.24}
           distance={2.7}
-          decay={2}
-        />
-      )}
-      {fillEnabled && (
-        <pointLight
-          name="drawer-rim"
-          position={[2.3, 0.65, -1.3]}
-          color="#9d542f"
-          intensity={bounce * RENDERING_INTENT.lighting.drawerRimFactor}
-          distance={3.2}
           decay={2}
         />
       )}
