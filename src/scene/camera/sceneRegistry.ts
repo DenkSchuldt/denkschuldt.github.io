@@ -272,18 +272,6 @@ const dynamicCollection = (
 });
 
 const phoneItems: Record<string, FocusItemDefinition> = {
-  qr: {
-    id: "qr",
-    slug: "qr",
-    label: "Phone QR",
-    subject: "phone-qr",
-    route: "/phone/qr",
-    cameraTarget: "phone-qr",
-    framing: SCENE_REGISTRY.phone.framing,
-    cameraFocus: SCENE_REGISTRY.phone.cameraFocus,
-    transition: SCENE_REGISTRY.phone.transition,
-    neighbors: { right: "socials" },
-  },
   socials: {
     id: "socials",
     slug: "socials",
@@ -294,7 +282,7 @@ const phoneItems: Record<string, FocusItemDefinition> = {
     framing: SCENE_REGISTRY.phone.framing,
     cameraFocus: SCENE_REGISTRY.phone.cameraFocus,
     transition: SCENE_REGISTRY.phone.transition,
-    neighbors: { left: "qr" },
+    neighbors: {},
   },
 };
 
@@ -322,13 +310,13 @@ export const FOCUS_COLLECTIONS: Record<string, FocusCollectionDefinition> = {
     id: "phone",
     sceneId: "phone",
     routePattern: "/phone/:slug",
-    cameraTarget: "phone-qr",
+    cameraTarget: "phone",
     exitBehavior: "start",
     defaultFraming: SCENE_REGISTRY.phone.framing,
     cameraFocus: SCENE_REGISTRY.phone.cameraFocus,
     transition: SCENE_REGISTRY.phone.transition,
     items: phoneItems,
-    orderedItemIds: ["qr", "socials"],
+    orderedItemIds: ["socials"],
   },
 };
 

@@ -67,10 +67,7 @@ export function resolveNavigationPath(pathname: string): NavigationLocation {
           cameraTarget: SCENE_REGISTRY.poems.cameraTarget,
         })
       : locationForScene("poems");
-  if (parts[0] === "phone")
-    return parts[1] === "qr"
-      ? (locationForFocus("phone", "qr") ?? locationForScene("phone"))
-      : locationForScene("phone");
+  if (parts[0] === "phone") return locationForScene("phone");
   if (parts[0] === "socials")
     return locationForFocus("phone", "socials") ?? locationForScene("phone");
   if (parts[0] === "wall")
