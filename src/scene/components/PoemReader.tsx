@@ -335,7 +335,9 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
       </button>
       <div className="poem-reader-shell">
         <header className="poem-reader-header">
-          <p className="poem-reader-kicker">Denny K. Schuldt · Poems</p>
+          <p className="poem-reader-kicker">
+            <span className="poem-reader-kicker-full">Denny K. Schuldt · </span>Poems
+          </p>
           <div className="poem-reader-header-actions">
             <button
               type="button"

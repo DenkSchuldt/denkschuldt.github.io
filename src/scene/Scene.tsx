@@ -20,11 +20,11 @@ import {
 } from "./objects/Primitives";
 import { getCertificateFocusBySlug, type CertificateFocus } from "./objects/certificates";
 import { DEFAULT_RENDER_ISOLATION, type RenderIsolationState } from "./rendering/renderIsolation";
+import { isMobileRenderingViewport } from "./rendering/renderingIntent";
 import { measurePerformanceTask } from "./diagnostics/performance/performanceStore";
 import { useRenderDemand, useRenderSchedulerStore } from "./runtime/render-scheduler";
 
 import type { CinematicNavigationSystem } from "./camera/useCinematicCamera";
-import type { PoemsContentState } from "./content/usePoems";
 import type { ScreenProjectionRef } from "./screenProjection";
 import type { RenderingQualityProfile, ResolvedQualityFeatures } from "./rendering/quality";
 
@@ -58,6 +58,16 @@ const POLAROID_SCREEN_CORNERS: readonly [
   new THREE.Vector3(0.13, -0.185, 0),
   new THREE.Vector3(-0.13, -0.185, 0),
 ];
+
+// Half-extents of the poems notebook page's planeGeometry (0.704 x 0.682
+// scene units) — see PortfolioPoemPreview in objects/Primitives.tsx.
+const POEMS_SCREEN_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector3, THREE.Vector3] =
+  [
+    new THREE.Vector3(-0.352, 0.341, 0),
+    new THREE.Vector3(0.352, 0.341, 0),
+    new THREE.Vector3(0.352, -0.341, 0),
+    new THREE.Vector3(-0.352, -0.341, 0),
+  ];
 
 // Projects a flat mesh's four corners into screen-space pixel coordinates
 // every frame, so an HTML overlay can be perspective-warped (via CSS
@@ -174,8 +184,6 @@ interface SceneProps {
   s: SceneSettings;
   cameraSystem: CinematicNavigationSystem;
   certificateSlug?: string;
-  poemsContent: PoemsContentState;
-  onPoemRead: () => void;
   renderIsolation?: RenderIsolationState;
   qualityProfile: RenderingQualityProfile;
   qualityFeatures: ResolvedQualityFeatures;
@@ -186,6 +194,8 @@ interface SceneProps {
   paperProjectionRef: ScreenProjectionRef;
   polaroidScreenRef: React.MutableRefObject<THREE.Mesh | null>;
   polaroidProjectionRef: ScreenProjectionRef;
+  poemsScreenRef: React.MutableRefObject<THREE.Mesh | null>;
+  poemsProjectionRef: ScreenProjectionRef;
   onPhotoOpen?: () => void;
 }
 
@@ -193,8 +203,6 @@ export function Scene({
   s,
   cameraSystem,
   certificateSlug,
-  poemsContent,
-  onPoemRead,
   renderIsolation = DEFAULT_RENDER_ISOLATION,
   qualityProfile,
   qualityFeatures,
@@ -205,6 +213,8 @@ export function Scene({
   paperProjectionRef,
   polaroidScreenRef,
   polaroidProjectionRef,
+  poemsScreenRef,
+  poemsProjectionRef,
   onPhotoOpen,
 }: SceneProps) {
   const { size } = useThree();
@@ -286,12 +296,8 @@ export function Scene({
         penRotation={s.penRotation}
         paperScreenRef={paperScreenRef}
         photoScreenRef={polaroidScreenRef}
+        poemsScreenRef={poemsScreenRef}
         activeScene={cameraSystem.selectedScene}
-        poemsContent={poemsContent}
-        activePoemSlug={
-          cameraSystem.selectedFocusCollection === "poems" ? cameraSystem.selectedFocusItem : null
-        }
-        onPoemRead={onPoemRead}
         onPhotoOpen={onPhotoOpen}
       />
       <PlanarProjection
@@ -308,7 +314,14 @@ export function Scene({
         projectionRef={polaroidProjectionRef}
         enabled={qualityFeatures.screenProjection}
       />
-      {size.width > 760 && chairMounted && <Chair />}
+      <PlanarProjection
+        label="PoemsScreenProjection"
+        corners={POEMS_SCREEN_CORNERS}
+        screenRef={poemsScreenRef}
+        projectionRef={poemsProjectionRef}
+        enabled={qualityFeatures.screenProjection}
+      />
+      {!isMobileRenderingViewport(size.width / size.height) && chairMounted && <Chair />}
       <Shelf
         illuminated={cameraSystem.selectedScene === "certificates"}
         onCertificateSelect={focusCertificate}

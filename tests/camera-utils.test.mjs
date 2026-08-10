@@ -60,7 +60,7 @@ test("responsive target resolution selects mobile framing", () => {
   assert.equal(getViewportKind(1.8), "desktop");
   assert.equal(resolveCameraTarget("projects", 0.6).fov, 44);
   assert.deepEqual(resolveCameraTarget("about", 0.6).position, [-1.897, 3.16, -0.578]);
-  assert.equal(resolveCameraTarget("about", 0.6).fov, 46);
+  assert.equal(resolveCameraTarget("about", 0.6).fov, 40);
   assert.equal(resolveCameraTarget("about", 0.6).roll, 0);
 });
 
@@ -83,7 +83,7 @@ test("camera navigation resolves adjacent swipe targets", () => {
 
 test("canvas taps leave collection objects in control", () => {
   assert.equal(allowsCanvasTapNavigation("opening"), true);
-  assert.equal(allowsCanvasTapNavigation("about"), true);
+  assert.equal(allowsCanvasTapNavigation("about"), false);
   assert.equal(allowsCanvasTapNavigation("certificates"), false);
   assert.equal(allowsCanvasTapNavigation("projects"), false);
   assert.equal(allowsCanvasTapNavigation("phone"), false);
@@ -281,7 +281,7 @@ test("Scene definitions own camera framing without changing About", () => {
   assert.equal(SCENE_REGISTRY.about.framing.fov, 31);
   assert.equal(SCENE_REGISTRY.about.framing.roll, -25);
   assert.deepEqual(SCENE_REGISTRY.about.responsive.mobile.position, [-1.897, 3.16, -0.578]);
-  assert.equal(SCENE_REGISTRY.about.responsive.mobile.fov, 46);
+  assert.equal(SCENE_REGISTRY.about.responsive.mobile.fov, 40);
   assert.equal(SCENE_REGISTRY.about.responsive.mobile.roll, 0);
   assert.equal(SCENE_REGISTRY.about.responsive.tablet, undefined);
   assert.equal(SCENE_REGISTRY.about.transition.duration, 4.3);

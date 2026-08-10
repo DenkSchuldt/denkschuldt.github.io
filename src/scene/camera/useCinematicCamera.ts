@@ -157,7 +157,11 @@ export function useCameraTapNavigation(
         return;
       }
       const element = event.target as HTMLElement | null;
-      if (element?.closest("input, textarea, select, button, [contenteditable='true']")) {
+      if (
+        element?.closest(
+          "input, textarea, select, button, [contenteditable='true'], .about-overlay-shell, .poems-overlay-shell",
+        )
+      ) {
         start = null;
         return;
       }

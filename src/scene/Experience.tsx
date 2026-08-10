@@ -83,6 +83,9 @@ const ProjectsOverlay = lazy(() =>
 const AboutOverlay = lazy(() =>
   import("./components/AboutOverlay").then((module) => ({ default: module.AboutOverlay })),
 );
+const PoemsOverlay = lazy(() =>
+  import("./components/PoemsOverlay").then((module) => ({ default: module.PoemsOverlay })),
+);
 const PolaroidCaptionOverlay = lazy(() =>
   import("./components/PolaroidCaptionOverlay").then((module) => ({
     default: module.PolaroidCaptionOverlay,
@@ -200,14 +203,19 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
   const [projectsOverlayReady, setProjectsOverlayReady] = useState(false);
   const [aboutCameraFocused, setAboutCameraFocused] = useState(false);
   const [aboutOverlayReady, setAboutOverlayReady] = useState(false);
+  const [poemsCameraFocused, setPoemsCameraFocused] = useState(false);
+  const [poemsOverlayReady, setPoemsOverlayReady] = useState(false);
   const [poemReaderOpen, setPoemReaderOpen] = useState(false);
   const [readerPoemSlug, setReaderPoemSlug] = useState<string | null>(null);
-  const [photoLightboxOpen, setPhotoLightboxOpen] = useState(false);
+  const [photoLightboxOpen, setPhotoLightboxOpen] = useState(() =>
+    /^\/about\/socials\/?$/.test(initialPath),
+  );
 
   const directPoemEntry = useRef(/^\/poems\/[^/]+(?:\/)?$/.test(initialPath));
   const directPoemOpened = useRef(false);
   const previousProjectsScene = useRef<SceneId | null>(null);
   const previousAboutScene = useRef<SceneId | null>(null);
+  const previousPoemsScene = useRef<SceneId | null>(null);
   const lastCertificateVisit = useRef<string | null>(null);
   const lastPoemRead = useRef<string | null>(null);
   const sceneReadyRef = useRef(false);
@@ -220,6 +228,8 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
   const paperProjectionRef = useRef<ScreenProjection | null>(null);
   const polaroidScreenRef = useRef<THREE.Mesh | null>(null);
   const polaroidProjectionRef = useRef<ScreenProjection | null>(null);
+  const poemsScreenRef = useRef<THREE.Mesh | null>(null);
+  const poemsProjectionRef = useRef<ScreenProjection | null>(null);
 
   useEffect(() => {
     if (mixpanelInitialized || process.env.NODE_ENV !== "production") return;
@@ -305,8 +315,15 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
       ...(cameraSystem.selectedFocusCollection === "certificates" ? ["certificate-original"] : []),
       ...(projectsOverlayReady ? ["projects-overlay"] : []),
       ...(aboutOverlayReady ? ["about-overlay"] : []),
+      ...(poemsOverlayReady ? ["poems-overlay"] : []),
     ],
-    [poemReaderOpen, cameraSystem.selectedFocusCollection, projectsOverlayReady, aboutOverlayReady],
+    [
+      poemReaderOpen,
+      cameraSystem.selectedFocusCollection,
+      projectsOverlayReady,
+      aboutOverlayReady,
+      poemsOverlayReady,
+    ],
   );
   const poemNavigationKey = poemsContent.poems
     .map(
@@ -352,6 +369,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
     const unsubscribe = cameraSystem.engine.onSceneFocused((state) => {
       setProjectsCameraFocused(state.sceneId === "projects" && state.cameraTargetId === "projects");
       setAboutCameraFocused(state.sceneId === "about" && state.cameraTargetId === "about");
+      setPoemsCameraFocused(state.sceneId === "poems" && state.cameraTargetId === "poems");
       if (skippedSceneFocus.current) {
         skippedSceneFocus.current = false;
         pendingSceneFocus.current = null;
@@ -470,6 +488,24 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
   }, [cameraSystem.selectedScene]);
 
   useEffect(() => {
+    setPoemsOverlayReady(
+      sceneReady &&
+        cameraSystem.selectedScene === "poems" &&
+        poemsCameraFocused &&
+        cinematicFadeReady,
+    );
+  }, [cameraSystem.selectedScene, poemsCameraFocused, cinematicFadeReady, sceneReady]);
+
+  useEffect(() => {
+    const previous = previousPoemsScene.current;
+    previousPoemsScene.current = cameraSystem.selectedScene;
+    if (previous !== null && previous !== cameraSystem.selectedScene) {
+      setPoemsCameraFocused(false);
+      setPoemsOverlayReady(false);
+    }
+  }, [cameraSystem.selectedScene]);
+
+  useEffect(() => {
     setCinematicFadeReady(false);
   }, [cameraSystem.introVersion, cameraSystem.skipVersion]);
 
@@ -583,6 +619,26 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
     }
   }, [cameraSystem, replaceWithinScene]);
 
+  const openPhotoLightbox = useCallback(() => {
+    setPhotoLightboxOpen(true);
+    // Shareable like the poem reader's slug above — clicking the polaroid
+    // is one of two ways in (the other being a direct visit to the URL).
+    if (routeScene === "about") replaceWithinScene("/about/socials");
+  }, [routeScene, replaceWithinScene]);
+
+  const closePhotoLightbox = useCallback(() => {
+    setPhotoLightboxOpen(false);
+    if (routeScene === "about" && route.slug === "socials")
+      replaceWithinScene(pathForScene("about"));
+  }, [routeScene, route.slug, replaceWithinScene]);
+
+  useEffect(() => {
+    // Keeps the lightbox in sync with direct links to /about/socials and
+    // with browser back/forward while still on the about scene.
+    if (routeScene !== "about") return;
+    setPhotoLightboxOpen(route.slug === "socials");
+  }, [routeScene, route.slug]);
+
   useCameraKeyboardNavigation(cameraSystem, navigateScene);
   useCameraTapNavigation(cameraSystem, navigateScene);
   useAutoSceneNavigation(cameraSystem, navigateScene);
@@ -669,8 +725,6 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
                     s={settings}
                     cameraSystem={cameraSystem}
                     certificateSlug={route.slug}
-                    poemsContent={poemsContent}
-                    onPoemRead={openPoemReader}
                     renderIsolation={renderIsolation}
                     qualityProfile={qualityProfile}
                     qualityFeatures={qualityFeatures}
@@ -681,7 +735,9 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
                     paperProjectionRef={paperProjectionRef}
                     polaroidScreenRef={polaroidScreenRef}
                     polaroidProjectionRef={polaroidProjectionRef}
-                    onPhotoOpen={() => setPhotoLightboxOpen(true)}
+                    poemsScreenRef={poemsScreenRef}
+                    poemsProjectionRef={poemsProjectionRef}
+                    onPhotoOpen={openPhotoLightbox}
                   />
                 </Suspense>
               </Profiler>
@@ -714,6 +770,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
               onEnterFocus={cameraSystem.enterFocus}
               onExitFocus={cameraSystem.exitFocus}
               poemReaderOpen={poemReaderOpen}
+              photoLightboxOpen={photoLightboxOpen}
             />
           </Profiler>
           <CertificateGalleryOverlay
@@ -723,7 +780,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
             onClose={cameraSystem.exitFocus}
             onNavigateNext={navigateToNextScene}
           />
-          <PhotoLightbox open={photoLightboxOpen} onClose={() => setPhotoLightboxOpen(false)} />
+          <PhotoLightbox open={photoLightboxOpen} onClose={closePhotoLightbox} />
           {projectsResourcesResident && (
             <Suspense fallback={null}>
               <ProjectsOverlay
@@ -741,6 +798,15 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
               <PolaroidCaptionOverlay
                 visible={cameraSystem.selectedScene === "about" && aboutOverlayReady}
                 projectionRef={polaroidProjectionRef}
+              />
+            </Suspense>
+          )}
+          {poemsResourcesResident && (
+            <Suspense fallback={null}>
+              <PoemsOverlay
+                visible={cameraSystem.selectedScene === "poems" && poemsOverlayReady}
+                projectionRef={poemsProjectionRef}
+                onRead={openPoemReader}
               />
             </Suspense>
           )}
