@@ -12,8 +12,8 @@ export interface NowPlayingTrack {
 // later wire this up to a real Now Playing source) without touching the
 // lock screen UI, which only ever reads this shape.
 export const NOW_PLAYING_TRACK: NowPlayingTrack = {
-  title: "Nuvole Bianche",
-  artist: "Ludovico Einaudi",
+  title: "Stranger in Moscow",
+  artist: "Michael Jackson",
 };
 
 export interface RealityStyle {
