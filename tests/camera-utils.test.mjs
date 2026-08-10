@@ -174,7 +174,7 @@ test("shot registry owns routes and preserves the golden About framing", () => {
   assert.equal(SHOT_REGISTRY.drawer.route, null);
   assert.equal(pathForShot("drawer"), null);
   assert.equal(parseScenePath("/projects/atlas").shot, "project-detail");
-  assert.equal(parseScenePath("/phone/qr").shot, "phone-qr");
+  assert.equal(parseScenePath("/phone/qr").shot, "phone");
   assert.deepEqual(resolveShot("about", 1.8).framing.position, [-1.8, 3, -0.772]);
   assert.equal(resolveShot("about", 1.8).framing.roll, -25);
   assert.equal(resolveShot("about", 1.8).transition.breathing, undefined);
@@ -409,6 +409,5 @@ test("routes reconstruct Scene and Focus state for deep links and Back", () => {
   assert.equal(history[2].focusItemId, second);
   assert.equal(history[1].focusItemId, first);
   assert.equal(history[0].focusItemId, null);
-  assert.ok(STATIC_FOCUS_ROUTES.includes("/phone/qr"));
   assert.ok(STATIC_FOCUS_ROUTES.includes("/socials"));
 });

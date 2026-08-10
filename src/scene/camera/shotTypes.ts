@@ -9,7 +9,6 @@ export type ShotId =
   | "poems"
   | "poem-detail"
   | "phone"
-  | "phone-qr"
   | "socials"
   | "wall"
   | "movie-detail"
