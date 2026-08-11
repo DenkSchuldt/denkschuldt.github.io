@@ -1435,7 +1435,7 @@ body {
   .scene-navigation-target {
     display: grid;
     top: auto;
-    bottom: 25%;
+    bottom: max(22px, env(safe-area-inset-bottom));
     width: 44px;
     min-height: 44px;
     padding: 0;
