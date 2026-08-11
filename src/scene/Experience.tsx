@@ -42,6 +42,12 @@ import {
 } from "./diagnostics/performance/PerformanceDiagnostics";
 import { performanceDiagnostics } from "./diagnostics/performance/performanceStore";
 import {
+  RealityProvider,
+  RealityRuntimeBridge,
+  useActiveReality,
+  useRealityStore,
+} from "./reality";
+import {
   QualityPreferenceControl,
   QualityProvider,
   QualityRuntimeBridge,
@@ -183,7 +189,9 @@ export default function Experience({ initialPath = "/" }: { initialPath?: string
     <QualityProvider>
       <WorkingSetProvider>
         <RenderSchedulerProvider>
-          <ExperienceContent initialPath={initialPath} />
+          <RealityProvider>
+            <ExperienceContent initialPath={initialPath} />
+          </RealityProvider>
         </RenderSchedulerProvider>
       </WorkingSetProvider>
     </QualityProvider>
@@ -666,11 +674,9 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
     replaceWithinScene(pathForFocus("poems", slug));
   }, [phonePoemsContent.poems, navigateScene, replaceWithinScene]);
 
-  // No visual-style switcher exists in the scene yet (see
-  // content/phoneConfig.ts). This keeps the lock screen's Reality
-  // notification wired to a real handler slot rather than doing nothing, so
-  // a future style selector only has to be plugged in here.
-  const openRealityStyleSelector = useCallback(() => {}, []);
+  const realityStore = useRealityStore();
+  const activeReality = useActiveReality((reality) => reality);
+  const openRealityStyleSelector = useCallback(() => realityStore.next(), [realityStore]);
 
   const openPhotoLightbox = useCallback(() => {
     setPhotoLightboxOpen(true);
@@ -772,6 +778,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
                   poemReaderOpen || cameraSystem.selectedFocusCollection === "certificates"
                 }
               />
+              <RealityRuntimeBridge />
               <Profiler id="Scene" onRender={onProfile}>
                 <Suspense fallback={null}>
                   <Scene
@@ -873,6 +880,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
                 latestPoem={phonePoemsContent.poems[0] ?? null}
                 poemsLoading={phonePoemsContent.loading}
                 onOpenPoetry={openLatestPoemFromPhone}
+                activeReality={activeReality}
                 onOpenReality={openRealityStyleSelector}
               />
             </Suspense>

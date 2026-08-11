@@ -19,17 +19,5 @@ export const NOW_PLAYING_TRACK: NowPlayingTrack = {
   url: "https://music.apple.com/ec/playlist/favs-michael-jackson/pl.u-AkAmmGeu2LaLd0N?l=en",
 };
 
-export interface RealityStyle {
-  id: string;
-  label: string;
-}
-
-// No switchable visual-style system exists in the scene yet — the workspace
-// only ever renders in this one cinematic style. Reading the label from here
-// (instead of a literal string on the notification) means the lock screen
-// picks up a real style system automatically once one exists, rather than
-// needing its own copy of the active style.
-export const ACTIVE_REALITY_STYLE: RealityStyle = {
-  id: "cinematic",
-  label: "Cinematic",
-};
+// The active Reality (Cinematic/Blueprint/…) lives in ../reality — it's a
+// live, switchable value rather than static phone metadata.

@@ -3,6 +3,7 @@
 import { ContactShadows } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 
+import { useActiveReality } from "../reality";
 import { RENDERING_INTENT, resolveHemisphereIntensity } from "../rendering/renderingIntent";
 
 import type { RenderingQualityProfile, ResolvedQualityFeatures } from "../rendering/quality";
@@ -27,21 +28,32 @@ export function Lighting({
   features: ResolvedQualityFeatures;
 }) {
   const aspect = useThree((state) => state.size.width / state.size.height);
-  const directionalShadows = shadowsEnabled && features.allShadows && features.directionalShadow;
+  // Blueprint suppresses the warm practical-light appearance and reduces
+  // realistic cast-shadow/AO cues in place here, rather than migrating
+  // lighting into a theme system — everything below is byte-identical to
+  // the Cinematic values when blueprint is false. Depth is meant to read
+  // from the technical edge lines first and this softened lighting second.
+  const blueprint = useActiveReality((reality) => reality.id === "blueprint");
+  const directionalShadows =
+    shadowsEnabled && features.allShadows && features.directionalShadow && !blueprint;
   return (
     <>
       {fillEnabled && (
         <hemisphereLight
           name="hemisphere-fill"
-          args={["#dde4e6", "#4a3c30", resolveHemisphereIntensity(bounce, aspect)]}
+          args={
+            blueprint
+              ? ["#b8c6db", "#16223a", resolveHemisphereIntensity(bounce, aspect) * 1.6]
+              : ["#dde4e6", "#4a3c30", resolveHemisphereIntensity(bounce, aspect)]
+          }
         />
       )}
       <directionalLight
         key={`sun-key:${profile.shadows.directionalMapSize}`}
         name="sun-key"
         position={[-5.7, 6.4, 1.6]}
-        color={sunColor}
-        intensity={sun}
+        color={blueprint ? "#cfe0f5" : sunColor}
+        intensity={blueprint ? sun * 0.2 : sun}
         castShadow={directionalShadows}
         shadow-mapSize={[profile.shadows.directionalMapSize, profile.shadows.directionalMapSize]}
         shadow-camera-left={-6}
@@ -51,7 +63,7 @@ export function Lighting({
         shadow-bias={-0.00018}
         shadow-radius={RENDERING_INTENT.lighting.sunShadowRadius}
       />
-      {fillEnabled && (
+      {fillEnabled && !blueprint && (
         <pointLight
           name="desk-fill"
           position={[-1.55, 1.72, -1.05]}
@@ -61,7 +73,7 @@ export function Lighting({
           decay={2}
         />
       )}
-      {shadowsEnabled && features.allShadows && features.contactShadows && (
+      {shadowsEnabled && features.allShadows && features.contactShadows && !blueprint && (
         <ContactShadows
           key={`${profile.id}:${profile.shadows.contactResolution}`}
           position={[0, 0.012, -0.8]}

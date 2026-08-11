@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 
 import { solveHomography } from "../homography";
-import { NOW_PLAYING_TRACK, ACTIVE_REALITY_STYLE } from "../content/phoneConfig";
+import { NOW_PLAYING_TRACK } from "../content/phoneConfig";
 import { useWorkingSetStore } from "../runtime/working-set";
 
 import type { ScreenProjectionRef } from "../screenProjection";
+import type { Reality } from "../reality";
 
 // Matches the phone screen planeGeometry (0.299 x 0.618 scene units) at a
 // uniform ~1305 logical px per scene unit, so the overlay maps onto it
@@ -188,6 +189,7 @@ export function PhoneOverlay({
   latestPoem,
   poemsLoading,
   onOpenPoetry,
+  activeReality,
   onOpenReality,
 }: {
   visible: boolean;
@@ -195,6 +197,7 @@ export function PhoneOverlay({
   latestPoem: PhoneLatestPoem | null;
   poemsLoading: boolean;
   onOpenPoetry: () => void;
+  activeReality: Reality;
   onOpenReality?: () => void;
 }) {
   const workingSet = useWorkingSetStore();
@@ -313,8 +316,8 @@ export function PhoneOverlay({
             className="denkos-notification-reality"
             icon={<RealityIcon />}
             label="Workspace"
-            primary={`Reality: ${ACTIVE_REALITY_STYLE.label}`}
-            secondary="Change visual style"
+            primary={`Reality: ${activeReality.label}`}
+            secondary="Change reality"
             onSelect={onOpenReality}
           />
         </div>
