@@ -16,7 +16,8 @@ export type RenderReason =
   | "visibility-restored"
   | "effects-settle"
   | "diagnostics-capture"
-  | "initial-render";
+  | "initial-render"
+  | "reality-transition";
 
 export type RenderCadence = "display" | "30fps" | "15fps";
 export type RenderPriority = 0 | 1 | 2 | 3;

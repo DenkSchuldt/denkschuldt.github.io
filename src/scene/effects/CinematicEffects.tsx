@@ -13,6 +13,7 @@ import {
 } from "@react-three/postprocessing";
 
 import { measurePerformanceTask } from "../diagnostics/performance/performanceStore";
+import { useActiveReality } from "../reality";
 import { useRenderDemand, useRenderSchedulerStore } from "../runtime/render-scheduler";
 
 import type { ReactElement } from "react";
@@ -62,6 +63,9 @@ export default function CinematicEffects({
   const dof = useRef<DepthOfFieldEffect | null>(null);
   const lastFocus = useRef(Number.NaN);
   const gl = useThree((state) => state.gl);
+  // Blueprint avoids strong bloom/glow so its edges read as drawn/technical
+  // rather than neon; every other effect keeps its Cinematic configuration.
+  const blueprint = useActiveReality((reality) => reality.id === "blueprint");
   const renderDemand = useRenderDemand("cinematic-effects"),
     scheduler = useRenderSchedulerStore();
   const composerActive = isolation.postProcessing && features.postProcessing;
@@ -96,7 +100,7 @@ export default function CinematicEffects({
   if (!composerActive) return null;
   return (
     <ManagedEffectComposer>
-      {isolation.ambientOcclusion && features.ambientOcclusion ? (
+      {isolation.ambientOcclusion && features.ambientOcclusion && !blueprint ? (
         <N8AO
           aoRadius={profile.postprocessing.ao.radius}
           intensity={profile.postprocessing.ao.intensity}
@@ -110,13 +114,13 @@ export default function CinematicEffects({
           ref={dof}
           focusDistance={s.focusDistance}
           focalLength={profile.postprocessing.dof.focalLength}
-          bokehScale={readingMode ? 0 : profile.postprocessing.dof.bokehScale}
+          bokehScale={readingMode || blueprint ? 0 : profile.postprocessing.dof.bokehScale}
           height={profile.postprocessing.dof.height}
         />
       ) : null}
       {isolation.bloom && features.bloom ? (
         <Bloom
-          intensity={readingMode ? 0 : profile.postprocessing.bloom.intensity}
+          intensity={readingMode || blueprint ? 0 : profile.postprocessing.bloom.intensity}
           luminanceThreshold={profile.postprocessing.bloom.luminanceThreshold}
           luminanceSmoothing={profile.postprocessing.bloom.luminanceSmoothing}
           mipmapBlur={profile.postprocessing.bloom.mipmapBlur}
