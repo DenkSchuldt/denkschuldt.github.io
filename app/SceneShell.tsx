@@ -3,6 +3,7 @@
 import { lazy, Suspense } from "react";
 
 const Experience = lazy(() => import("@/src/scene/Experience"));
+
 export default function SceneShell({ initialPath = "/" }: { initialPath?: string }) {
   return (
     <main className="experience-shell">
@@ -17,7 +18,7 @@ export default function SceneShell({ initialPath = "/" }: { initialPath?: string
       </Suspense>
       <div className="grain" aria-hidden="true" />
       <div className="fallback">
-        <p>A quiet creative studio at night.</p>
+        <p>I turn complex things into experiences people can feel.</p>
       </div>
     </main>
   );

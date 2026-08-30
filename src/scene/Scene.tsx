@@ -273,7 +273,7 @@ export function Scene({
         focusRef={focusRef}
         certificateFocusRef={certificateFocusRef}
       />
-      <Room />
+      <Room mobile={isMobileViewport} />
       <Desk />
       {isMobileViewport ? (
         <>
@@ -369,7 +369,7 @@ export function Scene({
         illuminated={cameraSystem.selectedScene === "certificates"}
         onCertificateSelect={focusCertificate}
       />
-      <Posters />
+      <Posters mobile={isMobileViewport} />
       <Plant position={s.plantPosition} rotationY={s.plantRotationY} />
       <DebugHelpers visible={s.helpers} />
       {effectsReady && (

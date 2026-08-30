@@ -363,9 +363,12 @@ export function CameraRig(props: Props) {
         lastSkipVersion.current = props.skipVersion;
         introActive.current = false;
         introComplete.current = true;
-        const destination =
-          props.requestedTarget === "opening" ? INTRO_DESTINATION : props.requestedTarget;
-        beginTransition(destination, now, props.reducedMotion ? 0.18 : 0.4);
+        if (props.requestedTarget === "opening") {
+          requestedId.current = "opening";
+          props.onTransitionComplete?.();
+        } else {
+          beginTransition(props.requestedTarget, now, props.reducedMotion ? 0.18 : 0.4);
+        }
       }
 
       if (lastWorkspaceVersion.current !== props.workspaceVersion) {

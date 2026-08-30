@@ -95,7 +95,7 @@ export function SceneNavigation({
   const next = resumeTarget ?? getAdjacentScene(current, 1, visitedAutoScenes);
   const showNavHint = current === "opening" && !hasClickedNav;
   const currentLabel = showNavHint
-    ? "Use the side buttons to navigate"
+    ? "Look around"
     : current === "opening"
       ? ""
       : SCENE_REGISTRY[current].label;
