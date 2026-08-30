@@ -35,7 +35,7 @@ export const RENDERING_INTENT = {
   // for tone mapping) — the light wall's warmth and the accent wall's
   // muted read are meant to come from context: the warm practical lights,
   // dark wood furniture, and daylight color around them, not from
-  // distorting the input hex. See Room() in objects/Primitives.tsx.
+  // distorting the input hex. See Room() in objects/Room.tsx.
   architecture: {
     lightWallColor: "#ebeced",
     accentWallColor: "#203a63",

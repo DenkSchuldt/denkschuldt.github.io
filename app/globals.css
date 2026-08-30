@@ -586,11 +586,15 @@ body {
   display: grid;
   grid-template-columns: minmax(270px, 0.75fr) minmax(0, 1.55fr);
 }
+.projects-overlay-ending {
+  display: none;
+}
 .projects-overlay-column {
   min-width: 0;
   padding: clamp(17px, 2.4vw, 30px) clamp(18px, 2.8vw, 36px) clamp(22px, 3vw, 38px);
 }
 .projects-overlay-projects {
+  order: -1;
   border-left: 1px solid rgba(139, 163, 184, 0.17);
   background: rgba(24, 37, 50, 0.48);
 }
@@ -766,6 +770,19 @@ body {
   color: #71889b;
   letter-spacing: 0.1em;
 }
+.projects-overlay-project-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 18px;
+  color: #b9ccdc;
+  font:
+    600 13px/1 "Roboto",
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+  letter-spacing: 0.04em;
+}
 .about-overlay {
   position: fixed;
   inset: 0;
@@ -794,7 +811,7 @@ body {
   transform-origin: 0 0;
   pointer-events: auto;
   /* Punches a genuine geometric hole over the polaroid photo (see
-     PolaroidPhoto in objects/Primitives.tsx — card spans roughly logical
+     PolaroidPhoto in objects/DeskObjects.tsx — card spans roughly logical
      x:[414,674] y:[19,389] in this element's own 708x1008 coordinate
      space, buffered here) so clicks reach the canvas underneath. This
      clips the element's own box, which does NOT move when its content
@@ -812,7 +829,7 @@ body {
   display: none;
 }
 /* Reserves the polaroid photo's footprint (top-right of the page — see
-   PolaroidPhoto in objects/Primitives.tsx) so surrounding text wraps
+   PolaroidPhoto in objects/DeskObjects.tsx) so surrounding text wraps
    narrower only where it's actually beside the photo, then reverts to the
    full content width once text scrolls past it, like text wrapping an
    image float. The margin-left is the gap between the photo and the text. */
@@ -916,7 +933,7 @@ body {
   transform: scale(1.04);
 }
 /* Homography-projected onto the polaroid card (see PolaroidCaptionOverlay
-   and PolaroidPhoto's tracking mesh in objects/Primitives.tsx) — the
+   and PolaroidPhoto's tracking mesh in objects/DeskObjects.tsx) — the
    caption strip below the photo, matching the paper's handwritten look.
    pointer-events:none throughout so it never blocks clicking the polaroid
    itself (which opens the photo lightbox). */
@@ -942,7 +959,7 @@ body {
   letter-spacing: 0.01em;
 }
 /* denkOS lock screen — homography-projected onto the phone's screen mesh
-   (see Phone/PhoneScreen's screenRef in objects/Primitives.tsx), same
+   (see Phone/PhoneScreen's screenRef in objects/DeskObjects.tsx), same
    technique as the laptop/paper/poems overlays above. All content here is
    real DOM/CSS rather than a baked texture so text stays sharp at any
    distance/DPR. */
@@ -978,7 +995,7 @@ body {
   font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
   transform-origin: 0 0;
   pointer-events: auto;
-  /* IPHONE_SCREEN_GEOMETRY (objects/Primitives.tsx) now rounds its corners
+  /* IPHONE_SCREEN_GEOMETRY (objects/DeskObjects.tsx) now rounds its corners
      with IPHONE_SCREEN_CORNER_RADIUS (0.06 world units) tessellated at
      curveSegments: 16 — a genuinely smooth arc, not a facet — so a plain
      round clip matches it: 78px ≈ 0.06 world units at this box's
@@ -1526,6 +1543,124 @@ body {
   }
   .projects-overlay-shell {
     border-radius: 7px;
+    box-shadow:
+      0 0 42px rgba(151, 193, 224, 0.2),
+      0 16px 52px rgba(0, 0, 0, 0.38);
+  }
+  .projects-overlay-shell.is-projected {
+    overflow-x: hidden;
+    overflow-y: auto;
+    border: 0;
+    border-radius: 0;
+    background: #030405;
+    box-shadow:
+      0 0 54px rgba(197, 219, 235, 0.18),
+      0 20px 70px rgba(0, 0, 0, 0.42);
+    pointer-events: auto;
+    touch-action: pan-y;
+  }
+  .projects-overlay.is-exiting .projects-overlay-shell.is-projected {
+    box-shadow: none;
+  }
+  .projects-overlay-shell.is-projected.is-starting {
+    animation: projector-warmup 1.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .projects-overlay-shell.is-projected.is-starting::after {
+    position: absolute;
+    inset: 0;
+    z-index: 8;
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.2), transparent 3px),
+      repeating-linear-gradient(
+        0deg,
+        rgba(214, 231, 242, 0.055) 0,
+        rgba(214, 231, 242, 0.055) 1px,
+        transparent 1px,
+        transparent 6px
+      );
+    content: "";
+    opacity: 0;
+    pointer-events: none;
+    animation: projector-startup-lines 1.65s steps(2, end) both;
+  }
+  .projects-overlay-title-card {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: grid;
+    place-items: center;
+    padding: 80px;
+    color: #fff;
+    background: #000;
+    text-align: center;
+    opacity: 1;
+    transition: opacity 0.9s ease;
+  }
+  .projects-overlay-title-card.is-leaving {
+    opacity: 0;
+  }
+  .projects-overlay-title-card p {
+    margin: 0;
+    font:
+      400 50px/1.3 "Roboto",
+      "Helvetica Neue",
+      Arial,
+      sans-serif;
+    letter-spacing: 0.035em;
+  }
+  .projects-overlay-content {
+    opacity: 1;
+    transition: opacity 0.9s ease;
+  }
+  .projects-overlay-content.is-waiting {
+    opacity: 0;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-header {
+    padding: 54px 48px 42px;
+    border-bottom-color: rgba(232, 239, 244, 0.18);
+    background: transparent;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-columns {
+    display: block;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-column {
+    display: block;
+    padding: 46px 48px 58px;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-projects {
+    order: initial;
+    border-top: 1px solid rgba(232, 239, 244, 0.18);
+    background: transparent;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-entry {
+    border-color: rgba(232, 239, 244, 0.16);
+    background: rgba(255, 255, 255, 0.035);
+    box-shadow: none;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-project-list {
+    grid-template-columns: 1fr;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-project {
+    border-color: rgba(232, 239, 244, 0.16);
+    background: rgba(255, 255, 255, 0.035);
+    box-shadow: none;
+    cursor: pointer;
+    pointer-events: auto;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-project:hover,
+  .projects-overlay-shell.is-projected .projects-overlay-project:focus-visible {
+    border-color: rgba(196, 224, 244, 0.48);
+    background: rgba(178, 211, 234, 0.1);
+    box-shadow: 0 0 30px rgba(158, 203, 235, 0.14);
+    outline: none;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-project-action {
+    padding: 15px 20px;
+    border: 1px solid rgba(196, 224, 244, 0.36);
+    border-radius: 999px;
+    color: #edf6fc;
+    background: rgba(153, 197, 228, 0.09);
+    font-size: 26.4px;
   }
   .projects-overlay-header {
     align-items: start;
@@ -1586,7 +1721,7 @@ body {
     margin-bottom: 20px;
   }
   .projects-overlay-column-heading h2 {
-    font-size: 30px;
+    font-size: 33px;
   }
   .projects-overlay-timeline {
     display: grid;
@@ -1615,21 +1750,21 @@ body {
     gap: 7px;
     margin-bottom: 14px;
     overflow: hidden;
-    font-size: 19px;
+    font-size: 20.9px;
     letter-spacing: 0.045em;
     white-space: nowrap;
   }
   .projects-overlay-entry h3 {
-    font-size: 38px;
+    font-size: 41.8px;
     line-height: 1.16;
   }
   .projects-overlay-company {
     margin: 8px 0 18px;
-    font-size: 25px;
+    font-size: 27.5px;
   }
   .projects-overlay-entry ul {
     gap: 13px;
-    font-size: 34px;
+    font-size: 37.4px;
     line-height: 1.44;
   }
   .projects-overlay-entry li {
@@ -1657,15 +1792,66 @@ body {
     border-radius: 6px;
   }
   .projects-overlay-project h3 {
-    font-size: 31px;
+    font-size: 34.1px;
   }
   .projects-overlay-project p {
     margin: 15px 0 22px;
-    font-size: 27px;
+    font-size: 29.7px;
     line-height: 1.44;
   }
   .projects-overlay-project time {
-    font-size: 19px;
+    font-size: 20.9px;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-header h1 {
+    font-size: 52px;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-eyebrow {
+    font-size: 20px;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-column-heading h2 {
+    font-size: 42px;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-entry-meta {
+    font-size: 27px;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-entry h3 {
+    font-size: 50px;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-company {
+    font-size: 34px;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-entry ul {
+    font-size: 44px;
+    line-height: 1.5;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-project h3 {
+    font-size: 42px;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-project p {
+    font-size: 36px;
+    line-height: 1.5;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-project time {
+    font-size: 26px;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-project-action {
+    font-size: 30px;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-ending {
+    display: grid;
+    min-height: 420px;
+    place-items: center;
+    padding: 110px 48px 150px;
+    border-top: 1px solid rgba(232, 239, 244, 0.14);
+    color: #edf3f8;
+    font:
+      400 64px/1.2 "Roboto",
+      "Helvetica Neue",
+      Arial,
+      sans-serif;
+    letter-spacing: 0.12em;
+    text-align: center;
+    text-transform: uppercase;
   }
   .about-overlay-shell {
     overflow: hidden;
@@ -1700,6 +1886,65 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .scene-name {
     transition-duration: 0.01ms;
+  }
+  .projects-overlay-shell.is-projected.is-starting,
+  .projects-overlay-shell.is-projected.is-starting::after {
+    animation-duration: 0.01ms;
+  }
+  .projects-overlay-title-card,
+  .projects-overlay-content {
+    transition-duration: 0.01ms;
+  }
+}
+@keyframes projector-warmup {
+  0% {
+    opacity: 0;
+    filter: brightness(2.8) blur(14px) contrast(0.65);
+  }
+  10% {
+    opacity: 0.18;
+  }
+  16% {
+    opacity: 0.04;
+  }
+  28% {
+    opacity: 0.72;
+    filter: brightness(1.9) blur(7px) contrast(0.75);
+  }
+  36% {
+    opacity: 0.25;
+  }
+  52% {
+    opacity: 0.94;
+  }
+  68% {
+    opacity: 0.68;
+    filter: brightness(1.25) blur(2px) contrast(0.92);
+  }
+  100% {
+    opacity: 1;
+    filter: brightness(1) blur(0) contrast(1);
+  }
+}
+@keyframes projector-startup-lines {
+  0%,
+  18% {
+    opacity: 0;
+    transform: translateY(-8%);
+  }
+  28% {
+    opacity: 0.7;
+  }
+  46% {
+    opacity: 0.18;
+    transform: translateY(3%);
+  }
+  64% {
+    opacity: 0.42;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(0);
   }
 }
 .fallback {

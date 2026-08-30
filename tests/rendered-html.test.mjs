@@ -2,6 +2,27 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
+const OBJECT_SOURCE_PATHS = [
+  "Chair.tsx",
+  "Desk.tsx",
+  "DeskObjects.tsx",
+  "Laptop.tsx",
+  "MiniProjector.tsx",
+  "Plant.tsx",
+  "Posters.tsx",
+  "Room.tsx",
+  "Shelf.tsx",
+];
+
+async function readObjectSources() {
+  const sources = await Promise.all(
+    OBJECT_SOURCE_PATHS.map((file) =>
+      readFile(new URL(`../src/scene/objects/${file}`, import.meta.url), "utf8"),
+    ),
+  );
+  return sources.join("\n");
+}
+
 async function render(path = "/") {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
   workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
@@ -39,7 +60,7 @@ test("collection focus is explicit and the responsive navigation stays scene-bas
   const [navigation, scene, primitives, css] = await Promise.all([
     readFile(new URL("../src/scene/camera/SceneNavigation.tsx", import.meta.url), "utf8"),
     readFile(new URL("../src/scene/Scene.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../src/scene/objects/Primitives.tsx", import.meta.url), "utf8"),
+    readObjectSources(),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
   ]);
   assert.match(navigation, /onFocus=\{\(\) => \{\s+if \(!active\) onEnterFocus/s);
@@ -109,7 +130,7 @@ test("keeps heavy WebGL resources outside the initial loading boundary", async (
     readFile(new URL("../app/SceneShell.tsx", import.meta.url), "utf8"),
     readFile(new URL("../src/scene/Experience.tsx", import.meta.url), "utf8"),
     readFile(new URL("../src/scene/Scene.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../src/scene/objects/Primitives.tsx", import.meta.url), "utf8"),
+    readObjectSources(),
     readFile(new URL("../src/scene/camera/useCinematicCamera.ts", import.meta.url), "utf8"),
   ]);
   assert.match(shell, /lazy\(\(\) => import\("@\/src\/scene\/Experience"\)\)/);
