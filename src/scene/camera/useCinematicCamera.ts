@@ -49,7 +49,7 @@ const normalizeLocation = (value: InitialNavigation) =>
 const CAMERA_DEFAULTS = {
   pauseTransitions: false,
   openingDuration: 13.5,
-  openingHold: 2.4,
+  openingHold: 10.2,
   fadeDuration: 3.2,
   transitionSpeed: 1,
   aboutTransitionSpeed: 1.2,
@@ -297,6 +297,8 @@ export function useCinematicNavigation(
   const [focusVersion, setFocusVersion] = useState(0);
   const [resumeScene, setResumeScene] = useState<SceneId | null>(null);
   const [visitedAutoScenes, setVisitedAutoScenes] = useState<SceneId[]>([]);
+  const replayIntro = useCallback(() => setIntroVersion((value) => value + 1), []);
+  const skipIntro = useCallback(() => setSkipVersion((value) => value + 1), []);
 
   const routeLocation = normalizeLocation(initialValue);
   // Requesting "about" here used to be what drove the camera onward once the
@@ -590,8 +592,8 @@ export function useCinematicNavigation(
     resumeScene,
     resumeLastVisitedScene,
     resumeLastVisitedShot: resumeLastVisitedScene,
-    replayIntro: () => setIntroVersion((value) => value + 1),
-    skipIntro: () => setSkipVersion((value) => value + 1),
+    replayIntro,
+    skipIntro,
     cameraState: stateRef,
     introVersion,
     skipVersion,

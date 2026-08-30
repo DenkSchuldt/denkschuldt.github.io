@@ -15,6 +15,7 @@ import {
 import { shouldSyncRouteShot } from "./camera/cameraNavigation";
 import { CinematicFade } from "./camera/CinematicFade";
 import { NavigationDebugPanel } from "./camera/NavigationDebugPanel";
+import { OpeningCredits } from "./camera/OpeningCredits";
 import { SceneNavigation } from "./camera/SceneNavigation";
 import { pathForFocus, pathForScene } from "./camera/sceneRoutes";
 import {
@@ -308,6 +309,8 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
   const cameraSystem = useCinematicNavigation(route, route.directEntry, {
     onNavigate: commitNavigation,
   });
+  const { skipIntro } = cameraSystem;
+  const onReturningOpeningVisit = useCallback(() => skipIntro(), [skipIntro]);
 
   performanceDiagnostics.setLocation(
     cameraSystem.selectedScene,
@@ -812,7 +815,15 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
           >
             <span>Entering workspace</span>
           </div>
-          <p className="workspace-badge">Denny&rsquo;s Workspace</p>
+          <p className="workspace-badge">Denny K. Schuldt</p>
+          {!route.directEntry && (
+            <OpeningCredits
+              isOpening={cameraSystem.selectedScene === "opening"}
+              reducedMotion={cameraSystem.reducedMotion}
+              replayKey={cameraSystem.introVersion}
+              onReturningVisit={onReturningOpeningVisit}
+            />
+          )}
           <NavigationDebugPanel
             visible={cameraSystem.navigationDebug}
             stateRef={cameraSystem.cameraState}
@@ -899,8 +910,8 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
           <CinematicFade
             replayKey={cameraSystem.introVersion}
             skipKey={cameraSystem.skipVersion}
-            hold={route.directEntry ? 0.18 : cameraSystem.openingHold * 0.55}
-            duration={route.directEntry ? 1.65 : cameraSystem.fadeDuration}
+            hold={route.directEntry ? 0.18 : 0.35}
+            duration={route.directEntry ? 1.65 : 1.8}
             reducedMotion={cameraSystem.reducedMotion}
             onComplete={onCinematicFadeComplete}
           />

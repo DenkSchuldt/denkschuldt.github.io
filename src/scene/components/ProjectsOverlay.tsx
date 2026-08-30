@@ -310,13 +310,12 @@ export function ProjectsOverlay({
   return (
     <section
       className={`projects-overlay${visible ? "" : " is-exiting"}`}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Experience and projects"
+      aria-labelledby="projects-overlay-title"
+      aria-hidden={!visible}
     >
       <div
         ref={shellRef}
-        className={`projects-overlay-shell${isMobileProjection ? " is-projected" : ""}${isMobileProjection && projectionPhase === "title" ? " is-starting" : ""}`}
+        className={`projects-overlay-shell${isMobileProjection ? " is-projected" : ""}`}
         style={{
           width: SCREEN_LOGICAL_WIDTH,
           height: SCREEN_LOGICAL_HEIGHT,
@@ -337,55 +336,128 @@ export function ProjectsOverlay({
           <header className="projects-overlay-header">
             <div>
               <p className="projects-overlay-eyebrow">Denny K. Schuldt</p>
-              <h1>Experience & projects</h1>
+              <h1 id="projects-overlay-title">Selected Work</h1>
             </div>
           </header>
-          <div className="projects-overlay-columns">
-            <article
-              id="projects-experience-panel"
-              className="projects-overlay-column projects-overlay-experience"
-            >
-              <div className="projects-overlay-column-heading">
-                <h2>Experience</h2>
-              </div>
-              <div className="projects-overlay-timeline">
-                {EXPERIENCE.map((entry) => (
-                  <section
-                    className="projects-overlay-entry"
-                    key={`${entry.role}-${entry.company}-${entry.dates}`}
-                  >
-                    <div className="projects-overlay-entry-meta">
-                      <time>{entry.dates}</time>
-                      <span className="projects-overlay-entry-separator" aria-hidden="true">
-                        •
-                      </span>
-                      <span>{entry.location}</span>
-                    </div>
-                    <h3>{entry.role}</h3>
-                    <p className="projects-overlay-company">{entry.company}</p>
-                    {entry.bullets && (
-                      <ul>
-                        {entry.bullets.map((bullet) => (
-                          <li key={bullet}>{bullet}</li>
-                        ))}
-                      </ul>
-                    )}
+          <div className="projects-overlay-body">
+            <section className="projects-overlay-selected-work" aria-label="Professional evolution">
+              <ol className="projects-overlay-evolution">
+                <li>
+                  <section className="projects-overlay-chapter projects-overlay-chapter-now">
+                    <time className="projects-overlay-chapter-years">2025—Now</time>
+                    <p className="projects-overlay-chapter-label">Now</p>
+                    <h2>Product, systems and AI</h2>
+                    <p>
+                      I work across product strategy, technology and user experience, currently
+                      building AI-enabled products at Jelou.
+                    </p>
+                    <p>
+                      My role is to connect complex systems with experiences people can actually
+                      use.
+                    </p>
                   </section>
-                ))}
-              </div>
-            </article>
-            <article
-              id="projects-projects-panel"
-              className="projects-overlay-column projects-overlay-projects"
-            >
-              <div className="projects-overlay-column-heading">
-                <h2>Projects</h2>
-              </div>
-              <div className="projects-overlay-project-list">
+                </li>
+
+                <li>
+                  <section className="projects-overlay-chapter projects-overlay-chapter-leadership">
+                    <time className="projects-overlay-chapter-years">2017—2025</time>
+                    <p className="projects-overlay-chapter-label">Product Leadership</p>
+                    <h2>From products to ecosystems</h2>
+                    <p>
+                      At Shippify, my scope grew from individual product decisions to product
+                      strategy, platforms and teams.
+                    </p>
+                    <p>
+                      I worked across routing, fleet management, scheduling, automations,
+                      operational tools and driver experiences.
+                    </p>
+                    <p>
+                      Over time, the question became less <em>what should we build?</em> and more
+                      <em> what problem is worth solving?</em>
+                    </p>
+                  </section>
+                </li>
+
+                <li>
+                  <section className="projects-overlay-chapter projects-overlay-chapter-product">
+                    <time className="projects-overlay-chapter-years">2017—2025</time>
+                    <p className="projects-overlay-chapter-label">Product &amp; UX</p>
+                    <h2>Making complexity usable</h2>
+                    <p>I moved from building systems to shaping how people interact with them.</p>
+                    <p>
+                      That meant understanding workflows, simplifying complexity and questioning
+                      what should exist before deciding how to build it.
+                    </p>
+                  </section>
+                </li>
+
+                <li>
+                  <section className="projects-overlay-chapter projects-overlay-chapter-engineering">
+                    <time className="projects-overlay-chapter-years">2015—2017</time>
+                    <p className="projects-overlay-chapter-label">Engineering</p>
+                    <h2>Understanding systems from the inside</h2>
+                    <p>I started as a software engineer.</p>
+                    <p>
+                      That foundation still shapes how I think about products: through constraints,
+                      dependencies and the systems beneath the interface.
+                    </p>
+                  </section>
+                </li>
+
+                <li>
+                  <section className="projects-overlay-chapter projects-overlay-chapter-foundations">
+                    <time className="projects-overlay-chapter-years">2013—2015</time>
+                    <p className="projects-overlay-chapter-label">Foundations</p>
+                    <h2>Where it started</h2>
+                    <p>Computer Science, early technical roles and a lot of curiosity.</p>
+                    <p>The tools changed.</p>
+                    <p>The questions got bigger.</p>
+                  </section>
+                </li>
+              </ol>
+
+              <details className="projects-overlay-career">
+                <summary>Career timeline</summary>
+                <ol className="projects-overlay-career-list">
+                  {EXPERIENCE.map((entry) => (
+                    <li key={`${entry.role}-${entry.company}-${entry.dates}`}>
+                      <article className="projects-overlay-career-entry">
+                        <div className="projects-overlay-entry-meta">
+                          <time>{entry.dates}</time>
+                          <span className="projects-overlay-entry-separator" aria-hidden="true">
+                            •
+                          </span>
+                          <span>{entry.location}</span>
+                        </div>
+                        <h3>{entry.role}</h3>
+                        <p className="projects-overlay-company">{entry.company}</p>
+                        {entry.bullets && (
+                          <ul>
+                            {entry.bullets.map((bullet) => (
+                              <li key={bullet}>{bullet}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </article>
+                    </li>
+                  ))}
+                </ol>
+              </details>
+            </section>
+
+            <article className="projects-overlay-independent">
+              <header className="projects-overlay-independent-header">
+                <h2>Independent Experiments</h2>
+                <p>A space to build without organizational constraints.</p>
+                <p>Product, interaction, engineering and visual direction — all in one place.</p>
+              </header>
+              <ul className="projects-overlay-project-list">
                 {PROJECTS.map((project) => (
-                  <ProjectLink key={project.title} project={project} />
+                  <li key={project.title}>
+                    <ProjectLink project={project} />
+                  </li>
                 ))}
-              </div>
+              </ul>
             </article>
           </div>
           <footer className="projects-overlay-ending">The End</footer>

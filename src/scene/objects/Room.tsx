@@ -99,7 +99,7 @@ function useWallGrainTexture(width: number, height: number) {
   return tiled;
 }
 
-export function Room() {
+export function Room({ mobile = false }: { mobile?: boolean }) {
   const backWallGrain = useWallGrainTexture(18, 8);
   const accentWallGrain = useWallGrainTexture(8, 8);
   return (
@@ -134,73 +134,103 @@ export function Room() {
         <planeGeometry args={[18, 15]} />
         <meshStandardMaterial color="#24221f" {...mat} />
       </mesh>
-      <ArchitecturalWoodwork />
+      <ArchitecturalWoodwork mobile={mobile} />
     </group>
   );
 }
 
-function ArchitecturalWoodwork() {
+type WoodworkTransform = {
+  position: readonly [number, number, number];
+  rotation: number;
+  scale: readonly [number, number, number];
+};
+
+// Skirting where the walls meet the floor — kept on every viewport.
+const FLOOR_BASEBOARD_TRANSFORMS: readonly WoodworkTransform[] = [
+  { position: [-0.075, 0, -3.995], rotation: 0, scale: [11.85, 1, 1] },
+  { position: [-5.995, 0, 1.75], rotation: Math.PI / 2, scale: [11.5, 1, 1] },
+  { position: [5.845, 0, 1.75], rotation: -Math.PI / 2, scale: [11.5, 1, 1] },
+];
+// Cap rail of the back-wall wainscoting, sitting just above the raised panels.
+const DADO_RAIL_TRANSFORM: WoodworkTransform = {
+  position: [0, 2.055, -3.95],
+  rotation: 0,
+  scale: [5.62, 0.28, 0.7],
+};
+const WAINSCOT_PANEL_COLORS = [
+  "#3b291e",
+  "#36241b",
+  "#402c20",
+  "#39271d",
+  "#3d2a1f",
+  "#35241b",
+  "#3f2b20",
+];
+
+// On a portrait viewport the projector throws the Projects overlay onto the
+// back wall, so the dark wood wainscoting there (raised panels + cap rail) is
+// left out to keep the projection on an even surface. Floor baseboards stay.
+function ArchitecturalWoodwork({ mobile = false }: { mobile?: boolean }) {
   const baseboardsRef = useRef<THREE.InstancedMesh>(null),
     panelsRef = useRef<THREE.InstancedMesh>(null);
+  const baseboardTransforms = useMemo(
+    () =>
+      mobile ? FLOOR_BASEBOARD_TRANSFORMS : [...FLOOR_BASEBOARD_TRANSFORMS, DADO_RAIL_TRANSFORM],
+    [mobile],
+  );
   useLayoutEffect(() => {
-    const baseboards = baseboardsRef.current,
-      panels = panelsRef.current;
-    if (!baseboards || !panels) return;
     const dummy = new THREE.Object3D();
-    const baseboardTransforms: readonly {
-      position: readonly [number, number, number];
-      rotation: number;
-      scale: readonly [number, number, number];
-    }[] = [
-      { position: [-0.075, 0, -3.995], rotation: 0, scale: [11.85, 1, 1] },
-      { position: [-5.995, 0, 1.75], rotation: Math.PI / 2, scale: [11.5, 1, 1] },
-      { position: [5.845, 0, 1.75], rotation: -Math.PI / 2, scale: [11.5, 1, 1] },
-      { position: [0, 2.055, -3.95], rotation: 0, scale: [5.62, 0.28, 0.7] },
-    ];
-    baseboardTransforms.forEach(({ position, rotation, scale }, index) => {
-      dummy.position.set(...position);
-      dummy.rotation.set(0, rotation, 0);
-      dummy.scale.set(...scale);
-      dummy.updateMatrix();
-      baseboards.setMatrixAt(index, dummy.matrix);
-    });
-    const panelColors = [
-      "#3b291e",
-      "#36241b",
-      "#402c20",
-      "#39271d",
-      "#3d2a1f",
-      "#35241b",
-      "#3f2b20",
-    ];
-    panelColors.forEach((color, index) => {
-      dummy.position.set((index - 3) * 0.8, 1.08, -3.975);
-      dummy.rotation.set(0, 0, 0);
-      dummy.scale.set(0.786, 1.94, 0.04);
-      dummy.updateMatrix();
-      panels.setMatrixAt(index, dummy.matrix);
-      panels.setColorAt(index, new THREE.Color(color));
-    });
-    [baseboards, panels].forEach((mesh) => {
-      mesh.instanceMatrix.needsUpdate = true;
-      mesh.computeBoundingSphere();
-    });
-    if (panels.instanceColor) panels.instanceColor.needsUpdate = true;
-  }, []);
+    const baseboards = baseboardsRef.current;
+    if (baseboards) {
+      baseboardTransforms.forEach(({ position, rotation, scale }, index) => {
+        dummy.position.set(...position);
+        dummy.rotation.set(0, rotation, 0);
+        dummy.scale.set(...scale);
+        dummy.updateMatrix();
+        baseboards.setMatrixAt(index, dummy.matrix);
+      });
+      baseboards.instanceMatrix.needsUpdate = true;
+      baseboards.computeBoundingSphere();
+    }
+    const panels = panelsRef.current;
+    if (panels) {
+      WAINSCOT_PANEL_COLORS.forEach((color, index) => {
+        dummy.position.set((index - 3) * 0.8, 1.08, -3.975);
+        dummy.rotation.set(0, 0, 0);
+        dummy.scale.set(0.786, 1.94, 0.04);
+        dummy.updateMatrix();
+        panels.setMatrixAt(index, dummy.matrix);
+        panels.setColorAt(index, new THREE.Color(color));
+      });
+      panels.instanceMatrix.needsUpdate = true;
+      panels.computeBoundingSphere();
+      if (panels.instanceColor) panels.instanceColor.needsUpdate = true;
+    }
+  }, [baseboardTransforms]);
   return (
     <group dispose={null}>
       <instancedMesh
         ref={baseboardsRef}
-        args={[ARCHITECTURAL_BASEBOARD_GEOMETRY, ARCHITECTURAL_WOOD_MATERIAL, 4]}
+        args={[
+          ARCHITECTURAL_BASEBOARD_GEOMETRY,
+          ARCHITECTURAL_WOOD_MATERIAL,
+          baseboardTransforms.length,
+        ]}
         castShadow
         receiveShadow
       />
-      <instancedMesh
-        ref={panelsRef}
-        args={[ARCHITECTURAL_PANEL_GEOMETRY, ARCHITECTURAL_WOOD_MATERIAL, 7]}
-        castShadow
-        receiveShadow
-      />
+      {!mobile && (
+        <instancedMesh
+          ref={panelsRef}
+          args={[
+            ARCHITECTURAL_PANEL_GEOMETRY,
+            ARCHITECTURAL_WOOD_MATERIAL,
+            WAINSCOT_PANEL_COLORS.length,
+          ]}
+          castShadow
+          receiveShadow
+        />
+      )}
     </group>
   );
 }

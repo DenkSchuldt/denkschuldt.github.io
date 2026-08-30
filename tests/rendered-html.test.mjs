@@ -51,7 +51,7 @@ test("server-renders the cinematic experience shell", async () => {
   assert.doesNotMatch(html, /mobile-camera-nav/);
   assert.match(html, /class="cinematic-fade"/);
   assert.match(html, /class="grain"/);
-  assert.match(html, /A quiet creative studio at night\./);
+  assert.match(html, /I turn complex things into experiences people can feel\./);
   assert.doesNotMatch(html, /codex-preview|Your site is taking shape|react-loading-skeleton/i);
   assert.doesNotMatch(html, /rendering-diagnostics|Render diagnostics/i);
 });

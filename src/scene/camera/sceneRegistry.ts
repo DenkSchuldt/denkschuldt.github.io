@@ -36,7 +36,7 @@ export const SCENE_REGISTRY: Record<SceneId, SceneDefinition> = {
     framing: framing([-3.1, 3.35, 4.9], [-0.15, 1.45, -1.35], 45),
     cameraFocus: { enabled: true, focusDistance: 0.016 },
     transition: { duration: 1 },
-    responsive: { mobile: { position: [-2.55, 3.3, 5.75], lookAt: [-0.1, 1.45, -1.35], fov: 68 } },
+    responsive: { mobile: { position: [-2.2, 3.05, 4.75], lookAt: [-0.1, 1.45, -1.35], fov: 68 } },
   },
   about: {
     id: "about",
