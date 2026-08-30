@@ -12,7 +12,7 @@ import type { Reality } from "../reality";
 // Matches the phone screen planeGeometry (0.299 x 0.618 scene units) at a
 // uniform ~1305 logical px per scene unit, so the overlay maps onto it
 // without distortion. See the screenRef mesh in Phone/PhoneScreen
-// (objects/Primitives.tsx).
+// (objects/DeskObjects.tsx).
 const SCREEN_LOGICAL_WIDTH = 390;
 const SCREEN_LOGICAL_HEIGHT = 806;
 

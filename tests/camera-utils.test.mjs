@@ -58,7 +58,9 @@ test("responsive target resolution selects mobile framing", () => {
   assert.equal(getViewportKind(0.6), "mobile");
   assert.equal(getViewportKind(1.1), "tablet");
   assert.equal(getViewportKind(1.8), "desktop");
-  assert.equal(resolveCameraTarget("projects", 0.6).fov, 44);
+  assert.equal(resolveCameraTarget("projects", 0.6).fov, 55);
+  assert.deepEqual(resolveCameraTarget("projects", 0.6).position, [0, 3.5, 1.45]);
+  assert.deepEqual(resolveCameraTarget("projects", 0.6).lookAt, [0, 3, -3.965]);
   assert.deepEqual(resolveCameraTarget("about", 0.6).position, [-1.897, 3.16, -0.578]);
   assert.equal(resolveCameraTarget("about", 0.6).fov, 40);
   assert.equal(resolveCameraTarget("about", 0.6).roll, 0);

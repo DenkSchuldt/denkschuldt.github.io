@@ -89,7 +89,7 @@ export const SCENE_REGISTRY: Record<SceneId, SceneDefinition> = {
     cameraFocus: { enabled: true, focusDistance: 0.02, focusTarget: "laptop-screen" },
     transition: { duration: 4.8, arrivalDelay: 0.12, breathing: quietBreathing },
     responsive: {
-      mobile: { position: [-0.5, 1.86, 1.7], lookAt: [-0.55, 1.78, -2.3], fov: 44 },
+      mobile: { position: [0, 3.5, 1.45], lookAt: [0, 3, -3.965], fov: 55 },
       tablet: { position: [-0.25, 1.84, 0.9], lookAt: [-0.55, 1.78, -2.3], fov: 38 },
     },
     focusCollection: "projects",

@@ -7,7 +7,7 @@ import { solveHomography } from "../homography";
 import type { ScreenProjectionRef } from "../screenProjection";
 
 // Matches the polaroid card's tracking-mesh geometry (0.26 x 0.37 scene
-// units, see PolaroidPhoto in objects/Primitives.tsx) at a uniform 1000
+// units, see PolaroidPhoto in objects/DeskObjects.tsx) at a uniform 1000
 // logical px per scene unit, same convention as the paper/laptop overlays.
 const CARD_LOGICAL_WIDTH = 260;
 const CARD_LOGICAL_HEIGHT = 370;

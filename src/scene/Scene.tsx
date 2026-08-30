@@ -8,16 +8,16 @@ import * as THREE from "three";
 import { CameraController } from "./camera/CameraController";
 import { Lighting } from "./lighting/Lighting";
 import { DebugHelpers } from "./components/DebugHelpers";
-import {
-  Room,
-  Desk,
-  Laptop,
-  DeskObjects,
-  Chair,
-  Shelf,
-  Posters,
-  Plant,
-} from "./objects/Primitives";
+import { Chair } from "./objects/Chair";
+import { Desk } from "./objects/Desk";
+import { DeskObjects } from "./objects/DeskObjects";
+import { FadingGroup } from "./objects/FadingGroup";
+import { Laptop } from "./objects/Laptop";
+import { MiniProjector } from "./objects/MiniProjector";
+import { Plant } from "./objects/Plant";
+import { Posters } from "./objects/Posters";
+import { Room } from "./objects/Room";
+import { Shelf } from "./objects/Shelf";
 import { getCertificateFocusBySlug, type CertificateFocus } from "./objects/certificates";
 import { DEFAULT_RENDER_ISOLATION, type RenderIsolationState } from "./rendering/renderIsolation";
 import { isMobileRenderingViewport } from "./rendering/renderingIntent";
@@ -36,6 +36,9 @@ const LAPTOP_SCREEN_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vecto
     new THREE.Vector3(-0.5, -0.5, 0),
   ];
 
+const PROJECTS_WALL_PROJECTION_POSITION: [number, number, number] = [0, 3.2, -3.965];
+const PROJECTS_WALL_PROJECTION_SCALE: [number, number, number] = [2.4, 4.24, 1];
+
 // Half-extents of the paper's planeGeometry (0.708 x 1.008 scene units).
 const PAPER_SURFACE_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector3, THREE.Vector3] =
   [
@@ -46,7 +49,7 @@ const PAPER_SURFACE_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vecto
   ];
 
 // Half-extents of the polaroid card's planeGeometry (0.26 x 0.37 scene
-// units) — see PolaroidPhoto's tracking mesh in objects/Primitives.tsx.
+// units) — see PolaroidPhoto's tracking mesh in objects/DeskObjects.tsx.
 const POLAROID_SCREEN_CORNERS: readonly [
   THREE.Vector3,
   THREE.Vector3,
@@ -60,7 +63,7 @@ const POLAROID_SCREEN_CORNERS: readonly [
 ];
 
 // Half-extents of the poems notebook page's planeGeometry (0.704 x 0.682
-// scene units) — see PortfolioPoemPreview in objects/Primitives.tsx.
+// scene units) — see PortfolioPoemPreview in objects/DeskObjects.tsx.
 const POEMS_SCREEN_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector3, THREE.Vector3] =
   [
     new THREE.Vector3(-0.352, 0.341, 0),
@@ -70,7 +73,7 @@ const POEMS_SCREEN_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector
   ];
 
 // Half-extents of the phone screen's planeGeometry (0.299 x 0.618 scene
-// units) — see PhoneScreen's screenRef mesh in objects/Primitives.tsx.
+// units) — see PhoneScreen's screenRef mesh in objects/DeskObjects.tsx.
 const PHONE_SCREEN_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector3, THREE.Vector3] =
   [
     new THREE.Vector3(-0.1495, 0.309, 0),
@@ -171,25 +174,6 @@ export interface SceneSettings {
   lampPosition: [number, number, number];
 }
 
-function nearsOpening(engine: CinematicNavigationSystem["engine"]) {
-  const state = engine.getState();
-  return state.sceneId === "opening" || state.requestedSceneId === "opening";
-}
-
-// The chair only belongs at the Opening desk. It stays mounted for as long as
-// Opening is the current or destination scene — whether arriving there via
-// ESC/return, the guided tour looping back around, or a fresh load — and
-// unmounts once the camera has actually left for another scene.
-function useChairMountState(cameraSystem: CinematicNavigationSystem) {
-  const [mounted, setMounted] = useState(() => nearsOpening(cameraSystem.engine));
-  useEffect(() => {
-    const update = () => setMounted(nearsOpening(cameraSystem.engine));
-    update();
-    return cameraSystem.engine.subscribe(update);
-  }, [cameraSystem.engine]);
-  return mounted;
-}
-
 interface SceneProps {
   s: SceneSettings;
   cameraSystem: CinematicNavigationSystem;
@@ -232,8 +216,8 @@ export function Scene({
   onPhotoOpen,
 }: SceneProps) {
   const { size } = useThree();
+  const isMobileViewport = isMobileRenderingViewport(size.width / size.height);
   const renderDemand = useRenderDemand("scene");
-  const chairMounted = useChairMountState(cameraSystem);
   const focusRef = useRef(s.focusDistance);
   const [effectsReady, setEffectsReady] = useState(false);
   const certificateFocusRef = useRef<CertificateFocus | null>(
@@ -291,14 +275,47 @@ export function Scene({
       />
       <Room />
       <Desk />
-      <Laptop position={s.laptopPosition} rotation={s.laptopRotation} screenRef={laptopScreenRef} />
-      <PlanarProjection
-        label="LaptopScreenProjection"
-        corners={LAPTOP_SCREEN_CORNERS}
-        screenRef={laptopScreenRef}
-        projectionRef={screenProjectionRef}
-        enabled={qualityFeatures.screenProjection}
-      />
+      {isMobileViewport ? (
+        <>
+          <MiniProjector position={s.laptopPosition} rotation={-10} />
+          {cameraSystem.selectedScene === "projects" && (
+            <>
+              <mesh
+                ref={laptopScreenRef}
+                name="ProjectsWallProjection"
+                position={PROJECTS_WALL_PROJECTION_POSITION}
+                scale={PROJECTS_WALL_PROJECTION_SCALE}
+                visible={false}
+              >
+                <planeGeometry args={[1, 1]} />
+                <meshBasicMaterial />
+              </mesh>
+              <PlanarProjection
+                label="ProjectsWallProjection"
+                corners={LAPTOP_SCREEN_CORNERS}
+                screenRef={laptopScreenRef}
+                projectionRef={screenProjectionRef}
+                enabled={qualityFeatures.screenProjection}
+              />
+            </>
+          )}
+        </>
+      ) : (
+        <>
+          <Laptop
+            position={s.laptopPosition}
+            rotation={s.laptopRotation}
+            screenRef={laptopScreenRef}
+          />
+          <PlanarProjection
+            label="LaptopScreenProjection"
+            corners={LAPTOP_SCREEN_CORNERS}
+            screenRef={laptopScreenRef}
+            projectionRef={screenProjectionRef}
+            enabled={qualityFeatures.screenProjection}
+          />
+        </>
+      )}
       <DeskObjects
         coffeePosition={s.coffeePosition}
         lampPosition={s.lampPosition}
@@ -343,7 +360,11 @@ export function Scene({
         projectionRef={phoneProjectionRef}
         enabled={qualityFeatures.screenProjection}
       />
-      {!isMobileRenderingViewport(size.width / size.height) && chairMounted && <Chair />}
+      {!isMobileViewport && (
+        <FadingGroup id="chair" visible={cameraSystem.selectedScene === "opening"}>
+          <Chair />
+        </FadingGroup>
+      )}
       <Shelf
         illuminated={cameraSystem.selectedScene === "certificates"}
         onCertificateSelect={focusCertificate}
