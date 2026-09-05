@@ -62,8 +62,9 @@ test("responsive target resolution selects mobile framing", () => {
   assert.deepEqual(resolveCameraTarget("projects", 0.6).position, [0, 3.5, 1.45]);
   assert.deepEqual(resolveCameraTarget("projects", 0.6).lookAt, [0, 3, -3.965]);
   assert.deepEqual(resolveCameraTarget("about", 0.6).position, [-1.897, 3.16, -0.578]);
-  assert.equal(resolveCameraTarget("about", 0.6).fov, 40);
+  assert.equal(resolveCameraTarget("about", 0.6).fov, 38);
   assert.equal(resolveCameraTarget("about", 0.6).roll, 0);
+  assert.equal(resolveCameraTarget("about", 1.1).fov, 38);
 });
 
 test("reduced motion shortens long transitions", () => {
@@ -283,9 +284,9 @@ test("Scene definitions own camera framing without changing About", () => {
   assert.equal(SCENE_REGISTRY.about.framing.fov, 31);
   assert.equal(SCENE_REGISTRY.about.framing.roll, -25);
   assert.deepEqual(SCENE_REGISTRY.about.responsive.mobile.position, [-1.897, 3.16, -0.578]);
-  assert.equal(SCENE_REGISTRY.about.responsive.mobile.fov, 40);
+  assert.equal(SCENE_REGISTRY.about.responsive.mobile.fov, 38);
   assert.equal(SCENE_REGISTRY.about.responsive.mobile.roll, 0);
-  assert.equal(SCENE_REGISTRY.about.responsive.tablet, undefined);
+  assert.equal(SCENE_REGISTRY.about.responsive.tablet.fov, 38);
   assert.equal(SCENE_REGISTRY.about.transition.duration, 4.3);
   assert.equal(SCENE_REGISTRY.about.revisitTransition.duration, 4.8);
   assert.equal(SCENE_REGISTRY.about.returnTransition.duration, 4.8);
@@ -330,6 +331,7 @@ test("Phone framing remains centered on the device at inspection distance", () =
   assert.ok(Math.hypot(...delta) < 1.7);
   assert.equal(SCENE_REGISTRY.phone.cameraFocus.depthOfFieldStrength, 0);
   assert.deepEqual(SCENE_REGISTRY.phone.responsive.mobile.lookAt, PHONE_LAYOUT.cameraTarget);
+  assert.equal(SCENE_REGISTRY.phone.responsive.mobile.fov, 25);
   assert.deepEqual(SCENE_REGISTRY.phone.responsive.tablet.lookAt, PHONE_LAYOUT.cameraTarget);
 });
 
