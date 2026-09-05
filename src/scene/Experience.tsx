@@ -787,6 +787,9 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
                   <Scene
                     s={settings}
                     cameraSystem={cameraSystem}
+                    projectsOverlayVisible={
+                      cameraSystem.selectedScene === "projects" && projectsOverlayReady
+                    }
                     certificateSlug={route.slug}
                     renderIsolation={renderIsolation}
                     qualityProfile={qualityProfile}

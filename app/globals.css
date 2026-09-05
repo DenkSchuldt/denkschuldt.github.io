@@ -1154,8 +1154,8 @@ body {
 .projects-overlay-shell.is-projected
   .projects-overlay-chapter
   > p:not(.projects-overlay-chapter-label) {
-  max-width: 25ch;
-  font-size: 42px;
+  max-width: none;
+  font-size: 46px;
   line-height: 1.5;
 }
 .projects-overlay-shell.is-projected .projects-overlay-career {
@@ -1195,8 +1195,8 @@ body {
 .projects-overlay-shell.is-projected
   .projects-overlay-independent-header
   > p:not(.projects-overlay-eyebrow) {
-  max-width: 26ch;
-  font-size: 30px;
+  max-width: none;
+  font-size: 34px;
 }
 .about-overlay {
   position: fixed;
@@ -1261,12 +1261,46 @@ body {
   line-height: 1;
   letter-spacing: 0.01em;
 }
+.about-overlay-shell h1::after {
+  display: block;
+  width: 165px;
+  margin-top: 10px;
+  border-bottom: 2px solid currentcolor;
+  content: "";
+  transform: rotate(-0.8deg);
+  transform-origin: left center;
+}
 .about-overlay-shell p {
   margin: 0 0 22px;
   font-size: 26px;
   font-weight: 400;
   line-height: 1.18;
   font-family: "Coming Soon", "Patrick Hand", cursive;
+}
+.about-overlay-copy {
+  padding-bottom: 16px;
+}
+.about-overlay-copy-mobile {
+  display: none;
+}
+.about-overlay-languages {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  padding-top: 22px;
+  border-top: 1px solid rgba(20, 17, 12, 0.35);
+}
+.about-overlay-globe {
+  display: block;
+  width: 48px;
+  height: 48px;
+  margin-top: 3px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
 }
 .about-overlay-shell p:last-child {
   margin-bottom: 0;
@@ -1403,9 +1437,9 @@ body {
   padding: 46px 20px 22px;
   border: 1px solid rgba(255, 255, 255, 0.07);
   background:
-    radial-gradient(120% 70% at 50% -10%, rgba(150, 170, 192, 0.16), transparent 60%),
-    radial-gradient(140% 90% at 84% 108%, rgba(46, 61, 76, 0.55), transparent 65%),
-    linear-gradient(165deg, #262d34 0%, #181e24 45%, #0b0e12 100%);
+    linear-gradient(180deg, rgba(8, 13, 17, 0.24), rgba(6, 10, 13, 0.54)),
+    radial-gradient(120% 70% at 50% -10%, rgba(150, 170, 192, 0.12), transparent 60%),
+    url("/phone/pinscher-wallpaper.jpeg") center center / cover no-repeat;
   color: #eef2f6;
   font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
   transform-origin: 0 0;
@@ -1422,6 +1456,9 @@ body {
   clip-path: inset(0 round 78px);
 }
 .denkos-lockscreen-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
 }
 .denkos-lockscreen-time {
@@ -1432,6 +1469,7 @@ body {
   line-height: 1;
   letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 .denkos-lockscreen-date {
   margin: 8px 0 0;
@@ -1439,6 +1477,7 @@ body {
   font-size: 19px;
   font-weight: 500;
   letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 .denkos-notification-list {
   display: flex;
@@ -2250,16 +2289,33 @@ body {
   }
   .about-overlay-shell {
     overflow: hidden;
-    padding: 30px 24px 34px;
+    padding: 80px 72px 40px 88px;
+  }
+  .about-overlay-photo-spacer {
+    height: 330px;
   }
   .about-overlay-shell h1 {
-    margin-bottom: 12px;
-    font-size: 30px;
+    margin-bottom: 26px;
+    font-size: 38px;
+  }
+  .about-overlay-shell h1::after {
+    width: 150px;
+    margin-top: 8px;
   }
   .about-overlay-shell p {
-    margin-bottom: 14px;
+    margin-bottom: 22px;
     font-size: 28px;
-    line-height: 1.2;
+    line-height: 1.36;
+  }
+  .about-overlay-copy-desktop {
+    display: none;
+  }
+  .about-overlay-copy-mobile {
+    display: block;
+  }
+  .about-overlay-languages {
+    padding-top: 28px;
+    font-size: 22px !important;
   }
   .poems-overlay-shell {
     padding: 56px 46px;

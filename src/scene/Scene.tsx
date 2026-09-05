@@ -177,6 +177,7 @@ export interface SceneSettings {
 interface SceneProps {
   s: SceneSettings;
   cameraSystem: CinematicNavigationSystem;
+  projectsOverlayVisible: boolean;
   certificateSlug?: string;
   renderIsolation?: RenderIsolationState;
   qualityProfile: RenderingQualityProfile;
@@ -198,6 +199,7 @@ interface SceneProps {
 export function Scene({
   s,
   cameraSystem,
+  projectsOverlayVisible,
   certificateSlug,
   renderIsolation = DEFAULT_RENDER_ISOLATION,
   qualityProfile,
@@ -277,7 +279,11 @@ export function Scene({
       <Desk />
       {isMobileViewport ? (
         <>
-          <MiniProjector position={s.laptopPosition} rotation={-10} />
+          <MiniProjector
+            active={projectsOverlayVisible}
+            position={s.laptopPosition}
+            rotation={-10}
+          />
           {cameraSystem.selectedScene === "projects" && (
             <>
               <mesh

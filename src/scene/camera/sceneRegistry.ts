@@ -59,7 +59,8 @@ export const SCENE_REGISTRY: Record<SceneId, SceneDefinition> = {
     revisitTransition: { duration: 4.8 },
     returnTransition: { duration: 4.8 },
     responsive: {
-      mobile: { position: [-1.897, 3.16, -0.578], lookAt: [-2, 1.05, -1.022], fov: 40, roll: 0 },
+      mobile: { position: [-1.897, 3.16, -0.578], lookAt: [-2, 1.05, -1.022], fov: 38, roll: 0 },
+      tablet: { fov: 38 },
     },
   },
   certificates: {
@@ -128,7 +129,7 @@ export const SCENE_REGISTRY: Record<SceneId, SceneDefinition> = {
       mobile: {
         position: PHONE_LAYOUT.mobileCameraPosition,
         lookAt: PHONE_LAYOUT.cameraTarget,
-        fov: 34,
+        fov: 25,
       },
       tablet: {
         position: PHONE_LAYOUT.tabletCameraPosition,
