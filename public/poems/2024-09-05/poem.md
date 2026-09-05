@@ -32,6 +32,6 @@ how I tried until surrendered.
 The road was lonely and all so gray,
 to walk alone, the price to pay.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

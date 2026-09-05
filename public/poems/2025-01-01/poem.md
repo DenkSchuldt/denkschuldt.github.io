@@ -153,6 +153,6 @@ I would make sure that in your soul there won’t be sorrow.
 I would love your past, for becoming your present,
 I would love you always, and I promise I’ll be gentle.
 
----
+***
 
 Copyright © Denny K. Schuldt 2025

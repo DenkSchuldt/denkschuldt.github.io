@@ -1,0 +1,504 @@
+@media (max-width: 1024px) {
+  .scene-navigation {
+    display: flex;
+    justify-content: center;
+    bottom: max(22px, env(safe-area-inset-bottom));
+    padding: 0 20px;
+  }
+  .camera-location {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+  }
+  .workspace-badge {
+    top: max(18px, env(safe-area-inset-top));
+    left: max(18px, env(safe-area-inset-left));
+  }
+  .collection-close {
+    top: max(46px, calc(env(safe-area-inset-top) + 46px));
+    left: max(18px, env(safe-area-inset-left));
+  }
+  .collection-close-key,
+  .certificate-gallery-close span {
+    display: none;
+  }
+  .collection-tab-navigation {
+    top: max(20px, env(safe-area-inset-top));
+    max-width: calc(100vw - 120px);
+  }
+  .poem-reader-header {
+    padding-left: 96px;
+  }
+}
+@media (max-width: 420px) {
+  .collection-close {
+    gap: 7px;
+    padding-right: 8px;
+    padding-left: 9px;
+  }
+  .collection-close-label {
+    font-size: 8px;
+    letter-spacing: 0.1em;
+  }
+  .collection-close-key {
+    padding: 4px 4px 3px;
+    font-size: 7px;
+  }
+}
+@media (max-width: 640px) {
+  .scene-navigation {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr) 42px;
+    gap: 14px;
+    padding: 0 max(18px, env(safe-area-inset-right)) 0 max(18px, env(safe-area-inset-left));
+  }
+  .scene-navigation-target {
+    display: grid;
+    top: auto;
+    bottom: max(22px, env(safe-area-inset-bottom));
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    place-items: center;
+    transform: none;
+    /* Without the "Previous/Next scene" text label (hidden below on
+       mobile), a faint outline circle doesn't read as a tappable control on
+       its own — noticeably more opaque/bordered than the desktop version,
+       which leans on the adjacent label instead. */
+    border: 1.5px solid rgba(238, 233, 223, 0.55);
+    border-radius: 999px;
+    color: rgba(244, 239, 229, 0.95);
+    background: rgba(20, 18, 16, 0.55);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 8px 24px rgba(0, 0, 0, 0.28);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+  .scene-navigation-target:active {
+    background: rgba(30, 27, 24, 0.7);
+    border-color: rgba(238, 233, 223, 0.75);
+  }
+  .scene-navigation-target .scene-name {
+    display: none;
+  }
+  .scene-navigation-target svg {
+    width: 18px;
+    height: 18px;
+  }
+  .scene-navigation-previous {
+    left: max(18px, env(safe-area-inset-left));
+  }
+  .scene-navigation-next {
+    right: max(18px, env(safe-area-inset-right));
+  }
+  .camera-location {
+    grid-column: 2;
+    min-width: 0;
+  }
+  .certificate-gallery-overlay {
+    padding: 12px;
+  }
+  .certificate-gallery-panel {
+    max-height: calc(100svh - 24px);
+    padding: 17px 13px 15px;
+    border-radius: 14px;
+  }
+  .certificate-gallery-content {
+    grid-template-columns: 38px minmax(0, 1fr) 38px;
+    gap: 5px;
+  }
+  .photo-lightbox-content {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+  .photo-lightbox-socials {
+    padding: 0 24px;
+  }
+  .photo-lightbox-socials ul {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px 18px;
+  }
+  .certificate-gallery-nav {
+    width: 36px;
+    height: 36px;
+  }
+  .certificate-gallery-nav svg {
+    width: 17px;
+    height: 17px;
+  }
+  .certificate-gallery-image {
+    max-height: 57svh;
+  }
+  .certificate-gallery-caption {
+    margin-top: 13px;
+  }
+  .certificate-gallery-caption h2 {
+    font-size: 18px;
+  }
+}
+@media (max-width: 760px) {
+  .projects-overlay {
+    padding: 0;
+  }
+  .projects-overlay-shell {
+    border-radius: 7px;
+    box-shadow:
+      0 0 42px rgba(151, 193, 224, 0.2),
+      0 16px 52px rgba(0, 0, 0, 0.38);
+  }
+  .projects-overlay-shell.is-projected {
+    overflow-x: hidden;
+    overflow-y: auto;
+    border: 0;
+    border-radius: 0;
+    background: #030405;
+    box-shadow:
+      0 0 54px rgba(197, 219, 235, 0.18),
+      0 20px 70px rgba(0, 0, 0, 0.42);
+    pointer-events: auto;
+    touch-action: pan-y;
+  }
+  .projects-overlay.is-exiting .projects-overlay-shell.is-projected {
+    box-shadow: none;
+  }
+  .projects-overlay-title-card {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: grid;
+    place-items: center;
+    padding: 80px;
+    color: #fff;
+    background: #000;
+    text-align: center;
+    opacity: 1;
+    transition: opacity 0.9s ease;
+    animation: projector-fade-in 1.2s ease;
+  }
+  .projects-overlay-title-card.is-leaving {
+    opacity: 0;
+  }
+  .projects-overlay-title-card p {
+    margin: 0;
+    font:
+      400 50px/1.3 "Roboto",
+      "Helvetica Neue",
+      Arial,
+      sans-serif;
+    letter-spacing: 0.035em;
+  }
+  .projects-overlay-content {
+    opacity: 1;
+    transition: opacity 0.9s ease;
+  }
+  .projects-overlay-content.is-waiting {
+    opacity: 0;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-header {
+    padding: 64px 84px 44px;
+    border-bottom-color: rgba(232, 239, 244, 0.18);
+    background: transparent;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-columns {
+    display: block;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-column {
+    display: block;
+    padding: 46px 48px 58px;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-projects {
+    order: initial;
+    border-top: 1px solid rgba(232, 239, 244, 0.18);
+    background: transparent;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-entry {
+    border-color: rgba(232, 239, 244, 0.16);
+    background: rgba(255, 255, 255, 0.035);
+    box-shadow: none;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-project-list {
+    grid-template-columns: 1fr;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-project {
+    border-color: rgba(232, 239, 244, 0.16);
+    background: rgba(255, 255, 255, 0.035);
+    box-shadow: none;
+    cursor: pointer;
+    pointer-events: auto;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-project:hover,
+  .projects-overlay-shell.is-projected .projects-overlay-project:focus-visible {
+    border-color: rgba(196, 224, 244, 0.48);
+    background: rgba(178, 211, 234, 0.1);
+    box-shadow: 0 0 30px rgba(158, 203, 235, 0.14);
+    outline: none;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-project-action {
+    padding: 15px 20px;
+    border: 1px solid rgba(196, 224, 244, 0.36);
+    border-radius: 999px;
+    color: #edf6fc;
+    background: rgba(153, 197, 228, 0.09);
+    font-size: 26.4px;
+  }
+  .projects-overlay-header {
+    align-items: start;
+    padding: 24px 28px 22px;
+    background: #111c27;
+  }
+  .projects-overlay-header h1 {
+    margin-top: 9px;
+    font-size: 42px;
+  }
+  .projects-overlay-eyebrow {
+    font-size: 16px;
+  }
+  .projects-overlay-tabs {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 12px 28px 0;
+    background: rgba(17, 28, 39, 0.96);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+  .projects-overlay-tabs button {
+    padding: 18px 14px 15px;
+    border: 0;
+    border-bottom: 3px solid rgba(139, 163, 184, 0.2);
+    color: #758da1;
+    background: transparent;
+    font:
+      600 26px/1 "Roboto",
+      "Helvetica Neue",
+      Arial,
+      sans-serif;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+  }
+  .projects-overlay-tabs button[aria-selected="true"] {
+    border-bottom-color: #7895ad;
+    color: #edf3f8;
+    background: rgba(120, 149, 173, 0.08);
+  }
+  .projects-overlay-columns {
+    display: block;
+  }
+  .projects-overlay-column {
+    display: none;
+  }
+  .projects-overlay-column.is-mobile-active {
+    display: block;
+  }
+  .projects-overlay-column {
+    padding: 30px 28px 34px;
+  }
+  .projects-overlay-column-heading {
+    margin-bottom: 20px;
+  }
+  .projects-overlay-column-heading h2 {
+    font-size: 33px;
+  }
+  .projects-overlay-timeline {
+    display: grid;
+    gap: 16px;
+  }
+  .projects-overlay-entry {
+    padding: 22px 22px 24px;
+    border: 1px solid rgba(139, 163, 184, 0.2);
+    border-radius: 8px;
+    background: rgba(24, 38, 51, 0.72);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+  }
+  .projects-overlay-entry + .projects-overlay-entry {
+    padding-top: 22px;
+  }
+  .projects-overlay-entry::before,
+  .projects-overlay-entry + .projects-overlay-entry::before {
+    top: 22px;
+    bottom: auto;
+    left: 0;
+    width: 4px;
+    height: 42px;
+    border-radius: 0 3px 3px 0;
+  }
+  .projects-overlay-entry-meta {
+    gap: 7px;
+    margin-bottom: 14px;
+    overflow: hidden;
+    font-size: 20.9px;
+    letter-spacing: 0.045em;
+    white-space: nowrap;
+  }
+  .projects-overlay-entry h3 {
+    font-size: 41.8px;
+    line-height: 1.16;
+  }
+  .projects-overlay-company {
+    margin: 8px 0 18px;
+    font-size: 27.5px;
+  }
+  .projects-overlay-entry ul {
+    gap: 13px;
+    font-size: 37.4px;
+    line-height: 1.44;
+  }
+  .projects-overlay-entry li {
+    padding-left: 20px;
+  }
+  .projects-overlay-entry li::before {
+    width: 6px;
+    height: 6px;
+  }
+  .projects-overlay-projects {
+    border-top: 1px solid rgba(139, 163, 184, 0.17);
+    border-left: 0;
+    background: #152331;
+  }
+  .projects-overlay-project-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .projects-overlay-project {
+    padding: 14px 14px 20px;
+    border-radius: 9px;
+  }
+  .projects-overlay-project-preview {
+    margin-bottom: 20px;
+    border-radius: 6px;
+  }
+  .projects-overlay-project h3 {
+    font-size: 34.1px;
+  }
+  .projects-overlay-project p {
+    margin: 15px 0 22px;
+    font-size: 29.7px;
+    line-height: 1.44;
+  }
+  .projects-overlay-project time {
+    font-size: 20.9px;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-header h1 {
+    font-size: 52px;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-eyebrow {
+    font-size: 20px;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-column-heading h2 {
+    font-size: 42px;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-entry-meta {
+    font-size: 27px;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-entry h3 {
+    font-size: 50px;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-company {
+    font-size: 34px;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-entry ul {
+    font-size: 44px;
+    line-height: 1.5;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-project h3 {
+    font-size: 42px;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-project p {
+    font-size: 36px;
+    line-height: 1.5;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-project time {
+    font-size: 26px;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-project-action {
+    font-size: 30px;
+  }
+  .projects-overlay-shell.is-projected .projects-overlay-ending {
+    display: grid;
+    min-height: 420px;
+    place-items: center;
+    padding: 110px 48px 150px;
+    border-top: 1px solid rgba(232, 239, 244, 0.14);
+    color: #edf3f8;
+    font:
+      400 64px/1.2 "Roboto",
+      "Helvetica Neue",
+      Arial,
+      sans-serif;
+    letter-spacing: 0.12em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+  .about-overlay-shell {
+    overflow: hidden;
+    padding: 80px 72px 40px 88px;
+  }
+  .about-overlay-photo-spacer {
+    height: 330px;
+  }
+  .about-overlay-shell h1 {
+    margin-bottom: 26px;
+    font-size: 38px;
+  }
+  .about-overlay-shell h1::after {
+    width: 150px;
+    margin-top: 8px;
+  }
+  .about-overlay-shell p {
+    margin-bottom: 22px;
+    font-size: 28px;
+    line-height: 1.36;
+  }
+  .about-overlay-copy-desktop {
+    display: none;
+  }
+  .about-overlay-copy-mobile {
+    display: block;
+  }
+  .about-overlay-languages {
+    padding-top: 28px;
+    font-size: 22px !important;
+  }
+  .poems-overlay-shell {
+    padding: 56px 46px;
+  }
+  .poems-overlay-shell h1 {
+    margin-bottom: 22px;
+    font-size: 64px;
+  }
+  .poems-overlay-shell p {
+    margin-bottom: 24px;
+    font-size: 40px;
+    line-height: 1.26;
+  }
+  .poems-overlay-read-button {
+    padding: 22px 40px;
+    font-size: 20px;
+  }
+}
+@keyframes projector-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scene-name {
+    transition-duration: 0.01ms;
+  }
+  .projects-overlay-title-card,
+  .projects-overlay-content {
+    transition-duration: 0.01ms;
+  }
+  .projects-overlay-title-card {
+    animation-duration: 0.01ms;
+  }
+}

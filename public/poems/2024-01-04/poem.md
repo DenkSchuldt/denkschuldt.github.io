@@ -42,6 +42,6 @@ Those souls that are still pretty.
 Keep shining and shedding light,
 For others to follow you and do it right.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

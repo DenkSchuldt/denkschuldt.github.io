@@ -42,6 +42,6 @@ he used to receive less of what he gives.
 Beautiful hearts deserve the world,
 their feelings must be valued and not be forced to fold.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

@@ -32,6 +32,6 @@ aunque en el intento sienta el peso de una cruz.
 Pero es la etapa que me toca atravesar,
 para sentirme pleno, y volver a disfrutar.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

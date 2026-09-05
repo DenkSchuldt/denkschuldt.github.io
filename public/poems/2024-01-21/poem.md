@@ -32,6 +32,6 @@ sintiéndome poderoso como un navío.
 Termino este baile con una sonrisa,
 recibiendo algo que no llegó con la brisa.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

@@ -32,6 +32,6 @@ the world shifts in tones between poles in my mind.
 From my very desk I reflect about feelings,
 a curse or a blessing, but feeling is living.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

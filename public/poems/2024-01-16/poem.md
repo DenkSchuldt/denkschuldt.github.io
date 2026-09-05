@@ -64,6 +64,6 @@ These are all just glimpses of what we both could one day have.
 Are you interested in a application?
 Know that this will require quite some dedication.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

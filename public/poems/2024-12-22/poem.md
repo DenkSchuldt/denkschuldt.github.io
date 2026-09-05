@@ -37,6 +37,6 @@ love can make you feel at your best, but never haunted.
 If any, that wouldn’t be love anymore…
 Would be something else, something shattered on the floor.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

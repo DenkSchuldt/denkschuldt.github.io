@@ -16,10 +16,10 @@ import {
 } from "../app/poems.server.ts";
 
 test("Markdown becomes safe plain text suitable for a physical poem page", () => {
-  const markdown = `---\nlang: es\n---\n# La noche\n\n**Queda** la luz,\n[y la memoria](https://example.com).\n\n<img src=x onerror=alert(1)>`;
+  const markdown = `---\nlang: es\n---\n# La noche\n\n***\n\n**Queda** la luz,\n[y la memoria](https://example.com).\n\n<img src=x onerror=alert(1)>\n\n***\n\nCopyright © Denny K. Schuldt 2025`;
   assert.deepEqual(parsePoemMarkdown(markdown, "2025-01-03"), {
     title: "La noche",
-    body: "Queda la luz,\ny la memoria.",
+    body: "***\n\nQueda la luz,\ny la memoria.\n\n***\n\nCopyright © Denny K. Schuldt 2025",
   });
 });
 
@@ -64,9 +64,13 @@ test("poem bodies are fetched lazily from their Markdown source", async () => {
     language: "es",
     sourceRef: "master",
   };
-  const fetcher = async () =>
-    new Response(`---\nslug: quiero\n---\n# Quiero\n\nQuiero escribir.`, { status: 200 });
+  let requestCache;
+  const fetcher = async (_url, init) => {
+    requestCache = init?.cache;
+    return new Response(`---\nslug: quiero\n---\n# Quiero\n\nQuiero escribir.`, { status: 200 });
+  };
   assert.deepEqual(await loadPoemContent(poem, fetcher), { ...poem, body: "Quiero escribir." });
+  assert.equal(requestCache, "no-cache");
 });
 
 test("generated discovery assets expose canonical poem URLs without bloating the manifest", async () => {

@@ -30,6 +30,6 @@ deep inside me there’s the wish to get excited again one day.
 I don’t want to rush, not a single day to push.
 Time will work its magic and this longing will be hushed.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

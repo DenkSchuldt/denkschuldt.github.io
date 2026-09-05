@@ -49,6 +49,6 @@ her love was the purest, it was sublime.
 We loved you, we love you, we’ll love you.
 I loved you, I love you, and I’ll forever love you.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

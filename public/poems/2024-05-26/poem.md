@@ -52,6 +52,6 @@ moving through the cracks in a soil that’ll get me fruits.
 My leaves point to the sky searching for the sun,
 getting light for myself, there’s nothing to be undone.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

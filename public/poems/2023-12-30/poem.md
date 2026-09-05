@@ -37,6 +37,6 @@ y quiero que al hacerlo, mi pena tenga cura.
 Quiero abrazarte y unir todas tus partes,
 y quiero que me digas dónde duele para amarte.
 
----
+***
 
 Copyright © Denny K. Schuldt 2023

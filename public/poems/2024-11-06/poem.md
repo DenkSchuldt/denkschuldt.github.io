@@ -32,6 +32,6 @@ they feed my curiosity and soul as I grow.
 I only ask the universe for wisdom and more time,
 between code within apps, and verses with rhymes.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

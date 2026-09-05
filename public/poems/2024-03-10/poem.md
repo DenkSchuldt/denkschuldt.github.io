@@ -32,6 +32,6 @@ set me free from this same old territory.
 We both know the roads and all the signs,
 I want to walk calm without the fear of the mines.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

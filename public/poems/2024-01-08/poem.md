@@ -37,6 +37,6 @@ hoping tomorrow I won’t be grieving.
 The people that left the boat,
 I can’t blame them at all.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

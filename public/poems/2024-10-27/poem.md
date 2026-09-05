@@ -35,6 +35,6 @@ to be able to create verses even when I’m not in the mood.
 I write poems, sometimes just verses.
 I write my feelings across universes.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024
