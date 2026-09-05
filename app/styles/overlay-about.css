@@ -1,0 +1,116 @@
+.about-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 34;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  pointer-events: none;
+  animation: overlay-fade-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.about-overlay.is-exiting {
+  animation: overlay-fade-out 0.48s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+.about-overlay.is-exiting .about-overlay-shell {
+  pointer-events: none;
+}
+.about-overlay-shell {
+  position: fixed;
+  top: 0;
+  left: 0;
+  overflow: auto;
+  padding: 44px 34px 60px;
+  background: transparent;
+  color: #14110c;
+  font-family: "Patrick Hand", "Roboto", cursive;
+  transform-origin: 0 0;
+  pointer-events: auto;
+  /* Punches a genuine geometric hole over the polaroid photo (see
+     PolaroidPhoto in objects/DeskObjects.tsx — card spans roughly logical
+     x:[414,674] y:[19,389] in this element's own 708x1008 coordinate
+     space, buffered here) so clicks reach the canvas underneath. This
+     clips the element's own box, which does NOT move when its content
+     scrolls, unlike a pointer-events:none child (still covered by this
+     auto shell) or making descendants opt back into pointer-events (relies
+     on text hit-testing never painting into the float-reserved area, which
+     isn't a reliable guarantee across browsers/layout states — this is why
+     the photo wasn't always clickable). Coordinates are in the un-scaled
+     708x1008 space; the transform (matrix3d) is applied after clipping.
+   */
+  clip-path: path(evenodd, "M0 0 H708 V1008 H0 Z M400 0 H690 V400 H400 Z");
+  scrollbar-width: none;
+}
+.about-overlay-shell::-webkit-scrollbar {
+  display: none;
+}
+/* Reserves the polaroid photo's footprint (top-right of the page — see
+   PolaroidPhoto in objects/DeskObjects.tsx) so surrounding text wraps
+   narrower only where it's actually beside the photo, then reverts to the
+   full content width once text scrolls past it, like text wrapping an
+   image float. The margin-left is the gap between the photo and the text. */
+.about-overlay-photo-spacer {
+  float: right;
+  width: 260px;
+  height: 390px;
+  margin-left: 24px;
+}
+.about-overlay-shell h1 {
+  margin: 0 0 18px;
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+.about-overlay-shell h1::after {
+  display: block;
+  width: 165px;
+  margin-top: 10px;
+  border-bottom: 2px solid currentcolor;
+  content: "";
+  transform: rotate(-0.8deg);
+  transform-origin: left center;
+}
+.about-overlay-shell p {
+  margin: 0 0 22px;
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1.18;
+  font-family: "Coming Soon", "Patrick Hand", cursive;
+}
+.about-overlay-copy {
+  padding-bottom: 16px;
+}
+.about-overlay-copy-mobile {
+  display: none;
+}
+.about-overlay-languages {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+  padding-top: 22px;
+  border-top: 1px solid rgba(20, 17, 12, 0.35);
+}
+.about-overlay-globe {
+  display: block;
+  width: 48px;
+  height: 48px;
+  margin-top: 3px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+.about-overlay-shell p:last-child {
+  margin-bottom: 0;
+}
+.about-overlay-shell a {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-color: rgba(20, 17, 12, 0.45);
+  text-underline-offset: 3px;
+}
+.about-overlay-shell a:hover {
+  text-decoration-color: currentcolor;
+}

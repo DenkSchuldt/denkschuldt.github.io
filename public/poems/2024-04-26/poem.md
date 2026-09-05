@@ -37,6 +37,6 @@ One cannot forget all the pain but can make every day more pleasant.
 Fractures don’t heal instantly, moving on takes time.
 Reclaim one’s emotions to live and love with pride.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

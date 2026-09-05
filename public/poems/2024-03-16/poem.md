@@ -42,6 +42,6 @@ Blink, and change their love’s color scheme.
 Turn a shining rainbow into a clouded storm,
 all of this for making cheating the new norm?
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

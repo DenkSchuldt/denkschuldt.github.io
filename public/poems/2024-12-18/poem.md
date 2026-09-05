@@ -42,6 +42,6 @@ Nosotros tuvimos mucha suerte, era nuestra abuelita.
 Santa Aidita de las Mercedes, a veces le solía decir,
 ya no la vemos en la Tierra, pero en el corazón la podemos sentir.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

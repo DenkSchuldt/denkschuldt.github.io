@@ -1,0 +1,842 @@
+.poem-reader {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  color: #201b17;
+  background: #e9e1d5;
+  isolation: isolate;
+}
+.poem-reader-backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(255, 255, 255, 0.52), transparent 44%),
+    linear-gradient(110deg, #ddd2c3, #f1ece4 48%, #ded3c5);
+  opacity: 0.96;
+}
+.poem-reader::after {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: radial-gradient(ellipse at 50% 44%, rgba(181, 59, 69, 0.22), transparent 62%);
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+}
+.poem-reader.is-love-feedback::after {
+  animation: poem-warm-hug 0.9s ease-out both;
+}
+.poem-reader-shell {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-rows: 52px 1fr 52px;
+  width: min(100%, 980px);
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 clamp(22px, 6vw, 84px);
+  animation: poem-reader-shell-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.poem-reader-header,
+.poem-reader-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  height: 52px;
+  box-sizing: border-box;
+  color: rgba(49, 40, 33, 0.64);
+  font:
+    500 10px/1.2 ui-sans-serif,
+    system-ui,
+    sans-serif;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.poem-reader-header {
+  border-bottom: 1px solid rgba(65, 50, 40, 0.16);
+}
+.poem-reader-kicker {
+  margin: 0;
+}
+.poem-reader-mobile-close {
+  display: none;
+}
+.poem-reader-close,
+.poem-reader-share,
+.poem-reader-footer button {
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  transition:
+    color 0.25s ease,
+    opacity 0.25s ease;
+}
+.poem-reader-close {
+  position: fixed;
+  top: max(9px, env(safe-area-inset-top));
+  right: max(14px, env(safe-area-inset-right));
+  z-index: 3;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba(49, 40, 33, 0.52);
+  border-radius: 50%;
+  color: #201b17;
+  background: rgba(49, 40, 33, 0.08);
+}
+.poem-reader-close svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+.poem-reader-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+.poem-reader [data-tooltip] {
+  position: relative;
+}
+.poem-reader [data-tooltip]::before {
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 50%;
+  z-index: 5;
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: #f2ebdf;
+  background: #26201b;
+  box-shadow: 0 6px 18px rgba(31, 23, 17, 0.28);
+  content: attr(data-tooltip);
+  font:
+    500 11px/1.2 ui-sans-serif,
+    system-ui,
+    sans-serif;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -3px);
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease;
+}
+.poem-reader [data-tooltip]:hover::before,
+.poem-reader [data-tooltip]:focus-visible::before {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.poem-reader-share {
+  position: relative;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  place-items: center;
+  transition:
+    color 0.25s ease,
+    opacity 0.25s ease,
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.poem-reader-share-icon {
+  grid-area: 1 / 1;
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.35;
+  transition:
+    opacity 0.24s ease,
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.poem-reader-share-icon.is-check {
+  opacity: 0;
+  transform: scale(0.55) rotate(-12deg);
+}
+.poem-reader-share.is-copied .poem-reader-share-icon.is-share {
+  opacity: 0;
+  transform: scale(0.55) rotate(12deg);
+}
+.poem-reader-share.is-copied .poem-reader-share-icon.is-check {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+  animation: poem-heart-pop 0.68s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.poem-reader-share.is-copied::after {
+  position: absolute;
+  inset: 3px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  content: "";
+  opacity: 0;
+  animation: poem-heart-ring 0.68s ease-out both;
+  pointer-events: none;
+}
+.poem-reader-share.is-copied {
+  color: #2f8a4c;
+}
+.poem-reader-share-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.poem-reader-love {
+  position: relative;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    color 0.25s ease,
+    opacity 0.25s ease,
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.poem-reader-love svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.35;
+  transition:
+    fill 0.28s ease,
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    stroke-width 0.28s ease;
+}
+.poem-reader-love.is-loved {
+  color: #b53b45;
+}
+.poem-reader-love.is-loved svg {
+  fill: currentColor;
+  stroke-width: 1.1;
+}
+.poem-reader-love:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+.poem-reader-love.is-animating svg {
+  animation: poem-heart-pop 0.68s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.poem-reader-love.is-animating::after {
+  position: absolute;
+  inset: 3px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  content: "";
+  opacity: 0;
+  animation: poem-heart-ring 0.68s ease-out both;
+  pointer-events: none;
+}
+.poem-reader-comment {
+  position: relative;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    color 0.25s ease,
+    opacity 0.25s ease,
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.poem-reader-comment svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.35;
+}
+.poem-reader-comment:hover:not(:disabled),
+.poem-reader-love:hover:not(:disabled),
+.poem-reader-share:hover:not(:disabled) {
+  color: #17120f;
+  transform: translateY(-1px);
+}
+.poem-reader-love.is-loved:hover:not(:disabled) {
+  color: #b53b45;
+}
+.poem-reader-share.is-copied:hover:not(:disabled) {
+  color: #2f8a4c;
+}
+.poem-reader-comment:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+.poem-reader-comment.is-sending {
+  opacity: 1;
+  color: #8c4d3d;
+}
+.poem-reader-comment.is-open svg,
+.poem-reader-comment.is-sending svg {
+  animation: poem-heart-pop 0.68s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.poem-reader-comment.is-open::after,
+.poem-reader-comment.is-sending::after {
+  position: absolute;
+  inset: 3px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  content: "";
+  opacity: 0;
+  animation: poem-heart-ring 0.68s ease-out both;
+  pointer-events: none;
+}
+.poem-reader-close:hover,
+.poem-reader-footer button:not(:disabled):hover {
+  color: #17120f;
+}
+.poem-reader-content {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  padding: clamp(100px, 14vh, 150px) clamp(22px, 6vw, 84px) 70px;
+  overflow: auto;
+  outline: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(62, 48, 38, 0.35) transparent;
+}
+.poem-reader-scroll-hint {
+  position: absolute;
+  bottom: 66px;
+  left: 50%;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba(49, 40, 33, 0.52);
+  border-radius: 50%;
+  color: #201b17;
+  background: rgba(49, 40, 33, 0.08);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition:
+    opacity 0.5s ease,
+    color 0.25s ease;
+}
+.poem-reader-scroll-hint.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  animation: poem-reader-scroll-hint-bounce 1.6s ease-in-out infinite;
+}
+.poem-reader-scroll-hint:hover {
+  color: #17120f;
+}
+.poem-reader-scroll-hint svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+@keyframes poem-reader-scroll-hint-bounce {
+  0%,
+  100% {
+    transform: translate(-50%, 0);
+  }
+  50% {
+    transform: translate(-50%, 6px);
+  }
+}
+.poem-reader-content:focus,
+.poem-reader-content:focus-visible,
+.poem-reader-body:focus {
+  outline: none;
+}
+.poem-reader-column {
+  width: min(100%, 700px);
+  margin: 0 auto;
+}
+.poem-reader-date {
+  margin: 0 0 18px;
+  color: rgba(60, 48, 39, 0.58);
+  font:
+    500 11px/1.4 ui-sans-serif,
+    system-ui,
+    sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.poem-reader-content h1 {
+  margin: 0;
+  color: #211a15;
+  font:
+    500 clamp(34px, 6vw, 62px)/1.04 Georgia,
+    "Times New Roman",
+    serif;
+  letter-spacing: -0.025em;
+}
+.poem-reader-rule {
+  width: 54px;
+  height: 1px;
+  margin: 28px 0 42px;
+  background: rgba(58, 43, 33, 0.5);
+}
+.poem-reader-body {
+  color: #2a211b;
+  font:
+    400 clamp(18px, 2.2vw, 23px)/1.7 Georgia,
+    "Times New Roman",
+    serif;
+}
+.poem-reader-body p {
+  margin: 0 0 1.5em;
+  white-space: pre-line;
+}
+.poem-reader-section-break {
+  width: 42px;
+  height: 1px;
+  margin: 2.4em auto;
+  border: 0;
+  background: rgba(58, 43, 33, 0.38);
+}
+.poem-reader-polaroid {
+  width: min(100%, 420px);
+  margin: 56px auto 24px 0;
+  padding: 12px 12px 22px;
+  background: #f7f1e7;
+  box-shadow:
+    0 22px 55px rgba(48, 35, 25, 0.2),
+    0 3px 10px rgba(48, 35, 25, 0.12);
+  transform: rotate(var(--poem-polaroid-tilt));
+  transform-origin: 50% 70%;
+  transition:
+    box-shadow 0.35s ease,
+    transform 0.35s ease;
+}
+.poem-reader-polaroid[data-tilt="left"] {
+  --poem-polaroid-tilt: -0.8deg;
+}
+.poem-reader-polaroid[data-tilt="right"] {
+  --poem-polaroid-tilt: 0.8deg;
+}
+.poem-reader-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #ded3c5;
+}
+.poem-reader-image-caption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 8px 0;
+  color: rgba(42, 33, 27, 0.76);
+  font:
+    italic 16px/1.35 Georgia,
+    "Times New Roman",
+    serif;
+}
+.poem-reader-image-caption time {
+  flex: none;
+  color: rgba(42, 33, 27, 0.52);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+.poem-reader-image-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 14px 0 8px;
+}
+@media (hover: hover) {
+  .poem-reader-polaroid:hover {
+    box-shadow:
+      0 28px 65px rgba(48, 35, 25, 0.23),
+      0 5px 14px rgba(48, 35, 25, 0.13);
+    transform: translateY(-5px) rotate(0deg);
+  }
+}
+.poem-reader-status {
+  color: rgba(42, 33, 27, 0.64);
+  font:
+    16px/1.6 Georgia,
+    "Times New Roman",
+    serif;
+}
+.poem-reader-footer {
+  justify-content: center;
+  gap: clamp(22px, 8vw, 100px);
+  border-top: 1px solid rgba(65, 50, 40, 0.16);
+  font-size: 13px;
+  font-weight: 700;
+}
+.poem-reader-footer button:disabled {
+  cursor: default;
+  opacity: 0.28;
+}
+.poem-reader-footer span {
+  min-width: 64px;
+  color: rgba(49, 40, 33, 0.5);
+  text-align: center;
+}
+.poem-comment-dialog {
+  z-index: 80;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #2a211b;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+.poem-comment-dialog .dnk-dialog-content-wrapper {
+  box-sizing: border-box;
+  width: 480px;
+  min-width: 480px;
+  max-width: calc(100vw - 32px);
+  margin: 0 !important;
+  padding: 28px 0;
+}
+.poem-comment-dialog .dnk-dialog-content-wrapper .dnk-dialog-content {
+  width: 480px;
+  min-width: 480px;
+  border: 1px solid rgba(65, 50, 40, 0.18);
+  border-radius: 10px;
+  background: #f3ece1;
+  box-shadow: 0 24px 70px rgba(24, 17, 12, 0.32);
+}
+.poem-comment-dialog .dnk-dialog-header {
+  padding: 24px 28px 8px;
+  color: #211a15;
+  font:
+    500 25px/1.15 Georgia,
+    "Times New Roman",
+    serif;
+  letter-spacing: -0.018em;
+}
+.poem-comment-dialog .dnk-dialog-close {
+  top: 14px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(49, 40, 33, 0.28);
+  background: rgba(49, 40, 33, 0.06);
+  box-shadow: none;
+}
+.poem-comment-dialog .dnk-dialog-close:hover {
+  background: rgba(49, 40, 33, 0.14);
+}
+.poem-comment-dialog .dnk-dialog-close img {
+  width: 12px;
+  height: 12px;
+}
+.poem-comment-dialog .dnk-dialog-content-wrapper .dnk-dialog-body {
+  min-width: 480px;
+  padding: 12px 28px 26px;
+}
+.poem-comment-dialog .dnk-dialog-body-buttons {
+  gap: 10px;
+  padding-top: 20px;
+}
+.poem-comment-dialog .dnk-dialog-body-buttons button {
+  min-height: 36px;
+  padding: 9px 15px;
+  border: 1px solid rgba(65, 50, 40, 0.28);
+  border-radius: 999px;
+  color: #2a211b;
+  background: transparent;
+  font:
+    500 10px/1 ui-sans-serif,
+    system-ui,
+    sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.poem-comment-dialog .dnk-dialog-body-buttons .dnk-btn-primary {
+  border-color: #2a211b;
+  color: #f3ece1;
+  background: #2a211b;
+}
+.poem-comment-dialog .dnk-dialog-body-buttons .dnk-btn-primary:disabled {
+  border-color: rgba(65, 50, 40, 0.16);
+  color: rgba(60, 48, 39, 0.38);
+  background: rgba(65, 50, 40, 0.08);
+  box-shadow: none;
+  cursor: default;
+}
+.poem-comment-dialog.is-sending {
+  pointer-events: none;
+  animation: poem-comment-backdrop-fade 0.72s ease-out both;
+}
+.poem-comment-dialog.is-sending .dnk-dialog-content-wrapper {
+  pointer-events: none;
+  animation: poem-comment-send 0.72s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.poem-comment-form {
+  display: grid;
+  gap: 10px;
+}
+.poem-comment-form label {
+  color: rgba(60, 48, 39, 0.74);
+  font:
+    500 10px/1.3 ui-sans-serif,
+    system-ui,
+    sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.poem-comment-form textarea {
+  width: 100%;
+  min-height: 132px;
+  resize: vertical;
+  padding: 12px 13px;
+  border: 1px solid rgba(65, 50, 40, 0.24);
+  border-radius: 8px;
+  outline: none;
+  color: #2a211b;
+  background: rgba(255, 255, 255, 0.48);
+  font:
+    17px/1.5 Georgia,
+    "Times New Roman",
+    serif;
+}
+.poem-comment-form textarea:focus {
+  border-color: rgba(65, 50, 40, 0.62);
+  box-shadow: 0 0 0 3px rgba(65, 50, 40, 0.08);
+}
+.poem-comment-form textarea::placeholder {
+  color: rgba(60, 48, 39, 0.45);
+}
+.poem-comment-status {
+  margin: 0;
+  color: rgba(60, 48, 39, 0.58);
+  font:
+    11px/1.45 ui-sans-serif,
+    system-ui,
+    sans-serif;
+}
+.poem-comment-status {
+  color: #6d4738;
+}
+@keyframes poem-reader-shell-in {
+  from {
+    transform: translateY(10px) scale(0.992);
+  }
+  to {
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes poem-heart-pop {
+  0% {
+    transform: scale(0.76) rotate(-8deg);
+  }
+  38% {
+    transform: scale(1.25) rotate(4deg);
+  }
+  68% {
+    transform: scale(0.94) rotate(-1deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+@keyframes poem-heart-ring {
+  0% {
+    transform: scale(0.45);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.65);
+    opacity: 0;
+  }
+}
+@keyframes poem-warm-hug {
+  0% {
+    opacity: 0;
+    transform: scale(0.975);
+  }
+  24% {
+    opacity: 0.92;
+    transform: scale(1);
+  }
+  58% {
+    opacity: 0.46;
+    transform: scale(1.008);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+@keyframes poem-comment-send {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  52% {
+    opacity: 0.94;
+    transform: translate(
+        calc(var(--comment-send-x, 0px) * 0.58),
+        calc(var(--comment-send-y, 0px) * 0.58)
+      )
+      scale(0.58);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--comment-send-x, 0px), var(--comment-send-y, 0px))
+      scale(var(--comment-send-scale, 0.1));
+  }
+}
+@keyframes poem-comment-backdrop-fade {
+  0% {
+    background-color: rgba(0, 0, 0, 0.6);
+  }
+  100% {
+    background-color: rgba(0, 0, 0, 0);
+  }
+}
+@media (max-width: 1024px) {
+  .poem-reader-close {
+    display: none;
+  }
+  .poem-reader-scroll-hint {
+    display: none;
+  }
+  .poem-reader-header {
+    padding-right: 0;
+    padding-left: 0;
+    justify-content: flex-start;
+    gap: 12px;
+  }
+  .poem-reader-mobile-close {
+    display: grid;
+    flex: 0 0 34px;
+    width: 34px;
+    height: 34px;
+    margin-left: 14px;
+    padding: 0;
+    place-items: center;
+    border: 1px solid rgba(49, 40, 33, 0.52);
+    border-radius: 50%;
+    color: #201b17;
+    background: rgba(49, 40, 33, 0.08);
+    cursor: pointer;
+  }
+  .poem-reader-mobile-close svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 2;
+  }
+  .poem-reader-kicker {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .poem-reader-kicker-full {
+    display: none;
+  }
+}
+@media (max-width: 640px) {
+  .poem-reader-shell {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+  .poem-reader-content {
+    padding-top: 72px;
+    padding-right: 32px;
+    padding-bottom: 40px;
+    padding-left: 32px;
+  }
+  .poem-reader-header,
+  .poem-reader-footer {
+    font-size: 9px;
+  }
+  .poem-reader-footer {
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .poem-reader-body {
+    font-size: 19px;
+    line-height: 1.62;
+  }
+  .poem-comment-dialog .dnk-dialog-content-wrapper {
+    width: calc(100vw - 36px);
+    min-width: 0;
+    padding: 18px 0;
+  }
+  .poem-comment-dialog .dnk-dialog-content-wrapper .dnk-dialog-content {
+    width: 100%;
+    min-width: 0;
+    /* react-draggable sets an inline transform: translate(x, y) on this
+       element that persists across opens once the dialog has been dragged.
+       Only a mouse-driven drag makes sense as an interaction, so on touch
+       viewports pin it centered regardless of any carried-over drag offset.
+       Overriding an inline style requires !important — normal specificity
+       can't win here. */
+    transform: none !important;
+  }
+  .poem-comment-dialog .dnk-dialog-content-wrapper .dnk-dialog-body {
+    min-width: 0;
+  }
+  .poem-comment-dialog .dnk-dialog-header {
+    padding: 21px 22px 8px;
+    font-size: 22px;
+  }
+  .poem-comment-dialog .dnk-dialog-body {
+    padding: 12px 22px 22px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scene-name {
+    transition-duration: 0.01ms;
+  }
+  .poem-reader-shell,
+  .poem-reader-love.is-animating svg,
+  .poem-reader-love.is-animating::after,
+  .poem-reader-share.is-copied .poem-reader-share-icon.is-check,
+  .poem-reader-share.is-copied::after,
+  .poem-reader.is-love-feedback::after,
+  .poem-reader-comment.is-open svg,
+  .poem-reader-comment.is-open::after,
+  .poem-reader-comment.is-sending svg,
+  .poem-reader-comment.is-sending::after,
+  .poem-comment-dialog.is-sending,
+  .poem-comment-dialog.is-sending .dnk-dialog-content-wrapper {
+    animation: none;
+  }
+  .poem-reader-polaroid {
+    transform: none;
+    transition: none;
+  }
+  .poem-reader-share-icon,
+  .poem-reader [data-tooltip]::before {
+    transition: none;
+  }
+}

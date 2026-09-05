@@ -32,6 +32,6 @@ is the universe who owns these verses.
 I’m thankful for the emotions I can unfold,
 and wonder what other stories will be told.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

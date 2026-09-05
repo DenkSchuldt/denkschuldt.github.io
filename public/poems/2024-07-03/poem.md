@@ -37,6 +37,6 @@ perhaps because of a Bruce, or maybe ’cause an Allison.
 But that wouldn’t be us… can you look me in the eyes?
 No, no. There won’t be room for lies.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

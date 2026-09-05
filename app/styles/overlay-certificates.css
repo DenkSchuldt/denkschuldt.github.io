@@ -1,0 +1,234 @@
+.certificate-gallery-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 44;
+  display: grid;
+  place-items: center;
+  padding: clamp(24px, 5vw, 72px);
+  color: rgba(244, 239, 229, 0.9);
+  background: rgba(3, 3, 3, 0.62);
+  -webkit-backdrop-filter: blur(14px) saturate(0.8);
+  backdrop-filter: blur(14px) saturate(0.8);
+  animation: certificate-gallery-in 0.46s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.certificate-gallery-panel {
+  width: min(1060px, 100%);
+  max-height: min(900px, calc(100svh - 48px));
+  padding: clamp(18px, 2.8vw, 34px);
+  overflow: auto;
+  border: 1px solid rgba(244, 239, 229, 0.17);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(32, 28, 24, 0.92), rgba(11, 11, 10, 0.9));
+  box-shadow:
+    0 28px 90px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  outline: none;
+}
+.certificate-gallery-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: clamp(12px, 2vw, 24px);
+}
+.certificate-gallery-kicker,
+.certificate-gallery-count {
+  margin: 0;
+  font:
+    500 9px/1.3 ui-sans-serif,
+    system-ui,
+    sans-serif;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.certificate-gallery-kicker {
+  color: rgba(244, 239, 229, 0.82);
+}
+.certificate-gallery-count {
+  margin-top: 6px;
+  color: rgba(244, 239, 229, 0.43);
+  letter-spacing: 0.14em;
+}
+.certificate-gallery-close {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px 7px 11px;
+  border: 1px solid rgba(244, 239, 229, 0.22);
+  border-radius: 999px;
+  color: rgba(244, 239, 229, 0.75);
+  background: rgba(255, 255, 255, 0.035);
+  font:
+    500 9px/1 ui-sans-serif,
+    system-ui,
+    sans-serif;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  transition:
+    color 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease,
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.certificate-gallery-close:hover {
+  color: #fffdf8;
+  border-color: rgba(244, 239, 229, 0.48);
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
+}
+.certificate-gallery-close span {
+  color: rgba(244, 239, 229, 0.48);
+  font-size: 8px;
+}
+.certificate-gallery-close svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 1.5;
+}
+.certificate-gallery-content {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 48px;
+  align-items: center;
+  gap: clamp(10px, 2.5vw, 28px);
+}
+.certificate-gallery-nav {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid rgba(244, 239, 229, 0.19);
+  border-radius: 50%;
+  color: rgba(244, 239, 229, 0.8);
+  background: rgba(255, 255, 255, 0.035);
+  cursor: pointer;
+  transition:
+    color 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease,
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.certificate-gallery-nav:hover:not(:disabled) {
+  color: #fffdf8;
+  border-color: rgba(244, 239, 229, 0.45);
+  background: rgba(255, 255, 255, 0.08);
+  transform: scale(1.04);
+}
+.certificate-gallery-nav:disabled {
+  cursor: default;
+  opacity: 0.22;
+}
+.certificate-gallery-nav svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.35;
+}
+.photo-lightbox-content {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+}
+.photo-lightbox-content .certificate-gallery-figure {
+  /* certificate-gallery-figure's margin:0 auto centers it within a wide grid
+     track in CertificateGalleryOverlay. In this flex row, auto margins
+     instead absorb all free space and push the socials list away from the
+     16px gap above — reset it here. */
+  margin: 0;
+}
+.photo-lightbox-socials {
+  flex: 0 0 auto;
+}
+.photo-lightbox-socials ul {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.photo-lightbox-socials a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: rgba(244, 239, 229, 0.78);
+  text-decoration: none;
+  font:
+    500 15px/1 ui-sans-serif,
+    system-ui,
+    sans-serif;
+  letter-spacing: 0.01em;
+  transition: color 0.2s ease;
+}
+.photo-lightbox-socials a:hover {
+  color: #fffdf8;
+}
+.photo-lightbox-socials a span {
+  color: rgba(244, 239, 229, 0.4);
+  font-size: 12px;
+}
+.certificate-gallery-figure {
+  min-width: 0;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+}
+.certificate-gallery-image-link {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  border-radius: 5px;
+  box-shadow: 0 14px 46px rgba(0, 0, 0, 0.34);
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease;
+}
+.certificate-gallery-image-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.44);
+}
+.certificate-gallery-image {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: min(63svh, 680px);
+  object-fit: contain;
+  border-radius: 4px;
+}
+.certificate-gallery-caption {
+  margin-top: 18px;
+}
+.certificate-gallery-caption h2 {
+  margin: 0;
+  overflow: hidden;
+  color: rgba(255, 252, 245, 0.9);
+  white-space: nowrap;
+  font:
+    500 clamp(16px, 2vw, 23px)/1.2 Georgia,
+    serif;
+}
+.certificate-gallery-caption p {
+  margin: 7px 0 0;
+  color: rgba(244, 239, 229, 0.5);
+  font:
+    500 9px/1.2 ui-sans-serif,
+    system-ui,
+    sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+@keyframes certificate-gallery-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

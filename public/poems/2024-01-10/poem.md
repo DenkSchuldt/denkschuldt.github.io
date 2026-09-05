@@ -32,6 +32,6 @@ pero me recortas de tu película tal como Warner hizo con Mera.
 Quizá me dejé llevar porque soy sentimental,
 y tal vez todo esto es sólo química accidental.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

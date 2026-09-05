@@ -32,6 +32,6 @@ Eliges cada día mantener el norte y tu visión.
 En este punto de mi vida busco un amor bonito que ambos podamos sostener,
 que nos elijamos mutuamente, y juntos podamos crecer.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

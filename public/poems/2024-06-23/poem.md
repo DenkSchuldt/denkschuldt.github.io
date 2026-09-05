@@ -27,6 +27,6 @@ you’ve gone from one big caring heart to the brightest star.
 Time has its rules and you needed to rest,
 following your legacy is what we’ll do best.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

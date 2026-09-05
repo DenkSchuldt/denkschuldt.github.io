@@ -67,6 +67,6 @@ a Poet feels.
 A Poet breathes,
 a Poet lives.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

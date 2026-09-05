@@ -3,7 +3,7 @@ title: Debe ser emocionante
 date: 2024-02-12
 draft: false
 slug: debe-ser-emocionante
-lang: es
+lang: en, es
 tags:
   - Poetry
   - Poem
@@ -33,6 +33,6 @@ The universe is wise and it knows you’ll be mine.
 Sigamos caminando hasta que nos encontremos.
 Espero con ansias, tú y yo eventualmente nos conoceremos.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

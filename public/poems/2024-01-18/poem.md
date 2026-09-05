@@ -32,6 +32,6 @@ pero también me gusta a ella sorprenderla.
 Y pues, ¡sorpresa, vida! Soy resiliente.
 Aunque siga temeroso, persisto en ser valiente.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

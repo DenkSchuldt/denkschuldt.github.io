@@ -37,6 +37,6 @@ I drove me out of his garage for my parts to dismount.
 A rebuild was needed after such wear and tear,
 I’m becoming full equipment, with no time to spare.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

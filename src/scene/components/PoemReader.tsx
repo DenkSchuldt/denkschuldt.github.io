@@ -72,6 +72,19 @@ interface Props {
   onClose: (slug: string | null) => void;
 }
 
+interface PoemActionButtonsProps {
+  isCommentOpen: boolean;
+  isCommentSending: boolean;
+  isHeartAnimating: boolean;
+  isLoved: boolean;
+  isPoemAvailable: boolean;
+  shareLabel: string;
+  shouldAnnounceShareStatus?: boolean;
+  onComment: () => void;
+  onLove: () => void;
+  onShare: () => void;
+}
+
 function easeInOutCubic(t: number) {
   return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 }
@@ -95,6 +108,79 @@ function readableDate(value: string) {
   return Number.isNaN(date.valueOf())
     ? value
     : new Intl.DateTimeFormat(undefined, { dateStyle: "long" }).format(date);
+}
+
+function poemImageTilt(slug: string) {
+  const characterTotal = Array.from(slug).reduce(
+    (total, character) => total + character.charCodeAt(0),
+    0,
+  );
+  return characterTotal % 2 === 0 ? "left" : "right";
+}
+
+function PoemActionButtons({
+  isCommentOpen,
+  isCommentSending,
+  isHeartAnimating,
+  isLoved,
+  isPoemAvailable,
+  shareLabel,
+  shouldAnnounceShareStatus = false,
+  onComment,
+  onLove,
+  onShare,
+}: PoemActionButtonsProps) {
+  return (
+    <>
+      <button
+        type="button"
+        className={`poem-reader-comment${isCommentOpen ? " is-open" : ""}${isCommentSending ? " is-sending" : ""}`}
+        onClick={onComment}
+        disabled={!isPoemAvailable || isCommentSending}
+        aria-label="Comment on this poem"
+        data-tooltip="Comment"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20 15a3 3 0 0 1-3 3H9l-5 3V7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v8Z" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        className={`poem-reader-love${isLoved ? " is-loved" : ""}${isHeartAnimating ? " is-animating" : ""}`}
+        onClick={onLove}
+        disabled={!isPoemAvailable}
+        aria-label={isLoved ? "Poem loved" : "Love this poem"}
+        data-tooltip={isLoved ? "Loved" : "Love"}
+        aria-pressed={isLoved}
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20.84 8.61c0 5.07-8.84 10.39-8.84 10.39S3.16 13.68 3.16 8.61A4.61 4.61 0 0 1 12 6.05a4.61 4.61 0 0 1 8.84 2.56Z" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        className={`poem-reader-share${shareLabel === "Copied" ? " is-copied" : ""}`}
+        onClick={onShare}
+        aria-label={shareLabel === "Share" ? "Copy poem URL" : shareLabel}
+        data-tooltip={shareLabel === "Share" ? "Copy link" : shareLabel}
+      >
+        <svg className="poem-reader-share-icon is-share" viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="18" cy="5" r="2.5" />
+          <circle cx="6" cy="12" r="2.5" />
+          <circle cx="18" cy="19" r="2.5" />
+          <path d="m8.2 10.8 7.6-4.5M8.2 13.2l7.6 4.5" />
+        </svg>
+        <svg className="poem-reader-share-icon is-check" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m5 12 4.5 4.5L19 7" />
+        </svg>
+        {shouldAnnounceShareStatus && (
+          <span className="poem-reader-share-status" role="status">
+            {shareLabel === "Share" ? "" : shareLabel}
+          </span>
+        )}
+      </button>
+    </>
+  );
 }
 
 const LOVED_POEMS_STORAGE_KEY = "denny.poems.loved";
@@ -339,39 +425,18 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
             <span className="poem-reader-kicker-full">Denny K. Schuldt · </span>Poems
           </p>
           <div className="poem-reader-header-actions">
-            <button
-              type="button"
-              className={`poem-reader-comment${commentSending ? " is-sending" : ""}`}
-              onClick={() => setCommentOpen(true)}
-              disabled={!displayRecord || commentSending}
-              aria-label="Comment on this poem"
-              title="Send a comment"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="m21 3-7.2 17-3.9-7.9L2 8.2 21 3Z" />
-                <path d="m9.9 12.1 11.1-9.1" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              className={`poem-reader-love${isLoved ? " is-loved" : ""}${heartAnimating ? " is-animating" : ""}`}
-              onClick={lovePoem}
-              disabled={!displayRecord}
-              aria-label={isLoved ? "Poem loved" : "Love this poem"}
-              aria-pressed={isLoved}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M20.84 8.61c0 5.07-8.84 10.39-8.84 10.39S3.16 13.68 3.16 8.61A4.61 4.61 0 0 1 12 6.05a4.61 4.61 0 0 1 8.84 2.56Z" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              className="poem-reader-share"
-              onClick={copyUrl}
-              aria-label="Copy poem URL"
-            >
-              {shareLabel}
-            </button>
+            <PoemActionButtons
+              isCommentOpen={commentOpen}
+              isCommentSending={commentSending}
+              isHeartAnimating={heartAnimating}
+              isLoved={isLoved}
+              isPoemAvailable={Boolean(displayRecord)}
+              shareLabel={shareLabel}
+              shouldAnnounceShareStatus
+              onComment={() => setCommentOpen(true)}
+              onLove={lovePoem}
+              onShare={copyUrl}
+            />
             <button
               type="button"
               className="poem-reader-mobile-close"
@@ -395,17 +460,50 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
                 <h1>{displayRecord.title}</h1>
                 <div className="poem-reader-rule" />
                 <div className="poem-reader-body">
-                  {paragraphs.map((paragraph, index) => (
-                    <p key={`${displayRecord.slug}-${index}`}>{paragraph}</p>
-                  ))}
+                  {paragraphs.map((paragraph, index) =>
+                    paragraph === "***" ? (
+                      <hr
+                        key={`${displayRecord.slug}-${index}`}
+                        className="poem-reader-section-break"
+                      />
+                    ) : (
+                      <p key={`${displayRecord.slug}-${index}`}>{paragraph}</p>
+                    ),
+                  )}
                 </div>
                 {displayRecord.imageUrl && (
-                  <img
-                    className="poem-reader-image"
-                    src={displayRecord.imageUrl}
-                    alt={`Artwork for ${displayRecord.title}`}
-                    loading="lazy"
-                  />
+                  <>
+                    <figure
+                      className="poem-reader-polaroid"
+                      data-tilt={poemImageTilt(displayRecord.slug)}
+                    >
+                      <img
+                        className="poem-reader-image"
+                        src={displayRecord.imageUrl}
+                        alt={`Artwork for ${displayRecord.title}`}
+                        loading="lazy"
+                      />
+                      <figcaption className="poem-reader-image-caption">
+                        <span>{displayRecord.title}</span>
+                        <time dateTime={displayRecord.date}>
+                          {readableDate(displayRecord.date)}
+                        </time>
+                      </figcaption>
+                    </figure>
+                    <div className="poem-reader-image-actions" aria-label="Poem actions">
+                      <PoemActionButtons
+                        isCommentOpen={commentOpen}
+                        isCommentSending={commentSending}
+                        isHeartAnimating={heartAnimating}
+                        isLoved={isLoved}
+                        isPoemAvailable
+                        shareLabel={shareLabel}
+                        onComment={() => setCommentOpen(true)}
+                        onLove={lovePoem}
+                        onShare={copyUrl}
+                      />
+                    </div>
+                  </>
                 )}
               </>
             )}
@@ -446,7 +544,7 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
       </div>
       {commentOpen && (
         <Dialog
-          title={`A note about ${displayRecord?.title ?? "this poem"}`}
+          title="Share your thoughts with the author"
           className={`poem-comment-dialog${commentSending ? " is-sending" : ""}`}
           draggable
           cancelableOutside

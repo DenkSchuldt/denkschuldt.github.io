@@ -56,7 +56,7 @@ export function parsePoemMarkdown(markdown: string, fallbackTitle: string) {
     .replace(/\r\n?/g, "\n")
     .replace(/^---\n[\s\S]*?\n---\n?/, "")
     .trim();
-  const pageContent = normalized.split(/\n---\n/)[0].trim();
+  const pageContent = normalized;
   const heading = pageContent.match(/^#\s+(.+)$/m);
   const title = (heading?.[1] ?? fallbackTitle).replace(/[*_`]/g, "").trim();
   const withoutTitle = heading ? pageContent.replace(heading[0], "").trim() : pageContent;
@@ -66,10 +66,10 @@ export function parsePoemMarkdown(markdown: string, fallbackTitle: string) {
     .replace(/^#{1,6}\s+/gm, "")
     .replace(/^>\s?/gm, "")
     .replace(/^---$/gm, "")
-    .replace(/\*\*([^*]+)\*\*/g, "$1")
-    .replace(/__([^_]+)__/g, "$1")
-    .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, "$1")
-    .replace(/(?<!_)_([^_]+)_(?!_)/g, "$1")
+    .replace(/\*\*([^*\n]+)\*\*/g, "$1")
+    .replace(/__([^_\n]+)__/g, "$1")
+    .replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, "$1")
+    .replace(/(?<!_)_([^_\n]+)_(?!_)/g, "$1")
     .replace(/`([^`]+)`/g, "$1")
     .replace(/<[^>]+>/g, "")
     .replace(/\n{3,}/g, "\n\n")
@@ -91,7 +91,7 @@ export async function loadPoemContent(
   poem: PoemManifestEntry,
   fetcher: typeof fetch = fetch,
 ): Promise<PoemRecord> {
-  const response = await fetcher(poem.contentUrl, { cache: "force-cache" });
+  const response = await fetcher(poem.contentUrl, { cache: "no-cache" });
   if (!response.ok) throw new Error(`Unable to load poem '${poem.slug}' (${response.status}).`);
   const markdown = await response.text();
   const frontmatter = parsePoemFrontmatter(markdown, poem.slug);

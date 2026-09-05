@@ -49,6 +49,6 @@ Su amor fue tan puro, para todos un ejemplo.
 La amamos antes, ahora y siempre.
 La amé antes, ahora y para siempre.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024

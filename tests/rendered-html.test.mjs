@@ -23,6 +23,18 @@ async function readObjectSources() {
   return sources.join("\n");
 }
 
+// globals.css is an @import manifest; inline the partials so assertions see the full sheet.
+async function readGlobalCss() {
+  const entryUrl = new URL("../app/globals.css", import.meta.url);
+  const entry = await readFile(entryUrl, "utf8");
+  const partials = await Promise.all(
+    [...entry.matchAll(/@import\s+"(\.\/[^"]+)"/g)].map(([, ref]) =>
+      readFile(new URL(ref, entryUrl), "utf8"),
+    ),
+  );
+  return [entry, ...partials].join("\n");
+}
+
 async function render(path = "/") {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
   workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
@@ -61,7 +73,7 @@ test("collection focus is explicit and the responsive navigation stays scene-bas
     readFile(new URL("../src/scene/camera/SceneNavigation.tsx", import.meta.url), "utf8"),
     readFile(new URL("../src/scene/Scene.tsx", import.meta.url), "utf8"),
     readObjectSources(),
-    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+    readGlobalCss(),
   ]);
   assert.match(navigation, /onFocus=\{\(\) => \{\s+if \(!active\) onEnterFocus/s);
   assert.match(
@@ -158,7 +170,7 @@ test("keeps the cinematic shell and fallback scoped", async () => {
   const [shell, layout, css] = await Promise.all([
     readFile(new URL("../app/SceneShell.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/layout.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+    readGlobalCss(),
   ]);
   assert.match(shell, /<Experience initialPath=\{initialPath\} \/>/);
   assert.match(shell, /className="grain"/);

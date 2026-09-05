@@ -42,6 +42,6 @@ En este nos desconocemos sin sentir nuestro calor.
 Aquí nuestros ojos marrones miran hacia otro lado.
 En este universo un futuro se ha apagado.
 
----
+***
 
 Copyright © Denny K. Schuldt 2024
