@@ -6,7 +6,7 @@ const Experience = lazy(() => import("@/src/scene/Experience"));
 
 export default function SceneShell({ initialPath = "/" }: { initialPath?: string }) {
   return (
-    <main className="experience-shell">
+    <div className="experience-shell">
       <Suspense
         fallback={
           <div className="experience-loading" role="status" aria-live="polite">
@@ -17,9 +17,9 @@ export default function SceneShell({ initialPath = "/" }: { initialPath?: string
         <Experience initialPath={initialPath} />
       </Suspense>
       <div className="grain" aria-hidden="true" />
-      <div className="fallback">
+      <div className="fallback" aria-hidden="true">
         <p>I turn complex things into experiences people can feel.</p>
       </div>
-    </main>
+    </div>
   );
 }

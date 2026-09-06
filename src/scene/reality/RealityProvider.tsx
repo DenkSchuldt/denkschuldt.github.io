@@ -2,9 +2,6 @@
 
 import { createContext, useContext, useRef, useState, useSyncExternalStore } from "react";
 
-// The Reality registry. Cycling and persistence are driven entirely off this
-// list, so adding a future style (e.g. neon) only requires registering it
-// here — see REALITY_ORDER usage in RealityStore.next().
 export interface Reality {
   id: string;
   label: string;

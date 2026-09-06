@@ -67,12 +67,6 @@ export function SceneNavigation({
 }: Props) {
   const [introComplete, setIntroComplete] = useState(false);
   const [hasClickedNav, setHasClickedNav] = useState(false);
-  // The portal below only exists client-side. Reading `typeof document` in
-  // render is itself a server/client branch — always false during SSR, always
-  // true on the client's first paint — which is exactly what causes a
-  // hydration mismatch. Gate on a mount flag instead, so both the server
-  // render and the client's *initial* render agree (nothing), and the portal
-  // only appears once mounted, after hydration has already reconciled.
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     const markMounted = () => setMounted(true);
@@ -122,13 +116,6 @@ export function SceneNavigation({
           <FadingSceneName label={currentLabel} />
         </div>
       </nav>
-      {/* Portaled directly to <body> so the prev/next controls always paint
-          above every scene overlay (projects, certificates, poems), rather
-          than being trapped inside .canvas-stage's stacking/compositing tree
-          alongside JS-positioned (matrix3d-transformed) overlay content. Hidden
-          while a certificate, poem, or the about-photo lightbox is open
-          full-screen — those overlays have their own close controls and scene
-          navigation doesn't apply there. */}
       {mounted &&
         selectedFocusCollection !== "certificates" &&
         !poemReaderOpen &&

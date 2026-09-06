@@ -17,7 +17,7 @@ import { CinematicFade } from "./camera/CinematicFade";
 import { NavigationDebugPanel } from "./camera/NavigationDebugPanel";
 import { OpeningCredits } from "./camera/OpeningCredits";
 import { SceneNavigation } from "./camera/SceneNavigation";
-import { pathForFocus, pathForScene } from "./camera/sceneRoutes";
+import { pathForFocus, pathForScene, requireScenePath } from "./camera/sceneRoutes";
 import {
   FOCUS_COLLECTIONS,
   getFocusItem,
@@ -76,11 +76,8 @@ import type { ScreenProjection } from "./screenProjection";
 import type { SceneSettings } from "./Scene";
 
 type PoemInteractionDetail = { slug?: string; title?: string; url?: string; comment?: string };
-type FocusedSceneState = { sceneId: SceneId; cameraTargetId: string };
+type FocusedSceneState = { sceneId: string; cameraTargetId: string };
 
-// Keep the reading experience (and its draggable dialog dependency) out of
-// the main scene bundle. This still resolves for direct /poems/:slug entries
-// because the reader is rendered as soon as the route's poem is available.
 const PoemReader = lazy(() =>
   import("./components/PoemReader").then((module) => ({ default: module.PoemReader })),
 );
@@ -329,10 +326,6 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
     poemsSceneActive && routeFocusCollection === "poems" ? (route.slug ?? null) : null,
     poemsResourcesResident,
   );
-  // The lock screen's Poetry notification needs the poems manifest even
-  // while the visitor is on the Phone scene, not just once Poems itself
-  // becomes resident — same usePoems/manifest source of truth as above, just
-  // gated by the Phone destination instead.
   const phonePoemsContent = usePoems(null, phoneResourcesResident);
   const workingSetOverlays = useMemo(
     () => [
@@ -387,7 +380,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
     pendingSceneFocus.current = null;
     trackEvent("scene_viewed", {
       scene_id: state.sceneId,
-      scene_name: SCENE_REGISTRY[state.sceneId]?.label ?? state.sceneId,
+      scene_name: SCENE_REGISTRY[state.sceneId as SceneId]?.label ?? state.sceneId,
       camera_target: state.cameraTargetId,
     });
   }, [sceneReady]);
@@ -409,7 +402,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
       }
       trackEvent("scene_viewed", {
         scene_id: state.sceneId,
-        scene_name: SCENE_REGISTRY[state.sceneId]?.label ?? state.sceneId,
+        scene_name: SCENE_REGISTRY[state.sceneId as SceneId]?.label ?? state.sceneId,
         camera_target: state.cameraTargetId,
       });
     });
@@ -628,8 +621,6 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
         : poemsContent.poems[0]?.slug;
     if (!slug) return;
     setReaderPoemSlug(slug);
-    // Reading mode is URL-addressable even when it was opened from the
-    // collection preview, so the first poem gets a shareable slug immediately.
     if (routeScene === "poems") replaceWithinScene(pathForFocus("poems", slug));
     setPoemReaderOpen(true);
   }, [
@@ -643,9 +634,6 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
   const changeReaderPoem = useCallback(
     (slug: string) => {
       setReaderPoemSlug(slug);
-      // Keep the shareable poem slug authoritative while the reader remains a
-      // UI overlay. Poems deliberately keep the same camera framing, so this
-      // route replacement does not trigger a camera refocus or notebook motion.
       if (routeScene === "poems") replaceWithinScene(pathForFocus("poems", slug));
     },
     [replaceWithinScene, routeScene],
@@ -653,24 +641,18 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
 
   const closePoemReader = useCallback(() => {
     setPoemReaderOpen(false);
-    // Reading mode is an overlay, not a separate camera destination. Return
-    // to the Poems parent location in-place so the reader closes without
-    // invoking the collection's normal `exitBehavior: "start"` rule.
     if (
       cameraSystem.selectedScene === "poems" &&
       cameraSystem.selectedFocusCollection === "poems"
     ) {
       cameraSystem.syncRoute(locationForScene("poems"));
-      replaceWithinScene(pathForScene("poems"));
+      replaceWithinScene(requireScenePath("poems"));
     }
   }, [cameraSystem, replaceWithinScene]);
 
   const openLatestPoemFromPhone = useCallback(() => {
     const slug = phonePoemsContent.poems[0]?.slug;
     if (!slug) return;
-    // Reuses the same scene-navigation and poem-reader machinery as the
-    // Poems folder's own "Read my poetry" button (openPoemReader above) —
-    // just triggered from the phone instead of from within Poems itself.
     navigateScene("poems");
     setReaderPoemSlug(slug);
     setPoemReaderOpen(true);
@@ -683,20 +665,16 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
 
   const openPhotoLightbox = useCallback(() => {
     setPhotoLightboxOpen(true);
-    // Shareable like the poem reader's slug above — clicking the polaroid
-    // is one of two ways in (the other being a direct visit to the URL).
     if (routeScene === "about") replaceWithinScene("/about/socials");
   }, [routeScene, replaceWithinScene]);
 
   const closePhotoLightbox = useCallback(() => {
     setPhotoLightboxOpen(false);
     if (routeScene === "about" && route.slug === "socials")
-      replaceWithinScene(pathForScene("about"));
+      replaceWithinScene(requireScenePath("about"));
   }, [routeScene, route.slug, replaceWithinScene]);
 
   useEffect(() => {
-    // Keeps the lightbox in sync with direct links to /about/socials and
-    // with browser back/forward while still on the about scene.
     if (routeScene !== "about") return;
     setPhotoLightboxOpen(route.slug === "socials");
   }, [routeScene, route.slug]);
@@ -754,10 +732,6 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
         />
         <RenderSchedulerNavigationAdapter engine={cameraSystem.engine} />
         <div className={`canvas-stage${poemReaderOpen ? " poem-reader-open" : ""}`}>
-          {/* Use the explicit PCF mode instead of Canvas' boolean default. The
-        boolean form selects THREE.PCFSoftShadowMap, which is deprecated in
-        the installed Three.js version and gets re-applied whenever the
-        experience re-renders. */}
           <Canvas
             frameloop="demand"
             shadows={renderIsolation.shadows && qualityFeatures.allShadows ? "percentage" : false}

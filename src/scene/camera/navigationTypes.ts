@@ -45,6 +45,7 @@ export interface FocusItemDefinition {
 
 export interface FocusCollectionDefinition {
   id: FocusCollectionId;
+  label: string;
   sceneId: SceneId;
   routePattern: string;
   cameraTarget: ShotId;

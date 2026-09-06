@@ -72,9 +72,21 @@ stateDiagram-v2
 ```text
 .
 ├── app/                              # App Router, metadata y entrada del mundo
-│   ├── [[...route]]/page.tsx         # Rutas estáticas y deep links
+│   ├── [[...route]]/page.tsx         # Rutas estáticas, deep links y metadata por ruta
 │   ├── SceneShell.tsx                # Carga diferida de la experiencia cliente
-│   └── poems.server.ts               # Índice, feed y metadata de poemas
+│   ├── SemanticLayer.tsx             # Documento HTML semántico por ruta (server component)
+│   ├── structured-data.ts            # Grafo JSON-LD (Person, WebSite, CollectionPage…)
+│   ├── site.server.ts                # Modelo unificado del sitio + llms.txt, site.json, sitemap
+│   ├── site-url.ts                   # Helpers de URL canónica y escape compartidos
+│   └── poems.server.ts               # Índice, feed y carga de poemas desde el sistema de archivos
+├── src/content/                      # Capa de contenido pura (sin React/R3F/DOM)
+│   ├── site.ts                       # Identidad del sitio, secciones y rutas canónicas
+│   ├── profile.ts                    # Biografía canónica de About
+│   ├── experience.ts                 # Trayectoria y experiencia profesional
+│   ├── projects.ts                   # Proyectos seleccionados
+│   ├── certificates.ts               # Certificaciones y credenciales
+│   ├── links.ts                      # Enlaces públicos / perfiles
+│   └── phone.ts                      # Metadata pública del teléfono
 ├── src/scene/                        # Aplicación 3D del portfolio
 │   ├── camera/                       # Escenas, shots, rutas y controlador de cámara
 │   ├── components/                   # Overlays y experiencias de contenido
@@ -194,9 +206,15 @@ git diff --check
 
 ## Contenido
 
+El contenido público (perfil, experiencia, proyectos, certificaciones, enlaces) vive como datos
+puros en `src/content/`. Tanto la experiencia 3D como la capa HTML semántica del servidor consumen
+esos mismos módulos, sin duplicar texto.
+
 Los poemas viven en `public/poems/<fecha>/`, cada uno con un `poem.md` y una imagen. Durante la
-compilación se generan el manifiesto del cliente, el sitemap, el feed Atom y `llms.txt`. Los demás
-assets se organizan por dominio dentro de `public/`.
+compilación, `app/site.server.ts` genera desde ese modelo compartido: `sitemap.xml`, `robots.txt`,
+`llms.txt`, `llms-full.txt`, `site.json`, el feed Atom de poemas, el manifiesto del cliente y las
+copias en Markdown de About, Projects y Certificates. Los demás assets se organizan por dominio
+dentro de `public/`.
 
 ## Evaluación de la estructura
 

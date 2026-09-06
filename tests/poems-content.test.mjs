@@ -7,13 +7,8 @@ import {
   parsePoemFrontmatter,
   parsePoemMarkdown,
 } from "../src/scene/content/poems.ts";
-import {
-  getLlmsText,
-  getPoemsAtomFeed,
-  getPoemsSitemapXml,
-  getRobotsText,
-  getStaticPoemManifest,
-} from "../app/poems.server.ts";
+import { getPoemsAtomFeed, getStaticPoemManifest } from "../app/poems.server.ts";
+import { getLlmsText, getRobotsText, getSitemapXml } from "../app/site.server.ts";
 
 test("Markdown becomes safe plain text suitable for a physical poem page", () => {
   const markdown = `---\nlang: es\n---\n# La noche\n\n***\n\n**Queda** la luz,\n[y la memoria](https://example.com).\n\n<img src=x onerror=alert(1)>\n\n***\n\nCopyright © Denny K. Schuldt 2025`;
@@ -76,7 +71,7 @@ test("poem bodies are fetched lazily from their Markdown source", async () => {
 test("generated discovery assets expose canonical poem URLs without bloating the manifest", async () => {
   const [manifest, sitemap, feed, llms] = await Promise.all([
     getStaticPoemManifest(),
-    getPoemsSitemapXml(),
+    getSitemapXml(),
     getPoemsAtomFeed(),
     getLlmsText(),
   ]);
@@ -105,5 +100,5 @@ test("generated discovery assets expose canonical poem URLs without bloating the
     llms,
     /\[Markdown\]\(https:\/\/denkschuldt\.github\.io\/poems\/2023-12-30\/poem\.md\)/,
   );
-  assert.match(getRobotsText(), /User-agent: OAI-SearchBot\nAllow: \//);
+  assert.match(await getRobotsText(), /User-agent: OAI-SearchBot\nAllow: \//);
 });

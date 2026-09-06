@@ -79,9 +79,6 @@ interface GuidedInputSystem {
   cameraState: React.MutableRefObject<{ introComplete: boolean; isTransitioning?: boolean }>;
 }
 const guidedInputDestination = (system: GuidedInputSystem, direction: -1 | 1) => {
-  // ESC deliberately parks the camera at Opening. The first forward input
-  // must consume that checkpoint instead of blindly taking the normal
-  // Opening -> About route.
   if (direction > 0 && system.selectedScene === "opening" && system.resumeScene)
     return system.resumeScene;
   return system.selectedFocusCollection
@@ -100,9 +97,6 @@ export function useCameraKeyboardNavigation(
       if (event.metaKey || event.ctrlKey || event.altKey) return;
       if (isReturnToStartKey(event.key)) {
         event.preventDefault();
-        // Certificates are browsed as a detail overlay over the parent shelf.
-        // ESC closes that detail in place so the user can continue through
-        // the guided scenes without being sent back to Opening.
         if (system.selectedFocusCollection === "certificates") {
           system.exitFocus();
           return;
@@ -301,10 +295,6 @@ export function useCinematicNavigation(
   const skipIntro = useCallback(() => setSkipVersion((value) => value + 1), []);
 
   const routeLocation = normalizeLocation(initialValue);
-  // Requesting "about" here used to be what drove the camera onward once the
-  // intro cinematic finished. Now that nothing auto-navigates the visitor
-  // there, the initial request must match the resting shot ("opening") or
-  // the rig's per-frame shot-transition logic keeps chasing "about" forever.
   const initialRequested = directEntry ? routeLocation : locationForScene("opening");
   const initialCurrent = directEntry ? routeLocation : locationForScene("opening");
 
@@ -515,9 +505,6 @@ export function useCinematicNavigation(
   }, [engine, requestLocation, onNavigate]);
 
   const returnToStart = useCallback(() => {
-    // A certificate detail is an overlay over the shelf, not a separate
-    // guided destination. Treat every return request (including stale or
-    // competing ESC handlers) as a detail close while it is active.
     if (requestedLocation.focusCollectionId === "certificates") return exitFocus();
     const interruptsIntro = !stateRef.current.introComplete;
     setResumeScene(
@@ -607,8 +594,6 @@ export function useCinematicNavigation(
   };
 }
 
-/** @deprecated Use useCinematicNavigation. */
 export const useCinematicShots = useCinematicNavigation;
-/** @deprecated Use useCinematicNavigation. */
 export const useCinematicCamera = useCinematicNavigation;
 export type CinematicNavigationSystem = ReturnType<typeof useCinematicNavigation>;

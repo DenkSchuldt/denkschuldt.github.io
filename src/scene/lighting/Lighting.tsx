@@ -28,11 +28,6 @@ export function Lighting({
   features: ResolvedQualityFeatures;
 }) {
   const aspect = useThree((state) => state.size.width / state.size.height);
-  // Blueprint suppresses the warm practical-light appearance and reduces
-  // realistic cast-shadow/AO cues in place here, rather than migrating
-  // lighting into a theme system — everything below is byte-identical to
-  // the Cinematic values when blueprint is false. Depth is meant to read
-  // from the technical edge lines first and this softened lighting second.
   const blueprint = useActiveReality((reality) => reality.id === "blueprint");
   const directionalShadows =
     shadowsEnabled && features.allShadows && features.directionalShadow && !blueprint;

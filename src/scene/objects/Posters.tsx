@@ -11,11 +11,6 @@ const WALL_IMAGES = ["arrival.jpg", "her.jpg", "interstellar.jpg", "matrix.jpg"]
   withSceneBasePath(`/wall/${image}`),
 );
 
-// Desktop/tablet hang the four frames in a single row. On a portrait viewport
-// the projector throws the Projects overlay onto this wall (see Scene.tsx's
-// ProjectsWallProjection), so the frames regroup into a 2x2 block clear of the
-// projection area — reusing the two right-hand X positions of the row and
-// stacking them into two rows.
 const FRAME_POSITIONS: Record<"row" | "grid", readonly [number, number][]> = {
   row: [
     [-2.13, 0],
@@ -84,7 +79,6 @@ export function Posters({ mobile = false }: { mobile?: boolean }) {
           </mesh>
         </group>
       ))}
-      {/* Wall images are part of the room's persistent visual composition. */}
       <Suspense fallback={null}>
         <PosterImages positions={positions} />
       </Suspense>

@@ -22,12 +22,6 @@ function GalleryArrow({ direction }: { direction: "previous" | "next" }) {
   );
 }
 
-/**
- * The certificate shelf remains a lightweight 3D scene. Full certificate
- * artwork is intentionally presented here, one image at a time, so browsing
- * never asks the camera to reframe or the GPU to keep every full-size image
- * resident in the scene.
- */
 export function CertificateGalleryOverlay({
   open,
   selectedSlug,

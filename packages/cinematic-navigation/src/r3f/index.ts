@@ -54,7 +54,6 @@ export function useSubjectRegistration(
   }, [registry, subjectId, ref]);
 }
 
-/** One bridge owns the render-loop tick for the lifecycle scheduler. */
 export function RuntimeFrameBridge({
   runtime,
   paused = false,

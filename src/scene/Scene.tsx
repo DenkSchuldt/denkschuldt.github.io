@@ -39,7 +39,6 @@ const LAPTOP_SCREEN_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vecto
 const PROJECTS_WALL_PROJECTION_POSITION: [number, number, number] = [0, 3.2, -3.965];
 const PROJECTS_WALL_PROJECTION_SCALE: [number, number, number] = [2.4, 4.24, 1];
 
-// Half-extents of the paper's planeGeometry (0.708 x 1.008 scene units).
 const PAPER_SURFACE_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector3, THREE.Vector3] =
   [
     new THREE.Vector3(-0.354, 0.504, 0),
@@ -48,8 +47,6 @@ const PAPER_SURFACE_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vecto
     new THREE.Vector3(-0.354, -0.504, 0),
   ];
 
-// Half-extents of the polaroid card's planeGeometry (0.26 x 0.37 scene
-// units) — see PolaroidPhoto's tracking mesh in objects/DeskObjects.tsx.
 const POLAROID_SCREEN_CORNERS: readonly [
   THREE.Vector3,
   THREE.Vector3,
@@ -62,8 +59,6 @@ const POLAROID_SCREEN_CORNERS: readonly [
   new THREE.Vector3(-0.13, -0.185, 0),
 ];
 
-// Half-extents of the poems notebook page's planeGeometry (0.704 x 0.682
-// scene units) — see PortfolioPoemPreview in objects/DeskObjects.tsx.
 const POEMS_SCREEN_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector3, THREE.Vector3] =
   [
     new THREE.Vector3(-0.352, 0.341, 0),
@@ -72,8 +67,6 @@ const POEMS_SCREEN_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector
     new THREE.Vector3(-0.352, -0.341, 0),
   ];
 
-// Half-extents of the phone screen's planeGeometry (0.299 x 0.618 scene
-// units) — see PhoneScreen's screenRef mesh in objects/DeskObjects.tsx.
 const PHONE_SCREEN_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector3, THREE.Vector3] =
   [
     new THREE.Vector3(-0.1495, 0.309, 0),
@@ -82,10 +75,6 @@ const PHONE_SCREEN_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector
     new THREE.Vector3(-0.1495, -0.309, 0),
   ];
 
-// Projects a flat mesh's four corners into screen-space pixel coordinates
-// every frame, so an HTML overlay can be perspective-warped (via CSS
-// matrix3d) to sit exactly over that mesh. Used for both the laptop screen
-// and the desk paper.
 function PlanarProjection({
   label,
   corners,

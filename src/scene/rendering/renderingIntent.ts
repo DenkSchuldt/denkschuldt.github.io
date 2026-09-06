@@ -19,23 +19,10 @@ export const RENDERING_INTENT = {
   },
   lighting: {
     essentialLights: ["sun-key", "hemisphere-fill"] as const,
-    // Soft, direction-aware skylight fill standing in for midday daylight —
-    // not a flat ambientLight boost. Mobile gets extra lift on top of this
-    // because its tighter framing and stronger vignette read darker at the
-    // same raw light levels.
     hemisphereDesktopFactor: 0.5,
     hemisphereMobileFactor: 1.75,
-    // PCF blur-kernel radius for sun-key's shadow (still PCFShadowMap, not
-    // PCFSoftShadowMap — that type is deprecated in the installed three.js
-    // and silently downgrades with a console warning, see Experience.tsx).
-    // This is the supported way to soften a PCF shadow's edges.
     sunShadowRadius: 6,
   },
-  // Architectural wall palette. Colors are used literally (not pre-tinted
-  // for tone mapping) — the light wall's warmth and the accent wall's
-  // muted read are meant to come from context: the warm practical lights,
-  // dark wood furniture, and daylight color around them, not from
-  // distorting the input hex. See Room() in objects/Room.tsx.
   architecture: {
     lightWallColor: "#ebeced",
     accentWallColor: "#203a63",

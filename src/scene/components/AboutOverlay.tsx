@@ -2,30 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { PROFILE } from "../../content/profile";
+import { publicLink } from "../../content/links";
 import { solveHomography } from "../homography";
 import { useWorkingSetStore } from "../runtime/working-set";
 
 import type { ScreenProjectionRef } from "../screenProjection";
 
-// Matches the paper plane geometry (0.708 x 1.008 scene units) at a uniform
-// 1000 logical px per scene unit, so the overlay maps onto it without
-// distortion.
 const SHEET_LOGICAL_WIDTH = 708;
 const SHEET_LOGICAL_HEIGHT = 1008;
 
-const DESKTOP_ABOUT_PARAGRAPHS: readonly string[] = [
-  "I build products that think clearly and experiences that move with purpose.",
-  "For over a decade, I’ve worked at the intersection of software engineering, UX, and product strategy, turning complex systems into experiences that feel intuitive, scalable, and human. My background spans hands-on development, real-time systems, and leading product strategy for technology used in complex operations.",
-  "I’ve also taught UX/UI at Coding Bootcamps ESPOL, sharing what I’ve learned about usability, analytics, and the creative possibilities of generative AI.",
-  "Curiosity and precision guide what I build. I care about understanding how things work, why people use them, and how technology can serve them better.",
-];
-const MOBILE_ABOUT_PARAGRAPHS: readonly string[] = [
-  "I build products that think clearly and experiences that feel human.",
-  "For over a decade, I’ve worked at the intersection of software engineering, UX, and product strategy—turning complex systems into intuitive, scalable experiences that create real impact.",
-  "I care about understanding how things work, why people use them, and how technology can serve them better.",
-  "I’ve also taught UX/UI, shared what I’ve learned in bootcamps, and explored the creative possibilities of generative AI.",
-];
-const INSTAGRAM_HANDLE_URL = "https://www.instagram.com/denkschuldt/";
+const INSTAGRAM_HANDLE_URL = publicLink("Instagram").href;
 
 export function AboutOverlay({
   visible,
@@ -85,10 +72,7 @@ export function AboutOverlay({
   }, [projectionRef, visible]);
   if (!present) return null;
   return (
-    <section
-      className={`about-overlay${visible ? "" : " is-exiting"}`}
-      aria-label="About Denny K. Schuldt"
-    >
+    <section className={`about-overlay${visible ? "" : " is-exiting"}`} aria-hidden="true">
       <div
         ref={shellRef}
         className="about-overlay-shell"
@@ -100,14 +84,14 @@ export function AboutOverlay({
         }}
       >
         <div className="about-overlay-photo-spacer" aria-hidden="true" />
-        <h1>About me</h1>
+        <h1>{PROFILE.headline}</h1>
         <div className="about-overlay-copy about-overlay-copy-desktop">
-          {DESKTOP_ABOUT_PARAGRAPHS.map((paragraph) => (
+          {PROFILE.bio.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
           ))}
         </div>
         <div className="about-overlay-copy about-overlay-copy-mobile">
-          {MOBILE_ABOUT_PARAGRAPHS.map((paragraph) => (
+          {PROFILE.bioShort.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
           ))}
         </div>
@@ -117,10 +101,9 @@ export function AboutOverlay({
             <path d="M4 24h40M24 4c6 5.4 9 12.1 9 20s-3 14.6-9 20M24 4c-6 5.4-9 12.1-9 20s3 14.6 9 20M7.5 14.5h33M7.5 33.5h33" />
           </svg>
           <span>
-            Hablante nativo de Español, fluent in English, and conversational in Brazilian
-            Portuguese. Você pode me encontrar online como{" "}
+            {PROFILE.languages} Você pode me encontrar online como{" "}
             <a href={INSTAGRAM_HANDLE_URL} target="_blank" rel="noopener noreferrer">
-              @DenkSchuldt
+              {PROFILE.onlineHandle}
             </a>
             .
           </span>

@@ -32,10 +32,6 @@ const CERTIFICATE_LIGHT_FALL = 1.1;
 const FRAME_WOOD = ["#36241a", "#251c18", "#463022"] as const;
 const CERTIFICATE_HINT_COLOR = new THREE.Color("#e6a06d");
 
-// A pulsing ring + dot on the first certificate, hinting that cards are
-// clickable. Stays visible for as long as the shelf is illuminated and no
-// certificate has been opened yet; dismissed for the rest of the session
-// the moment the visitor clicks any certificate.
 function CertificateClickHint({
   illuminated,
   hovered,
@@ -45,10 +41,6 @@ function CertificateClickHint({
   hovered: boolean;
   dismissed: boolean;
 }) {
-  // Runs for as long as the hint should be visible rather than a bounded
-  // burst — Number.MAX_SAFE_INTEGER just avoids the lease's own expiry from
-  // ever cutting it off first; the effect's cleanup (on illuminated/dismissed
-  // flipping) still releases it immediately.
   useFeatureSettleLease(
     "certificate-click-hint",
     illuminated && !dismissed,
@@ -354,9 +346,6 @@ const PLACEHOLDER_CERTIFICATE_SHADES = [
   "#787268",
 ] as const;
 
-// A skeleton-loader layout (one wider "title" bar, a few shorter "body"
-// lines) hinting that a document with text is loading, without any font,
-// texture, or per-line mesh — see CertificatePlaceholderLines below.
 const PLACEHOLDER_LINE_LEFT_MARGIN = -0.19;
 const PLACEHOLDER_LINES = [
   { y: 0.115, width: 0.24, height: 0.022 },
@@ -372,9 +361,6 @@ const PLACEHOLDER_LINE_MATERIAL = new THREE.MeshStandardMaterial({
   roughness: 0.96,
 });
 
-// One shared InstancedMesh draws every simulated text line across every
-// placeholder card in a single draw call, so the "loading" hint costs
-// effectively nothing regardless of how many cards are still placeholders.
 function CertificatePlaceholderLines() {
   const linesRef = useRef<THREE.InstancedMesh>(null);
   useLayoutEffect(() => {
@@ -572,9 +558,6 @@ export function Shelf({
   const workingSet = useDestinationWorkingSet("certificates");
   const thumbnailsResident = isResourceResidentState(workingSet.state);
   const localLightingRelevant = workingSet.state === "preparing" || workingSet.state === "active";
-  // Lives here (not in CertificateGallery) so the click hint stays
-  // dismissed even if the gallery itself unmounts/remounts as its
-  // thumbnails resource is released and reloaded later in the session.
   const [hasSelectedCertificate, setHasSelectedCertificate] = useState(false);
   const handleCertificateSelect = useCallback(
     (slug: string) => {
@@ -641,8 +624,6 @@ export function Shelf({
         {localLightingRelevant && <ShelfPracticalLighting illuminated={illuminated} />}
         <ShelfDecor />
       </group>
-      {/* Thumbnails are the ambient shelf artwork. Full-size certificate images
-        are rendered by the HTML gallery, not as a second 3D card texture. */}
       {thumbnailsResident ? (
         <CertificateGallery
           illuminated={illuminated}

@@ -81,7 +81,9 @@ test("camera navigation resolves adjacent swipe targets", () => {
   assert.equal(getAdjacentCameraTarget("certificate-detail", -1), "certificates");
   assert.equal(getAdjacentCameraTarget("about", -1), "opening");
   assert.equal(getAdjacentCameraTarget("drawer", 1), "opening");
-  assert.equal(getAdjacentCameraTarget("opening", -1), null);
+  // Stepping back from Opening wraps to the last guided stop so the back
+  // gesture can undo a completed lap of the tour (see getAdjacentScene).
+  assert.equal(getAdjacentCameraTarget("opening", -1), "poems");
 });
 
 test("canvas taps leave collection objects in control", () => {
@@ -273,7 +275,9 @@ test("guided Scenes preserve the cinematic order and skip Drawer", () => {
     assert.equal(getAdjacentScene(GUIDED_SCENE_IDS[index], 1), GUIDED_SCENE_IDS[index + 1]);
   assert.equal(getAdjacentScene("poems", 1), "opening");
   assert.equal(getAdjacentScene("drawer", 1), "opening");
-  assert.equal(getAdjacentScene("opening", -1), null);
+  // Backward from Opening wraps to the final guided stop (mirrors the forward
+  // wrap) rather than dead-ending.
+  assert.equal(getAdjacentScene("opening", -1), "poems");
 });
 
 test("Scene definitions own camera framing without changing About", () => {

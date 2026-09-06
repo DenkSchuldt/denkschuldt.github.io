@@ -30,9 +30,5 @@ export function solveHomography(
     }
   }
   const [a, b, c, d, e, f, g, h] = values;
-  // CSS matrix3d is column-major. The fourth column carries the projective
-  // denominator so the rectangle follows the surface's perspective exactly.
-  // The solved coefficients are ordered as x' = (a*x + b*y + c) / w and
-  // y' = (d*x + e*y + f) / w; CSS stores the x/y terms in column-major order.
   return `matrix3d(${a},${d},0,${g},${b},${e},0,${h},0,0,1,0,${c},${f},0,1)`;
 }

@@ -25,7 +25,6 @@ const flatten = (id: CameraTargetId, aspect = 2): ResolvedCameraTarget => {
   };
 };
 
-/** @deprecated The Shot Registry is the source of truth. */
 export const CAMERA_TARGETS = Object.fromEntries(
   Object.keys(SHOT_REGISTRY).map((id) => [id, flatten(id as CameraTargetId)]),
 ) as Record<CameraTargetId, CameraTarget>;

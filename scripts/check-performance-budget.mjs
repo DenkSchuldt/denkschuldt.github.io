@@ -35,16 +35,23 @@ assert.ok(
   "Certificate thumbnails exceed the 550 KiB collection budget.",
 );
 
-const primitives = await readFile(
-  new URL("../src/scene/objects/Primitives.tsx", import.meta.url),
-  "utf8",
-);
+const objectsDirectory = new URL("../src/scene/objects/", import.meta.url);
+const objectSourceNames = (await readdir(objectsDirectory)).filter((name) => name.endsWith(".tsx"));
+const objectSources = (
+  await Promise.all(
+    objectSourceNames.map((name) => readFile(new URL(name, objectsDirectory), "utf8")),
+  )
+).join("\n");
 assert.doesNotMatch(
-  primitives,
+  objectSources,
   /raw\.githubusercontent\.com/,
   "Runtime fonts must be self-hosted.",
 );
-assert.match(primitives, /\/certificates\/thumbs\//, "The certificate shelf must use thumbnails.");
+assert.match(
+  objectSources,
+  /\/certificates\/thumbs\//,
+  "The certificate shelf must use thumbnails.",
+);
 
 console.log(
   `Performance budget passed: ${(initialJavaScriptBytes / 1024).toFixed(1)} KiB initial JS, ${(thumbnailBytes / 1024).toFixed(1)} KiB certificate thumbnails.`,

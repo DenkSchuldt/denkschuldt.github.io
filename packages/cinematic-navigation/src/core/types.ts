@@ -44,9 +44,7 @@ export interface FocusCollectionRegistration<TFraming = unknown, TTransition = u
   id: NavigationId;
   sceneId: NavigationId;
   cameraTargetId: NavigationId;
-  /** Keep the parent Scene camera when changing items inside this collection. */
   reframeOnFocus?: boolean;
-  /** Where collection close/exit resolves. `start` returns to the first guided Scene. */
   exitBehavior?: FocusExitBehavior;
   framing: TFraming;
   transition: TTransition;
@@ -163,11 +161,5 @@ export interface CinematicEngine<TFraming = unknown, TTransition = unknown, TRes
   ): FocusItemRegistration<TFraming, TTransition> | undefined;
   getState(): Readonly<EngineState>;
   subscribe(listener: EngineListener): () => void;
-  /**
-   * Subscribe to the moment the camera reports that its requested location
-   * has settled. This is emitted after `completeTransition()` commits the
-   * location, so presentation layers can reveal content without guessing
-   * from animation progress.
-   */
   onSceneFocused(listener: SceneFocusedListener): () => void;
 }

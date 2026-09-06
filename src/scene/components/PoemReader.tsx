@@ -25,9 +25,6 @@ type ReactDialogProps = {
   onCloseClick: () => void;
 };
 
-// The published package is CommonJS (`exports.default = Dialog`). Vite's
-// interop can therefore hand a default import the module object itself.
-// Unwrap it once so JSX always receives the actual component function.
 const Dialog = ((DialogPackage as unknown as { default?: ComponentType<ReactDialogProps> })
   .default ?? DialogPackage) as ComponentType<ReactDialogProps>;
 
@@ -53,9 +50,6 @@ function findHostNode(fiber: ReactFiber | null | undefined): Element | null {
   return findHostNode(fiber.child) ?? findHostNode(fiber.sibling);
 }
 
-// react-dialog 1.x bundles react-draggable, whose legacy findDOMNode call is
-// incompatible with React 19. The dialog only needs its host element for
-// pointer bookkeeping, so provide the narrow equivalent through its fiber.
 const reactDomCompat = ReactDOM as ReactDomWithFindNode;
 if (typeof reactDomCompat.findDOMNode !== "function") {
   reactDomCompat.findDOMNode = (instance) => {
@@ -89,9 +83,6 @@ function easeInOutCubic(t: number) {
   return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 }
 
-// Native `scrollBy({ behavior: "smooth" })` duration/easing isn't
-// controllable and varies by browser, so the scroll-hint nudge animates
-// scrollTop by hand for a deliberately slow, eased motion.
 function smoothScrollBy(el: HTMLElement, distance: number, duration: number) {
   const start = el.scrollTop;
   const startTime = performance.now();
@@ -233,14 +224,9 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
   const [hasMoreBelow, setHasMoreBelow] = useState(false);
   const [scrollHintSeen, setScrollHintSeen] = useState(false);
 
-  // The parent owns the URL-backed slug. Keeping a second local slug here can
-  // briefly pair the previous selection with the new route during fast turns.
   const activeSlug = slug;
   const currentIndex = poems.findIndex((poem) => poem.slug === slug);
   const current = currentIndex >= 0 ? poems[currentIndex] : null;
-  // The manifest and Markdown body are updated by slug in usePoems. Render the
-  // complete record from that single source only; this prevents a previous
-  // poem's body from ever being paired with the newly selected metadata.
   const displayRecord = current?.body ? current : null;
 
   const changeSlug = useCallback(
@@ -255,11 +241,6 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
     contentRef.current?.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [slug]);
 
-  // Long poems can overflow the reader on both desktop and mobile with no
-  // visible scrollbar cue (mobile hides it entirely). Show a down-arrow hint
-  // each time the reader (re)opens on content that overflows, without dimming
-  // the text itself; dismiss it for this visit once actually scrolled. Reruns
-  // on `open` because the reader's DOM — and these refs — unmount while closed.
   useEffect(() => {
     const el = contentRef.current;
     const column = columnRef.current;
@@ -271,8 +252,6 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
     setScrollHintSeen(false);
     update();
     el.addEventListener("scroll", update, { passive: true });
-    // Observe the content column, not the fixed-size scroll container itself
-    // — the container's own box never resizes as its content overflows it.
     const resizeObserver = new ResizeObserver(update);
     resizeObserver.observe(column);
     return () => {
@@ -288,7 +267,7 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
         JSON.stringify(Object.keys(lovedPoems).filter((poemSlug) => lovedPoems[poemSlug])),
       );
     } catch {
-      // Storage can be unavailable in private browsing; the in-memory state still works.
+      return;
     }
   }, [lovedPoems]);
 
