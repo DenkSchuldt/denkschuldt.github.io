@@ -35,5 +35,4 @@ export function ShotHelpers({ visible }: { visible: boolean }) {
   );
 }
 
-/** @deprecated Use ShotHelpers. */
 export const CameraTargetHelpers = ShotHelpers;

@@ -27,14 +27,6 @@ import type {
   SceneRegistration,
 } from "../core/index.js";
 
-/**
- * Keep context identity stable when Vite hot-reloads this package.
- *
- * The app imports the provider and consumers from the same package entry
- * point, but a package rebuild can invalidate those modules at slightly
- * different times. Without a shared context, the newly evaluated consumer
- * cannot see the still-mounted provider and React tears down the Canvas.
- */
 type SharedContexts = {
   engine: Context<CinematicEngine | undefined>;
   runtime: Context<CinematicRuntime | undefined>;
@@ -115,7 +107,6 @@ export function useFocusItemRegistration(collectionId: string, item: FocusItemRe
   useEffect(() => engine.registerFocusItem(collectionId, item), [engine, collectionId, item]);
 }
 
-/** Creates the lifecycle controller that consumes, but never replaces, navigation state. */
 export function useCinematicRuntimeController(engine: CinematicEngine) {
   const runtime = useMemo(() => createCinematicRuntime(engine), [engine]);
   useEffect(() => () => runtime.dispose(), [runtime]);
@@ -209,9 +200,6 @@ export function RuntimeBoundary({
   children: ReactNode;
 }) {
   const state = useRuntimeNode(node);
-  // A lazy boundary must not render optimistically while its declaration is
-  // still registering; otherwise the expensive resource would load for one
-  // frame before the disposed state is observed.
   return state?.mounted === false || (!state && node.mountPolicy === "lazy") ? null : children;
 }
 

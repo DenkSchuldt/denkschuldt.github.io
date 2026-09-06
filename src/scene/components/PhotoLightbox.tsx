@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
+import { PUBLIC_LINKS } from "../../content/links";
 import { withSceneBasePath } from "../camera/sceneRoutes";
 
 interface Props {
@@ -9,19 +10,6 @@ interface Props {
   onClose: () => void;
 }
 
-// Same links the site's pre-3D "Socials" section used, carried over as-is.
-const SOCIAL_LINKS: readonly { label: string; href: string }[] = [
-  { label: "LinkedIn", href: "https://www.linkedin.com/in/denny-schuldt/" },
-  { label: "GitHub", href: "https://github.com/DenkSchuldt" },
-  { label: "Instagram", href: "https://www.instagram.com/denkschuldt/" },
-  { label: "X", href: "https://twitter.com/DenkSchuldt" },
-  { label: "Medium", href: "https://medium.com/@DenkSchuldt" },
-];
-
-// Same UI as CertificateGalleryOverlay (reuses its CSS classes verbatim) for
-// a single, unrelated photo — no slug/collection/prev-next data model, so
-// it's its own small component rather than stretching the certificate
-// gallery's data-driven navigation to fit a one-off image.
 export function PhotoLightbox({ open, onClose }: Props) {
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -96,7 +84,7 @@ export function PhotoLightbox({ open, onClose }: Props) {
           <nav className="photo-lightbox-socials" aria-label="Social media">
             <p className="certificate-gallery-kicker">Find me online</p>
             <ul>
-              {SOCIAL_LINKS.map(({ label, href }) => (
+              {PUBLIC_LINKS.map(({ label, href }) => (
                 <li key={href}>
                   <a href={href} target="_blank" rel="noopener noreferrer">
                     {label}

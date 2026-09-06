@@ -2,9 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { CAREER_CHAPTERS, EXPERIENCE } from "../../content/experience";
+import { PROJECTS, SELECTED_WORK } from "../../content/projects";
 import { solveHomography } from "../homography";
 import { useWorkingSetStore } from "../runtime/working-set";
 
+import type { Project } from "../../content/projects";
 import type { ScreenProjectionRef } from "../screenProjection";
 
 const SCREEN_LOGICAL_WIDTH = 1000;
@@ -19,145 +22,17 @@ const MANUAL_SCROLL_PAUSE_MS = 8000;
 type ProjectionPhase = "title" | "transition" | "content";
 const ASSET_BASE_PATH = (process.env.NEXT_PUBLIC_BASE_PATH ?? "").replace(/\/$/, "");
 
-interface ExperienceEntry {
-  role: string;
-  company: string;
-  dates: string;
-  location: string;
-  bullets?: readonly string[];
-}
-
-interface ProjectEntry {
-  title: string;
-  dates: string;
-  description: string;
-  href: string;
-  previewSrc: string;
-  previewAlt: string;
-}
-
-const EXPERIENCE: readonly ExperienceEntry[] = [
-  {
-    role: "Product Manager for Brain Studio & Connect",
-    company: "Jelou",
-    dates: "December 2025 – Present",
-    location: "Guayaquil, Ecuador",
-  },
-  {
-    role: "VP of Product (previously Software Developer → UX Director → VP of Product)",
-    company: "Shippify",
-    dates: "June 2017 – November 2025",
-    location: "Ecuador, Brazil",
-    bullets: [
-      "Scaled Shippify’s product ecosystem from a single logistics dashboard into a multi-module platform spanning routing, fleet management, reporting, analytics, and delivery tracking.",
-      "Evolved from hands-on developer to product leader, overseeing all web experiences across multiple operational regions.",
-      "Defined and deployed a unified design system and dark mode across the entire product suite, improving interface consistency and usability for 24/7 logistics operations.",
-      "Launched Fleet, a driver onboarding and validation module built and deployed in record time, reducing manual verification efforts.",
-      "Re-engineered the Routing Tool to handle high-volume orders through optimized algorithms and an intuitive map-based workflow.",
-      "Built and scaled Dashboards to deliver fully customizable KPI visualization with different data sources and filters.",
-      "Led UX strategy for the Tracking Page, enhancing real-time delivery transparency and increasing customer satisfaction metrics.",
-      "Managed and mentored a cross-functional team of developers and interns, fostering ownership, experimentation, and user empathy.",
-      "Partnered directly with C-level executives to align product roadmap with growth goals, improving delivery accuracy and operational productivity.",
-      "Championed accessibility, data-driven decisions, and design excellence across every stage of the product lifecycle.",
-    ],
-  },
-  {
-    role: "UX/UI Instructor",
-    company: "Coding Bootcamps, Escuela Superior Politécnica del Litoral",
-    dates: "March 2023 – Present",
-    location: "Guayaquil",
-    bullets: [
-      "Taught UX/UI fundamentals, information visualization, accessibility, and Figma.",
-      "Designed and led hands-on workshops integrating Google Analytics into UX decision-making.",
-    ],
-  },
-  {
-    role: "Software Engineer",
-    company: "Pacificsoft S.A.",
-    dates: "May 2017 – June 2017",
-    location: "Guayaquil",
-    bullets: ["Used Angular and .NET to develop a module for an airline reservation system."],
-  },
-  {
-    role: "Software Engineer",
-    company: "Datilmedia S.A.",
-    dates: "March 2015 – March 2017",
-    location: "Guayaquil",
-    bullets: [
-      "Developed Android point-of-sale (POS) app for tablets: sales process, product management, client administration, and portable printer integration.",
-      "Designed and implemented Dátil Market v1.0 using React and Redux.",
-      "Built core web features in Django and React including client registration, account receivables reports, and invoice visualization.",
-    ],
-  },
-  {
-    role: "Academic Assistant – HCI Course",
-    company: "Escuela Superior Politécnica del Litoral",
-    dates: "November 2014 – March 2015",
-    location: "Guayaquil",
-    bullets: [
-      "Assisted in Android development labs covering UI layouts, SQLite, Google Maps API v2, and activity transitions.",
-    ],
-  },
-  {
-    role: "Technical Support Assistant",
-    company: "Centro de Emprendedores, Escuela Superior Politécnica del Litoral",
-    dates: "June 2014 – March 2015",
-    location: "Guayaquil",
-    bullets: [
-      "Implemented multi-site WordPress platform for Student Clubs and Professional Associations.",
-    ],
-  },
-  {
-    role: "Intern",
-    company: "Blindside Networks",
-    dates: "March 2014 – May 2014",
-    location: "Guayaquil",
-    bullets: [
-      "Built prototypes for real-time chat and video-streaming tests using Node.js, Socket.io, and Kurento Media Framework.",
-    ],
-  },
-  {
-    role: "Intern",
-    company: "Blindside Networks",
-    dates: "March 2013 – May 2013",
-    location: "Guayaquil",
-    bullets: [
-      "Enhanced platform usability by updating user interface components and refining front-end interactions based on user feedback and platform standards.",
-    ],
-  },
-];
-
-const PROJECTS: readonly ProjectEntry[] = [
-  {
-    title: "Aventuras en 360°",
-    dates: "2016 – Present",
-    description:
-      "A collection of interactive spherical photography from touristic places, captured and shared through React.",
-    href: "https://denkschuldt.github.io/360",
-    previewSrc: `${ASSET_BASE_PATH}/projects/360.png`,
-    previewAlt: "Aventuras en 360° project preview",
-  },
-  {
-    title: "@denkschuldt/react-dialog",
-    dates: "2021 – Present",
-    description: "A simple to use and customizable React dialog implementation.",
-    href: "https://www.npmjs.com/package/@denkschuldt/react-dialog",
-    previewSrc: `${ASSET_BASE_PATH}/projects/react-dialog.png`,
-    previewAlt: "@denkschuldt/react-dialog project preview",
-  },
-];
-
-function ProjectLink({ project }: { project: ProjectEntry }) {
+function ProjectLink({ project }: { project: Project }) {
   return (
     <a
       className="projects-overlay-project"
-      href={project.href}
+      href={project.url}
       target="_blank"
       rel="noopener noreferrer"
     >
       <img
         className="projects-overlay-project-preview"
-        src={project.previewSrc}
+        src={`${ASSET_BASE_PATH}${project.previewImage}`}
         alt={project.previewAlt}
       />
       <div className="projects-overlay-project-heading">
@@ -308,11 +183,7 @@ export function ProjectsOverlay({
   }, [isMobileProjection, projectionPhase, visible]);
   if (!present) return null;
   return (
-    <section
-      className={`projects-overlay${visible ? "" : " is-exiting"}`}
-      aria-labelledby="projects-overlay-title"
-      aria-hidden={!visible}
-    >
+    <section className={`projects-overlay${visible ? "" : " is-exiting"}`} aria-hidden="true">
       <div
         ref={shellRef}
         className={`projects-overlay-shell${isMobileProjection ? " is-projected" : ""}`}
@@ -335,85 +206,27 @@ export function ProjectsOverlay({
         >
           <header className="projects-overlay-header">
             <div>
-              <p className="projects-overlay-eyebrow">Denny K. Schuldt</p>
-              <h1 id="projects-overlay-title">Selected Work</h1>
+              <p className="projects-overlay-eyebrow">{SELECTED_WORK.eyebrow}</p>
+              <h1 id="projects-overlay-title">{SELECTED_WORK.title}</h1>
             </div>
           </header>
           <div className="projects-overlay-body">
             <section className="projects-overlay-selected-work" aria-label="Professional evolution">
               <ol className="projects-overlay-evolution">
-                <li>
-                  <section className="projects-overlay-chapter projects-overlay-chapter-now">
-                    <time className="projects-overlay-chapter-years">2025—Now</time>
-                    <p className="projects-overlay-chapter-label">Now</p>
-                    <h2>Product, systems and AI</h2>
-                    <p>
-                      I work across product strategy, technology and user experience, currently
-                      building AI-enabled products at Jelou.
-                    </p>
-                    <p>
-                      My role is to connect complex systems with experiences people can actually
-                      use.
-                    </p>
-                  </section>
-                </li>
-
-                <li>
-                  <section className="projects-overlay-chapter projects-overlay-chapter-leadership">
-                    <time className="projects-overlay-chapter-years">2017—2025</time>
-                    <p className="projects-overlay-chapter-label">Product Leadership</p>
-                    <h2>From products to ecosystems</h2>
-                    <p>
-                      At Shippify, my scope grew from individual product decisions to product
-                      strategy, platforms and teams.
-                    </p>
-                    <p>
-                      I worked across routing, fleet management, scheduling, automations,
-                      operational tools and driver experiences.
-                    </p>
-                    <p>
-                      Over time, the question became less <em>what should we build?</em> and more
-                      <em> what problem is worth solving?</em>
-                    </p>
-                  </section>
-                </li>
-
-                <li>
-                  <section className="projects-overlay-chapter projects-overlay-chapter-product">
-                    <time className="projects-overlay-chapter-years">2017—2025</time>
-                    <p className="projects-overlay-chapter-label">Product &amp; UX</p>
-                    <h2>Making complexity usable</h2>
-                    <p>I moved from building systems to shaping how people interact with them.</p>
-                    <p>
-                      That meant understanding workflows, simplifying complexity and questioning
-                      what should exist before deciding how to build it.
-                    </p>
-                  </section>
-                </li>
-
-                <li>
-                  <section className="projects-overlay-chapter projects-overlay-chapter-engineering">
-                    <time className="projects-overlay-chapter-years">2015—2017</time>
-                    <p className="projects-overlay-chapter-label">Engineering</p>
-                    <h2>Understanding systems from the inside</h2>
-                    <p>I started as a software engineer.</p>
-                    <p>
-                      That foundation still shapes how I think about products: through constraints,
-                      dependencies and the systems beneath the interface.
-                    </p>
-                  </section>
-                </li>
-
-                <li>
-                  <section className="projects-overlay-chapter projects-overlay-chapter-foundations">
-                    <time className="projects-overlay-chapter-years">2013—2015</time>
-                    <p className="projects-overlay-chapter-label">Foundations</p>
-                    <h2>Where it started</h2>
-                    <p>Computer Science, early technical roles and a lot of curiosity.</p>
-                    <p>The tools changed.</p>
-                    <p>The questions got bigger.</p>
-                  </section>
-                </li>
+                {CAREER_CHAPTERS.map((chapter) => (
+                  <li key={chapter.id}>
+                    <section
+                      className={`projects-overlay-chapter projects-overlay-chapter-${chapter.id}`}
+                    >
+                      <time className="projects-overlay-chapter-years">{chapter.years}</time>
+                      <p className="projects-overlay-chapter-label">{chapter.label}</p>
+                      <h2>{chapter.heading}</h2>
+                      {chapter.paragraphs.map((paragraph) => (
+                        <p key={paragraph}>{paragraph}</p>
+                      ))}
+                    </section>
+                  </li>
+                ))}
               </ol>
 
               <details className="projects-overlay-career">
@@ -447,9 +260,10 @@ export function ProjectsOverlay({
 
             <article className="projects-overlay-independent">
               <header className="projects-overlay-independent-header">
-                <h2>Independent Experiments</h2>
-                <p>A space to build without organizational constraints.</p>
-                <p>Product, interaction, engineering and visual direction — all in one place.</p>
+                <h2>{SELECTED_WORK.independentExperiments.heading}</h2>
+                {SELECTED_WORK.independentExperiments.paragraphs.map((paragraph) => (
+                  <p key={paragraph}>{paragraph}</p>
+                ))}
               </header>
               <ul className="projects-overlay-project-list">
                 {PROJECTS.map((project) => (

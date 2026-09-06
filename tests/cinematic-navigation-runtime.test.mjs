@@ -146,7 +146,7 @@ test("shared node declarations are reference counted and lifecycle events are co
   engine.goToScene("gallery");
   for (let index = 0; index < 20; index++) engine.updateTransition(index / 20);
   assert.deepEqual(
-    phases.map(([_from, to]) => to),
+    phases.map(([, to]) => to),
     ["disposed", "transitioning-in"],
   );
   releaseA();

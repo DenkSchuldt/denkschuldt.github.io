@@ -19,9 +19,7 @@ export interface RuntimeNodeRegistration {
   sceneId?: string;
   collectionId?: string;
   focusItemId?: string;
-  /** Persistent nodes never leave the mounted set. Lazy nodes may be disposed while sleeping. */
   mountPolicy?: RuntimeMountPolicy;
-  /** Keep a lazy node mounted after it has first become active. */
   retainOnSleep?: boolean;
 }
 

@@ -4,14 +4,8 @@ import { useEffect, useState } from "react";
 
 const OPENING_VISIT_KEY = "cinematic-room:opening-seen";
 const OPENING_CREDITS_DURATION_MS = 10500;
-// Keep the visit validation ready while the opening timing is being polished.
 const ALWAYS_PLAY_OPENING_CREDITS = true;
 
-// The credits belong to the initial arrival on the site, not to navigating back
-// to the opening scene later. This component unmounts/remounts as the route
-// changes (see the `!route.directEntry` gate in Experience), so the "already
-// handled" flag lives at module scope: it survives in-app navigation and only
-// resets on a full page load — which is exactly what "entering" means.
 let openingArrivalConsumed = false;
 
 export const OPENING_COPY = {
@@ -43,9 +37,6 @@ export function OpeningCredits({
 
     const isReplay = replayKey > 0;
 
-    // Navigating back to the opening scene mid-session: the arrival moment is
-    // already spent, so don't replay the credits (and there's no intro
-    // cinematic to skip — regular scene navigation handled the transition).
     if (openingArrivalConsumed && !isReplay) return;
 
     const hasSeenOpening = window.localStorage.getItem(OPENING_VISIT_KEY) === "true";

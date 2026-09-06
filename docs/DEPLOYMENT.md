@@ -87,7 +87,7 @@ public/poems/YYYY-MM-DD/
 la fecha y el orden; la aplicación muestra primero la fecha más reciente. El
 frontmatter de `poem.md` debe incluir un `slug:` único y estable y un `lang:`
 válido. Ese slug genera `/poems/:slug`, metadata Open Graph, JSON-LD, sitemap,
-feed Atom y `llms.txt`.
+feed Atom, `llms.txt`, `llms-full.txt` y `site.json`.
 
 Los cuerpos de los poemas no se incluyen en el manifiesto del cliente: se
 cargan de forma diferida desde su Markdown. Como GitHub Pages no ejecuta un

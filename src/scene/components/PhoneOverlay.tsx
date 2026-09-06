@@ -2,17 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { NOW_PLAYING_TRACK } from "../../content/phone";
 import { solveHomography } from "../homography";
-import { NOW_PLAYING_TRACK } from "../content/phoneConfig";
 import { useWorkingSetStore } from "../runtime/working-set";
 
 import type { ScreenProjectionRef } from "../screenProjection";
 import type { Reality } from "../reality";
 
-// Matches the phone screen planeGeometry (0.299 x 0.618 scene units) at a
-// uniform ~1305 logical px per scene unit, so the overlay maps onto it
-// without distortion. See the screenRef mesh in Phone/PhoneScreen
-// (objects/DeskObjects.tsx).
 const SCREEN_LOGICAL_WIDTH = 390;
 const SCREEN_LOGICAL_HEIGHT = 806;
 
@@ -42,8 +38,6 @@ function useLockScreenClock() {
   };
 }
 
-// A short, honest "published" label rather than a hardcoded "now" — most
-// visits happen well after the latest poem's publish date.
 function formatPoetryTimestamp(dateValue: string) {
   const published = new Date(`${dateValue}T00:00:00`);
   if (Number.isNaN(published.getTime())) return "";
@@ -259,10 +253,7 @@ export function PhoneOverlay({
   const poetrySecondary = latestPoem ? `“${latestPoem.title}”` : null;
 
   return (
-    <section
-      className={`denkos-lockscreen${visible ? "" : " is-exiting"}`}
-      aria-label="denkOS lock screen"
-    >
+    <section className={`denkos-lockscreen${visible ? "" : " is-exiting"}`} aria-hidden="true">
       <div
         ref={shellRef}
         className="denkos-lockscreen-shell"

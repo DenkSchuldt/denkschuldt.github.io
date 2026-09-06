@@ -88,19 +88,6 @@ const IPHONE_SCREEN_GEOMETRY = new THREE.ShapeGeometry(
   16,
 );
 IPHONE_SCREEN_GEOMETRY.rotateX(-Math.PI / 2);
-// Same rounded footprint as IPHONE_SCREEN_GEOMETRY above (not a plain
-// rectangle) — the DOM overlay's clip-path (denkos-lockscreen-shell in
-// globals.css) only rounds its own *content*, so if this backing mesh were a
-// sharp-cornered rectangle, its exposed corners would show through as solid
-// black wedges wherever the overlay's rounded clip cuts them away.
-// PHONE_SCREEN_CORNERS/PlanarProjection (Scene.tsx) still use this shape's
-// full bounding-box corners for the homography source quad — the rounding
-// only removes area, it doesn't move the corners the transform is solved
-// against.
-// Rotation is applied via the mesh's own rotation-x prop below (not baked
-// into the geometry, unlike IPHONE_SCREEN_GEOMETRY above) so its corners
-// stay in the flat XY-plane — the convention PHONE_SCREEN_CORNERS in
-// Scene.tsx expects, matching PortfolioPoemPreview's screenRef mesh.
 const IPHONE_SCREEN_GLASS_GEOMETRY = new THREE.ShapeGeometry(
   roundedRectangleShape(0.299, 0.618, IPHONE_SCREEN_CORNER_RADIUS),
   16,
@@ -247,8 +234,6 @@ PORTFOLIO_PAGE_GEOMETRY.rotateX(-Math.PI / 2);
 PORTFOLIO_PAGE_GEOMETRY.computeVertexNormals();
 const PORTFOLIO_PAGE_SURFACE_GEOMETRY = new THREE.PlaneGeometry(0.704, 0.682);
 const PORTFOLIO_RING_GEOMETRY = new THREE.TorusGeometry(0.032, 0.007, 4, 8, Math.PI * 1.75);
-// Small washers make the paper-to-ring connection legible at the close reading shot.
-// They sit on the top sheet only; the real binding is carried by the low-poly torus rings.
 const PORTFOLIO_EYELET_GEOMETRY = new THREE.CylinderGeometry(0.014, 0.014, 0.003, 8, 1, false);
 const PORTFOLIO_STITCH_GEOMETRY = new THREE.BoxGeometry(0.035, 0.003, 0.006);
 const PORTFOLIO_PEN_LOOP_GEOMETRY = new THREE.TorusGeometry(0.026, 0.008, 4, 8);
@@ -312,20 +297,12 @@ export function DeskObjects({
   activeScene,
   onPhotoOpen,
 }: DeskObjectsProps) {
-  // --------------------------------------------------------------------------
-  // Derived State
-  // --------------------------------------------------------------------------
-
   const isCoffeeActive =
     activeScene === "opening" || activeScene === "about" || activeScene === "projects";
   const isPhoneActive = activeScene === "phone";
   const isPoemsActive = activeScene === "poems";
   const isPoemsVisible = activeScene === "opening" || activeScene === "poems";
   const isAboutActive = activeScene === "about";
-
-  // --------------------------------------------------------------------------
-  // Render
-  // --------------------------------------------------------------------------
 
   return (
     <group position={[0, 1.31, -1.5]}>
@@ -484,11 +461,6 @@ function PortfolioPolaroid({ active }: { active: boolean }) {
   );
 }
 
-// The page's title, intro copy, and "read my poetry" cue are HTML (see
-// PoemsOverlay, homography-projected via poemsScreenRef/PlanarProjection in
-// Scene.tsx) rather than a baked CanvasTexture or drei <Text> mesh — same
-// pixelation concern that moved the "About me" body text to HTML. This mesh
-// is just the page's plain paper backdrop.
 function PortfolioPoemPreview({ screenRef }: { screenRef?: MutableRefObject<THREE.Mesh | null> }) {
   return (
     <mesh
@@ -559,15 +531,11 @@ function PoemsPortfolio({
       linings.setMatrixAt(index, dummy.matrix);
     });
     for (let index = 0; index < 6; index++) {
-      // Keep the reserve sheets as a tight physical stack instead of six
-      // visibly separated cards; the active reading sheet still sits above it.
       dummy.position.set(0.4, 0.024 + index * 0.0072, (index - 2.5) * 0.0012);
       dummy.rotation.set(0, (index - 2.5) * 0.0012, 0);
       dummy.scale.set(1 - index * 0.004, 1, 1 - index * 0.003);
       dummy.updateMatrix();
       pages.setMatrixAt(index, dummy.matrix);
-      // The page's binding edge is x=.04. Center each ring on that edge so it
-      // visibly passes through the paper instead of floating in the cover gap.
       const bindingZ = -0.245 + index * 0.098;
       dummy.position.set(0.04, 0.057, bindingZ);
       dummy.rotation.set(0, 0, index % 2 ? 0.025 : -0.018);
@@ -687,11 +655,6 @@ function PoemsPortfolio({
   );
 }
 
-// The QR/WhatsApp screen image used to be a baked texture on this mesh. The
-// denkOS lock screen is rendered entirely as DOM (see PhoneOverlay,
-// homography-projected via screenRef/PlanarProjection in Scene.tsx) for
-// crisp text — same reasoning as PortfolioPoemPreview above. This mesh is
-// just the screen's inert glass backdrop underneath that overlay.
 function PhoneScreen({ screenRef }: { screenRef?: MutableRefObject<THREE.Mesh | null> }) {
   return (
     <mesh
@@ -762,16 +725,12 @@ function Phone({
   );
 }
 
-// Source photo is 2653x3538 (portrait). Hardcoded like PosterImages' own
-// sourceAspect values, so the photo plane isn't stretched.
 const ME_PHOTO_ASPECT = 2653 / 3538;
 const POLAROID_CARD_WIDTH = 0.26;
 const POLAROID_CARD_HEIGHT = 0.37;
 const POLAROID_PHOTO_MARGIN = 0.016;
 const POLAROID_PHOTO_WIDTH = POLAROID_CARD_WIDTH - POLAROID_PHOTO_MARGIN * 2;
 const POLAROID_PHOTO_HEIGHT = POLAROID_PHOTO_WIDTH / ME_PHOTO_ASPECT;
-// Offsets the photo toward the top of the card, leaving the classic thicker
-// polaroid strip below it.
 const POLAROID_PHOTO_Z_OFFSET =
   POLAROID_CARD_HEIGHT / 2 - POLAROID_PHOTO_MARGIN - POLAROID_PHOTO_HEIGHT / 2;
 const POLAROID_CLIP_WOOD_MATERIAL = new THREE.MeshStandardMaterial({
@@ -784,10 +743,6 @@ const POLAROID_CLIP_METAL_MATERIAL = new THREE.MeshStandardMaterial({
   roughness: 0.35,
 });
 
-// A plain wooden clothespin — an elongated capsule with a thin metal band
-// around its middle — clipped across the top edge where the polaroid
-// overlaps the paper. Simpler and more unmistakably "a clip" than a
-// hand-modeled paperclip silhouette.
 function PolaroidClip() {
   return (
     <group position={[-POLAROID_CARD_WIDTH / 2 + 0.04, 0.009, -POLAROID_CARD_HEIGHT / 2 - 0.004]}>
@@ -811,8 +766,6 @@ function PolaroidPhoto({
   onOpen?: () => void;
   screenRef?: MutableRefObject<THREE.Mesh | null>;
 }) {
-  // Cache-busted: rules out a stale/broken texture cached under the plain
-  // "/me.jpeg" key from an earlier attempt this session.
   const texture = useTexture(withSceneBasePath("/me.jpeg") + "?polaroid=1");
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = 8;
@@ -859,21 +812,10 @@ function PolaroidPhoto({
       >
         <meshStandardMaterial color="#f2ede2" roughness={0.82} />
       </RoundedBox>
-      {/* Unlit on purpose: the photo should read the same regardless of
-        this scene's dramatic, direction-heavy lighting, and this rules out
-        any lighting/shadow interaction as a reason it wouldn't show. Y
-        offset intentionally generous to rule out z-fighting against the
-        card underneath it. */}
       <mesh position={[0, 0.02, -POLAROID_PHOTO_Z_OFFSET]} rotation-x={-Math.PI / 2}>
         <planeGeometry args={[POLAROID_PHOTO_WIDTH, POLAROID_PHOTO_HEIGHT]} />
         <meshBasicMaterial map={texture} toneMapped={false} side={THREE.DoubleSide} />
       </mesh>
-      {/* Invisible — exists purely so PlanarProjection (Scene.tsx) can track
-        this card's screen-projected corners for the HTML caption overlay
-        (PolaroidCaptionOverlay), the same technique used for the laptop
-        screen and the paper. The caption is HTML, not 3D text, per the
-        same pixelation concern that moved the "About me" body text to
-        HTML. */}
       <mesh ref={screenRef} visible={false} rotation-x={-Math.PI / 2}>
         <planeGeometry args={[POLAROID_CARD_WIDTH, POLAROID_CARD_HEIGHT]} />
         <meshBasicMaterial />

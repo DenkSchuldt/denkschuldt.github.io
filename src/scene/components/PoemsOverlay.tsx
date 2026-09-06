@@ -7,9 +7,6 @@ import { useWorkingSetStore } from "../runtime/working-set";
 
 import type { ScreenProjectionRef } from "../screenProjection";
 
-// Matches the notebook page's planeGeometry (0.704 x 0.682 scene units) at a
-// uniform 1000 logical px per scene unit, so the overlay maps onto it
-// without distortion.
 const SHEET_LOGICAL_WIDTH = 704;
 const SHEET_LOGICAL_HEIGHT = 682;
 
@@ -73,7 +70,7 @@ export function PoemsOverlay({
   }, [projectionRef, visible]);
   if (!present) return null;
   return (
-    <section className={`poems-overlay${visible ? "" : " is-exiting"}`} aria-label="Poems">
+    <section className={`poems-overlay${visible ? "" : " is-exiting"}`} aria-hidden="true">
       <div
         ref={shellRef}
         className="poems-overlay-shell"

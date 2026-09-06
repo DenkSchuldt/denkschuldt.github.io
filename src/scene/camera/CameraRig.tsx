@@ -219,8 +219,6 @@ export function CameraRig(props: Props) {
     endFocus.current = next.focusDistance ?? props.focusRef.current;
 
     transitionStart.current = now;
-    // About is the reader-facing destination, so let its camera move a little
-    // faster while preserving the same easing and final composition.
     const aboutSpeed =
       activeId.current === "opening"
         ? props.openingAboutTransitionSpeed
@@ -279,8 +277,6 @@ export function CameraRig(props: Props) {
           camera.fov = initial.fov;
           camera.updateProjectionMatrix();
         }
-        // Direct routes have no animated transition, but the camera still needs
-        // to publish the same settled event as an animated arrival.
         if (props.directEntry) props.onTransitionComplete?.();
       }
       props.stateRef.current.requestedTarget = props.requestedTarget;
@@ -397,9 +393,6 @@ export function CameraRig(props: Props) {
         }
 
         const elapsed = now - transitionStart.current;
-        // The intro cinematic used to always finish by panning on to "about"
-        // (INTRO_DESTINATION). Visitors now navigate there themselves, so the
-        // intro simply settles at "opening" and stops once its hold elapses.
         const holdDuration = props.reducedMotion ? 0 : props.openingHold;
         if (elapsed >= holdDuration && !transitioning.current) {
           introActive.current = false;

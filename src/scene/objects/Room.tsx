@@ -46,12 +46,8 @@ const ARCHITECTURAL_BASEBOARD_GEOMETRY = (() => {
 })();
 
 const WALL_GRAIN_TEXTURE_SIZE = 128;
-const WALL_GRAIN_TILE_SIZE = 0.35; // world units per grain repeat — fine, paint-like scale
+const WALL_GRAIN_TILE_SIZE = 0.35;
 
-// Independent per-pixel noise, not smoothed/Perlin noise, so it tiles with
-// no visible seam by construction. Used as a roughnessMap only (see
-// useWallGrainTexture below) — a plain painted-plaster micro-variation, not
-// a normal/bump map and not a screen-space grain filter.
 function createWallGrainTexture(strength: number) {
   const canvas = document.createElement("canvas");
   canvas.width = WALL_GRAIN_TEXTURE_SIZE;
@@ -145,13 +141,11 @@ type WoodworkTransform = {
   scale: readonly [number, number, number];
 };
 
-// Skirting where the walls meet the floor — kept on every viewport.
 const FLOOR_BASEBOARD_TRANSFORMS: readonly WoodworkTransform[] = [
   { position: [-0.075, 0, -3.995], rotation: 0, scale: [11.85, 1, 1] },
   { position: [-5.995, 0, 1.75], rotation: Math.PI / 2, scale: [11.5, 1, 1] },
   { position: [5.845, 0, 1.75], rotation: -Math.PI / 2, scale: [11.5, 1, 1] },
 ];
-// Cap rail of the back-wall wainscoting, sitting just above the raised panels.
 const DADO_RAIL_TRANSFORM: WoodworkTransform = {
   position: [0, 2.055, -3.95],
   rotation: 0,
@@ -167,9 +161,6 @@ const WAINSCOT_PANEL_COLORS = [
   "#3f2b20",
 ];
 
-// On a portrait viewport the projector throws the Projects overlay onto the
-// back wall, so the dark wood wainscoting there (raised panels + cap rail) is
-// left out to keep the projection on an even surface. Floor baseboards stay.
 function ArchitecturalWoodwork({ mobile = false }: { mobile?: boolean }) {
   const baseboardsRef = useRef<THREE.InstancedMesh>(null),
     panelsRef = useRef<THREE.InstancedMesh>(null);

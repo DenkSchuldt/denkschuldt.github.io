@@ -8,22 +8,11 @@ import * as THREE from "three";
 import { useRenderDemand } from "../runtime/render-scheduler";
 import { useActiveReality } from "./RealityProvider";
 
-// Blueprint reads as an architectural drawing, not a blue color grade: a
-// single vivid, saturated "field" (derived from the spec's #203a63) carries
-// almost every surface plus the background/fog, and a dense white wireframe
-// (derived from #ebeced) carries the structure. Surfaces intentionally stay
-// in a narrow tonal band around the field — close to unlit — rather than a
-// wide light/dark ladder, so the room reads as lines on a flat plane first.
 const FIELD_HUE = 216.7 / 360;
 const FIELD_SATURATION = 0.72;
 const FIELD_LIGHTNESS = 0.42;
 const BLUEPRINT_FIELD = new THREE.Color().setHSL(FIELD_HUE, FIELD_SATURATION, FIELD_LIGHTNESS);
 const TECHNICAL_LIGHT = "#ebeced";
-// Photographic surfaces (posters, certificates, portfolio/polaroid photos)
-// keep their map so content stays recognizable, but are multiplied by this
-// fixed, dark/saturated tint instead of their own color — a light tint barely
-// dents a full-color photo under multiply blending, so this stays dark
-// enough to crush the original hues down into the drawing.
 const MAPPED_SURFACE_TONE = new THREE.Color().setHSL(FIELD_HUE, 0.35, 0.1);
 const BLUEPRINT_ROUGHNESS = 1;
 const TRANSITION_DURATION_MS = 850;
@@ -31,17 +20,11 @@ const TRANSITION_DURATION_MS = 850;
 const hslScratch = { h: 0, s: 0, l: 0 };
 function blueprintTone(original: THREE.Color) {
   original.getHSL(hslScratch);
-  // Only a slight lightness nudge survives from the original material — the
-  // point is that surfaces read as "the same substance as the field," not a
-  // ladder from dark to light.
   const lift = (hslScratch.l - 0.5) * 0.16;
   const lightness = THREE.MathUtils.clamp(FIELD_LIGHTNESS + lift, 0.14, 0.6);
   return new THREE.Color().setHSL(FIELD_HUE, FIELD_SATURATION, lightness);
 }
 
-// Keyed by the live THREE.Color instance (material.color, scene.background,
-// scene.fog.color all qualify), so the true Cinematic value is captured once
-// and survives any number of Reality switches.
 const colorOriginals = new WeakMap<THREE.Color, THREE.Color>();
 function originalColorFor(color: THREE.Color) {
   let original = colorOriginals.get(color);
@@ -59,11 +42,6 @@ interface SurfaceBackup {
 }
 const SUPPRESSED_MAP_KEYS = ["normalMap", "roughnessMap", "metalnessMap", "aoMap"] as const;
 const materialSurfaceBackups = new WeakMap<THREE.Material, SurfaceBackup>();
-// ACES Filmic tonemapping recovers saturation in bright highlights, so a
-// multiply-darkened photo (a bright sky, a lit spacesuit) can still come back
-// looking vivid on screen even though its raw color was crushed dark. Bypass
-// tonemapping on these materials specifically while Blueprint is active so
-// the tint reads as intended; restored on revert.
 const mappedToneMappedBackups = new WeakMap<THREE.Material, boolean>();
 
 type ColoredMaterial = THREE.Material &
@@ -92,18 +70,6 @@ function isInstanced(object: THREE.Object3D): object is THREE.InstancedMesh {
 const EDGE_MATERIAL = new THREE.LineBasicMaterial({ color: TECHNICAL_LIGHT, toneMapped: false });
 const wireframeGeometryCache = new WeakMap<THREE.BufferGeometry, THREE.WireframeGeometry>();
 
-// Single traversal of the persistent scene graph, run once per Reality
-// change (never per frame):
-//  - every material's color is queued for the animated lerp below;
-//  - non-photographic materials additionally get their surface-variation
-//    maps (normal/roughness/metalness/AO) suppressed and metalness/
-//    roughness flattened, since those are what make a material read as
-//    "realistically shaded" rather than a flat technical plane;
-//  - on the very first Blueprint activation, every non-instanced mesh gets a
-//    cached, reusable THREE.WireframeGeometry line-segments child (instanced
-//    meshes are skipped — decorative trim/casters — since one wireframe copy
-//    can't represent per-instance transforms). Later switches only toggle
-//    those lines' visibility; nothing is regenerated.
 function applyBlueprintPass(
   scene: THREE.Scene,
   toBlueprint: boolean,
@@ -184,13 +150,6 @@ function applyBlueprintPass(
   return entries;
 }
 
-// Applies Blueprint as a temporary, reversible visual override on top of the
-// existing Cinematic scene graph: geometry, lighting rigs, and post-
-// processing wiring are untouched — only live color/metalness/roughness/map
-// values are nudged and restored, plus a cached wireframe outline per mesh
-// toggled visible. See RealityProvider.tsx for the registry this responds
-// to, and Lighting.tsx / CinematicEffects.tsx for the other minimal
-// per-reality overrides.
 export function RealityRuntimeBridge() {
   const scene = useThree((state) => state.scene);
   const realityId = useActiveReality((reality) => reality.id);

@@ -16,7 +16,7 @@ import { measurePerformanceTask } from "../diagnostics/performance/performanceSt
 import { useActiveReality } from "../reality";
 import { useRenderDemand, useRenderSchedulerStore } from "../runtime/render-scheduler";
 
-import type { ReactElement } from "react";
+import type { ReactElement, ReactNode } from "react";
 import type {
   DepthOfFieldEffect,
   EffectComposer as PostprocessingEffectComposer,
@@ -25,22 +25,15 @@ import type { SceneSettings } from "../Scene";
 import type { RenderIsolationState } from "../rendering/renderIsolation";
 import type { RenderingQualityProfile, ResolvedQualityFeatures } from "../rendering/quality";
 
-function ManagedEffectComposer({ children }: { children: ReactElement | ReactElement[] }) {
+function ManagedEffectComposer({ children }: { children: ReactNode }) {
   const composerRef = useRef<PostprocessingEffectComposer | null>(null);
   useEffect(() => {
-    // @react-three/postprocessing does not dispose its postprocessing composer
-    // when the component is unmounted, so release it when post-processing is
-    // explicitly disabled or the scene is torn down.
     const composer = composerRef.current;
     return () => composer?.dispose();
   }, []);
-  // Keep the React composer and its render targets stable for the complete
-  // session. Reallocating multisampled targets during a shot transition can
-  // expose an uninitialised rectangular buffer for one frame. The renderer's
-  // own antialiasing remains enabled, so this does not increase global cost.
   return (
     <EffectComposer ref={composerRef} multisampling={0}>
-      {children}
+      {children as ReactElement[]}
     </EffectComposer>
   );
 }
@@ -63,17 +56,11 @@ export default function CinematicEffects({
   const dof = useRef<DepthOfFieldEffect | null>(null);
   const lastFocus = useRef(Number.NaN);
   const gl = useThree((state) => state.gl);
-  // Blueprint avoids strong bloom/glow so its edges read as drawn/technical
-  // rather than neon; every other effect keeps its Cinematic configuration.
   const blueprint = useActiveReality((reality) => reality.id === "blueprint");
   const renderDemand = useRenderDemand("cinematic-effects"),
     scheduler = useRenderSchedulerStore();
   const composerActive = isolation.postProcessing && features.postProcessing;
   useLayoutEffect(() => {
-    // EffectComposer takes over R3F's render priority and sets autoClear=false
-    // even when its `enabled` prop is false. Restore the base renderer while
-    // its render target is being recreated so no stale partial buffer can
-    // flash as a white rectangle during a resize or camera-mode change.
     if (!composerActive) gl.autoClear = true;
     return () => {
       gl.autoClear = true;

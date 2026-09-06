@@ -25,8 +25,6 @@ export function useSceneRouter(initialPath = "/") {
       setRoute(parsed);
       return;
     }
-    // About is the landing shot. Keep the opening immediately behind it in
-    // the in-world history, regardless of which section discovered it.
     if (path === "/about" && currentPath() !== "/") {
       window.history.pushState({ scene: "opening" }, "", withSceneBasePath("/"));
     }

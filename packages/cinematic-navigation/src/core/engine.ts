@@ -153,10 +153,6 @@ export function createCinematicEngine<
       state.sceneId === resolvedLocation.sceneId &&
       state.requestedSceneId === resolvedLocation.sceneId &&
       state.requestedCameraTargetId === resolvedLocation.cameraTargetId;
-    // Clearing a focus overlay must not replay a camera transition when the
-    // parent scene already owns the same shot. Reframing collections still
-    // transition when their focus item changes; static collections remain
-    // stable as before.
     const cameraIsStable =
       sameCameraDestination &&
       (!resolvedLocation.focusCollectionId || collection?.reframeOnFocus === false);

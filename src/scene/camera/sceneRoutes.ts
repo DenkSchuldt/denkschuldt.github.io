@@ -27,6 +27,11 @@ export interface SceneRouteState extends NavigationLocation {
 export function pathForScene(sceneId: SceneId) {
   return SCENE_REGISTRY[sceneId].route;
 }
+export function requireScenePath(sceneId: SceneId): string {
+  const route = SCENE_REGISTRY[sceneId].route;
+  if (route === null) throw new Error(`Scene "${sceneId}" has no canonical route.`);
+  return route;
+}
 export function pathForFocus(collectionId: FocusCollectionId, itemId: string) {
   const item = FOCUS_COLLECTIONS[collectionId].items[itemId];
   return item?.route ?? FOCUS_COLLECTIONS[collectionId].routePattern.replace(":slug", itemId);
@@ -38,7 +43,6 @@ export function pathForShot(id: ShotId, slug?: string) {
   return route.includes(":slug") ? route.replace(":slug", slug ?? "") : route;
 }
 
-/** @deprecated Use pathForShot. */
 export const pathForCameraTarget = pathForShot;
 
 export function resolveNavigationPath(pathname: string): NavigationLocation {

@@ -42,3 +42,15 @@ packages/*/dist/
 /.wrangler/
 /outputs/
 /work/
+
+# build-time site discovery resources (generated into public/ by vite.config.ts)
+/public/poems-manifest.json
+/public/site.json
+/public/sitemap.xml
+/public/robots.txt
+/public/llms.txt
+/public/llms-full.txt
+/public/about.md
+/public/projects.md
+/public/certificates.md
+/public/poems/feed.xml

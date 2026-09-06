@@ -223,9 +223,6 @@ function certificateNeighbor(index: number, direction: FocusDirection): string |
 const certificateItems = Object.fromEntries(
   CERTIFICATE_LAYOUT.map(({ index, x, y, row, column }) => {
     const certificate = CERTIFICATES[index];
-    // Certificate selection is now presented in an HTML gallery. Keep every
-    // item on the shelf's parent shot so changing the active certificate never
-    // reframes or zooms the 3D camera.
     const item: FocusItemDefinition = {
       id: certificate.slug,
       slug: certificate.slug,
@@ -260,6 +257,7 @@ const dynamicCollection = (
   routePattern: string,
 ): FocusCollectionDefinition => ({
   id,
+  label: SCENE_REGISTRY[sceneId].label,
   sceneId,
   routePattern,
   cameraTarget,
@@ -290,6 +288,7 @@ const phoneItems: Record<string, FocusItemDefinition> = {
 export const FOCUS_COLLECTIONS: Record<string, FocusCollectionDefinition> = {
   certificates: {
     id: "certificates",
+    label: "Certificates",
     sceneId: "certificates",
     routePattern: "/certificates/:slug",
     cameraTarget: "certificates",
@@ -309,6 +308,7 @@ export const FOCUS_COLLECTIONS: Record<string, FocusCollectionDefinition> = {
   },
   phone: {
     id: "phone",
+    label: "Phone",
     sceneId: "phone",
     routePattern: "/phone/:slug",
     cameraTarget: "phone",
@@ -321,9 +321,6 @@ export const FOCUS_COLLECTIONS: Record<string, FocusCollectionDefinition> = {
   },
 };
 
-// Drawer remains part of the world and registry, but is intentionally not a
-// guided stop. The camera should pass from Poems back to Opening without
-// focusing the drawer.
 export const GUIDED_SCENE_IDS: SceneId[] = [
   "opening",
   "about",
@@ -339,8 +336,6 @@ export function getAdjacentScene(
   direction: -1 | 1,
   visitedAutoScenes: readonly SceneId[] = [],
 ): SceneId | null {
-  // Drawer remains addressable internally, but is no longer a guided stop.
-  // If stale state ever lands there, the next action still returns to Opening.
   if (direction > 0 && sceneId === "drawer") return "opening";
   const index = GUIDED_SCENE_IDS.indexOf(sceneId);
   if (index < 0) return null;
@@ -355,9 +350,6 @@ export function getAdjacentScene(
     }
     return null;
   }
-  // Mirrors the forward wrap above: stepping back from Opening returns to the
-  // last guided stop instead of dead-ending, so the back arrow/gesture can
-  // undo a completed lap of the tour.
   if (index === 0) return GUIDED_SCENE_IDS[GUIDED_SCENE_IDS.length - 1];
   let previousIndex = index - 1;
   while (previousIndex >= 0 && SCENE_REGISTRY[GUIDED_SCENE_IDS[previousIndex]].autoAdvance)
