@@ -57,6 +57,17 @@ export async function generateMetadata({
     };
   }
 
+  if (section === "wall" || section === "socials") {
+    const parent = content.routes.find(
+      (entry) => entry.path === (section === "socials" ? "/about" : "/"),
+    );
+    return {
+      title: parent?.title ?? "Denny K. Schuldt",
+      alternates: { canonical: parent?.url ?? content.site.url },
+      robots: { index: false, follow: true },
+    };
+  }
+
   const routeMeta = content.routes.find((entry) => entry.path === `/${section}`);
   if (!routeMeta) return {};
   const { title, description, url, ogImage } = routeMeta;

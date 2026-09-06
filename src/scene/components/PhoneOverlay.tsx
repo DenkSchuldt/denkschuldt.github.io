@@ -33,7 +33,11 @@ function useLockScreenClock() {
     };
   }, []);
   return {
-    time: now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }),
+    time: now.toLocaleTimeString(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: false,
+    }),
     date: now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }),
   };
 }

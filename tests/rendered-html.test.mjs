@@ -243,6 +243,34 @@ test("core routes carry their own title, description, and canonical URL", async 
   }
 });
 
+test("the homepage canonical matches its sitemap and JSON-LD form", async () => {
+  const markup = await html("/");
+  assert.match(markup, /<link rel="canonical" href="https:\/\/denkschuldt\.github\.io\/"/);
+  assert.match(markup, /<meta property="og:url" content="https:\/\/denkschuldt\.github\.io\/"/);
+  const sitemap = await clientAsset("sitemap.xml");
+  assert.match(sitemap, /<loc>https:\/\/denkschuldt\.github\.io\/<\/loc>/);
+});
+
+test("transient scene routes are non-canonical and point at their parent", async () => {
+  const wall = await html("/wall");
+  assert.match(wall, /<meta name="robots" content="noindex/);
+  assert.match(wall, /<link rel="canonical" href="https:\/\/denkschuldt\.github\.io\/"/);
+  assert.match(wall, /<main class="semantic-layer">[\s\S]*<h1>Wall<\/h1>/);
+
+  const socials = await html("/socials");
+  assert.match(socials, /<meta name="robots" content="noindex/);
+  assert.match(socials, /<link rel="canonical" href="https:\/\/denkschuldt\.github\.io\/about"/);
+});
+
+test("the phone lock screen clock is 24-hour", async () => {
+  const source = await readFile(
+    new URL("../src/scene/components/PhoneOverlay.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(source, /toLocaleTimeString\([^)]*hour12:\s*false/s);
+  assert.doesNotMatch(source, /hour12:\s*true/);
+});
+
 test("structured data is present, parses, and carries stable entities", async () => {
   const root = jsonLdBlocks(await html("/"));
   assert.equal(root.length, 1);
