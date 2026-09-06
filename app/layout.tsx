@@ -6,6 +6,7 @@ const SITE_ORIGIN = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://denkschuldt.gi
   /\/$/,
   "",
 );
+const SITE_URL = `${SITE_ORIGIN}/`;
 
 const SITE_TITLE = "Denny K. Schuldt";
 const SITE_DESCRIPTION =
@@ -27,7 +28,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: SITE_ORIGIN,
+    canonical: SITE_URL,
     types: {
       "application/atom+xml": `${SITE_ORIGIN}/poems/feed.xml`,
       "text/plain": `${SITE_ORIGIN}/llms.txt`,
@@ -36,7 +37,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    url: SITE_ORIGIN,
+    url: SITE_URL,
     siteName: SITE_TITLE,
     type: "website",
     locale: "en_US",

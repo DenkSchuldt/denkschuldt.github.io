@@ -88,11 +88,11 @@ function RootDocument({ content }: { content: SiteContent }) {
   );
 }
 
-function AboutDocument({ content }: { content: SiteContent }) {
+function AboutDocument({ content, current }: { content: SiteContent; current: string }) {
   const { person } = content;
   return (
     <main className="semantic-layer">
-      <SiteNav content={content} current="/about" />
+      <SiteNav content={content} current={current} />
       <article aria-label={`About ${person.name}`}>
         <h1>About {person.name}</h1>
         {person.bio.map((paragraph) => (
@@ -268,6 +268,21 @@ function PhoneDocument({ content }: { content: SiteContent }) {
   );
 }
 
+function WallDocument({ content }: { content: SiteContent }) {
+  return (
+    <main className="semantic-layer">
+      <SiteNav content={content} current="/wall" />
+      <article aria-label="Wall">
+        <h1>Wall</h1>
+        <p>
+          A few films framed on the workspace wall. This is a corner of the room, not a section of
+          its own — the workspace is at <a href={hrefFor("/")}>{content.site.name}</a>.
+        </p>
+      </article>
+    </main>
+  );
+}
+
 function PoemsIndexDocument({ content }: { content: SiteContent }) {
   return (
     <main className="semantic-layer">
@@ -331,10 +346,12 @@ function PoemDocument({ content, slug }: { content: SiteContent; slug: string })
 function renderDocument(content: SiteContent, route: Route) {
   const [section, slug] = route;
   if (!section) return <RootDocument content={content} />;
-  if (section === "about" || section === "socials") return <AboutDocument content={content} />;
+  if (section === "about") return <AboutDocument content={content} current="/about" />;
+  if (section === "socials") return <AboutDocument content={content} current="/socials" />;
   if (section === "projects") return <ProjectsDocument content={content} />;
   if (section === "certificates") return <CertificatesDocument content={content} />;
   if (section === "phone") return <PhoneDocument content={content} />;
+  if (section === "wall") return <WallDocument content={content} />;
   if (section === "poems") {
     return slug ? (
       <PoemDocument content={content} slug={slug} />
