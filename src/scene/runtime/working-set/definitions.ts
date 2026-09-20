@@ -43,6 +43,10 @@ export const WORKING_SET_DEFINITIONS: Readonly<Record<SceneId, DestinationWorkin
     speculative: false,
     resources: [
       resource("about", "desk-ambient", "ambient", "Scene", { shared: true }),
+      resource("about", "polaroid-photo", "shared-cache", "PolaroidPhoto", {
+        shared: true,
+        estimatedDecodedBytes: Math.round((768 * 1024 * 4 * 4) / 3),
+      }),
       resource("about", "about-overlay", "active-only", "AboutOverlay"),
     ],
   },
@@ -55,7 +59,7 @@ export const WORKING_SET_DEFINITIONS: Readonly<Record<SceneId, DestinationWorkin
       resource("certificates", "certificate-shelf", "ambient", "Shelf", { shared: true }),
       resource("certificates", "certificate-thumbnails", "preparable", "CertificateGallery", {
         preparationRequired: true,
-        estimatedDecodedBytes: Math.round((14 * 480 * 352 * 4 * 4) / 3),
+        estimatedDecodedBytes: Math.round((15 * 480 * 352 * 4 * 4) / 3),
       }),
       resource(
         "certificates",

@@ -18,8 +18,10 @@ import {
   QUALITY_PREFERENCE_STORAGE_KEY,
   resolveFeatureFlags,
   selectInitialQuality,
+  preserveAdaptiveSelection,
 } from "./qualitySelection";
 
+import type { AdaptiveDecision } from "./adaptiveController";
 import type {
   AdaptiveState,
   DiagnosticQualityOverrides,
@@ -102,19 +104,40 @@ export class RenderingQualityStore {
   setCapabilities(capabilities: RenderingCapabilitySnapshot) {
     if (!this.snapshot.capabilities) this.commit({ capabilities });
   }
-  setAdaptive(adaptive: AdaptiveState) {
-    this.commit({ adaptive });
+  applyAdaptiveDecision({ state: adaptive, nextProfileId }: AdaptiveDecision) {
+    if (!nextProfileId) {
+      this.commit({ adaptive });
+      return;
+    }
+    const profile = getRenderingQualityProfile(nextProfileId);
+    this.commit({
+      adaptive,
+      profile,
+      features: resolveFeatureFlags(profile.id, this.snapshot.diagnostics),
+      selection: {
+        ...this.snapshot.selection,
+        profileId: profile.id,
+        reason: "adaptive-performance",
+      },
+    });
   }
   resetViewport(preliminary: PreliminaryCapabilities) {
-    const selection = selectInitialQuality({
-        diagnostics: this.snapshot.diagnostics,
-        preference: this.snapshot.preference,
-        capabilities: preliminary,
-      }),
+    const selection = preserveAdaptiveSelection(
+        this.snapshot.selection,
+        selectInitialQuality({
+          diagnostics: this.snapshot.diagnostics,
+          preference: this.snapshot.preference,
+          capabilities: preliminary,
+        }),
+      ),
       profile = getRenderingQualityProfile(selection.profileId);
     const dpr = Math.max(
       profile.renderer.dprMin,
-      Math.min(profile.renderer.dprMax, this.snapshot.adaptive.currentDpr),
+      Math.min(
+        profile.renderer.dprMax,
+        preliminary.devicePixelRatio,
+        this.snapshot.adaptive.currentDpr,
+      ),
     );
     this.commit({
       preliminary,
@@ -146,20 +169,6 @@ export function QualityProvider({ children }: { children: React.ReactNode }) {
           : localStorage.getItem(QUALITY_PREFERENCE_STORAGE_KEY),
       ),
   );
-  useEffect(() => {
-    let timer = 0;
-    const reset = () => {
-      window.clearTimeout(timer);
-      timer = window.setTimeout(() => store.resetViewport(detectPreliminaryCapabilities()), 250);
-    };
-    window.addEventListener("resize", reset);
-    window.addEventListener("orientationchange", reset);
-    return () => {
-      window.clearTimeout(timer);
-      window.removeEventListener("resize", reset);
-      window.removeEventListener("orientationchange", reset);
-    };
-  }, [store]);
   return <QualityContext.Provider value={store}>{children}</QualityContext.Provider>;
 }
 export function useQualityStore() {

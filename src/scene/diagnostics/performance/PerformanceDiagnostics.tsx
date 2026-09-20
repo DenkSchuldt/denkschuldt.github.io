@@ -209,6 +209,7 @@ export function PerformanceOverlay() {
     anchor.click();
     URL.revokeObjectURL(url);
   };
+  const buffer = summary.latestRenderer;
   const qualitySummary = {
     profile: quality.profile.id,
     preference: quality.preference,
@@ -258,18 +259,14 @@ export function PerformanceOverlay() {
         DPR current / target: {quality.adaptive.currentDpr} / {quality.adaptive.targetDpr}
       </div>
       <div>
-        Buffer: {quality.capabilities?.drawingBufferWidth ?? "n/a"} ×{" "}
-        {quality.capabilities?.drawingBufferHeight ?? "n/a"} (
-        {quality.capabilities
-          ? Math.round(
-              (quality.capabilities.drawingBufferWidth * quality.capabilities.drawingBufferHeight) /
-                10000,
-            ) / 100
+        Buffer: {buffer?.drawingBufferWidth ?? "n/a"} × {buffer?.drawingBufferHeight ?? "n/a"} (
+        {buffer
+          ? Math.round((buffer.drawingBufferWidth * buffer.drawingBufferHeight) / 10000) / 100
           : "n/a"}{" "}
         MP)
       </div>
       <div>
-        Health median / p95: {quality.adaptive.health?.medianFrameMs.toFixed(2) ?? "n/a"} /{" "}
+        Active-frame median / p95: {quality.adaptive.health?.medianFrameMs.toFixed(2) ?? "n/a"} /{" "}
         {quality.adaptive.health?.p95FrameMs.toFixed(2) ?? "n/a"} ms
       </div>
       <div>Recent changes: {quality.adaptive.history.length}</div>
@@ -284,7 +281,7 @@ export function PerformanceOverlay() {
         / {Object.values(workingSet.resources).filter(({ status }) => status === "sleeping").length}
       </div>
       <div>
-        Estimated decoded textures: {(workingSet.estimatedDecodedTextureBytes / 1048576).toFixed(1)}{" "}
+        Tracked decoded textures: {(workingSet.estimatedDecodedTextureBytes / 1048576).toFixed(1)}{" "}
         MiB (estimate)
       </div>
       <div>

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile, readdir, stat } from "node:fs/promises";
+import { gzipSync } from "node:zlib";
 
 const client = new URL("../dist/client/", import.meta.url);
 const html = await readFile(new URL("index.html", client), "utf8");
@@ -16,6 +17,24 @@ assert.ok(
   initialJavaScriptBytes <= initialJavaScriptBudget,
   `Initial JavaScript is ${initialJavaScriptBytes} bytes; budget is ${initialJavaScriptBudget}.`,
 );
+
+const manifest = JSON.parse(await readFile(new URL("performance-manifest.json", client), "utf8"));
+assert.ok(
+  Array.isArray(manifest.sceneJavaScript) && manifest.sceneJavaScript.length > 0,
+  "The 3D dependency manifest must not be empty.",
+);
+const sceneSources = await Promise.all(
+  manifest.sceneJavaScript.map((name) => readFile(new URL(name, client))),
+);
+const sceneBytes = sceneSources.reduce((sum, source) => sum + source.length, 0);
+const sceneGzipBytes = sceneSources.reduce((sum, source) => sum + gzipSync(source).length, 0);
+assert.ok(sceneBytes <= 2100 * 1024, `3D JavaScript exceeds 2100 KiB: ${sceneBytes} bytes.`);
+assert.ok(
+  sceneGzipBytes <= 650 * 1024,
+  `3D JavaScript exceeds 650 KiB gzip: ${sceneGzipBytes} bytes.`,
+);
+const polaroidBytes = (await stat(new URL("../public/me-polaroid.jpg", import.meta.url))).size;
+assert.ok(polaroidBytes <= 220 * 1024, "The dedicated polaroid texture exceeds 220 KiB.");
 
 const thumbnailDirectory = new URL("../public/certificates/thumbs/", import.meta.url);
 const thumbnailNames = (await readdir(thumbnailDirectory)).filter((name) =>
@@ -54,5 +73,5 @@ assert.match(
 );
 
 console.log(
-  `Performance budget passed: ${(initialJavaScriptBytes / 1024).toFixed(1)} KiB initial JS, ${(thumbnailBytes / 1024).toFixed(1)} KiB certificate thumbnails.`,
+  `Performance budget passed: ${(initialJavaScriptBytes / 1024).toFixed(1)} KiB initial JS, ${(sceneBytes / 1024).toFixed(1)} KiB 3D JS (${(sceneGzipBytes / 1024).toFixed(1)} KiB gzip), ${(thumbnailBytes / 1024).toFixed(1)} KiB certificate thumbnails.`,
 );

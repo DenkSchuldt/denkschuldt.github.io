@@ -2,7 +2,7 @@
 
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 
-import { useFrame, useThree } from "@react-three/fiber";
+import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 import { CameraController } from "./camera/CameraController";
@@ -20,9 +20,9 @@ import { Room } from "./objects/Room";
 import { Shelf } from "./objects/Shelf";
 import { getCertificateFocusBySlug, type CertificateFocus } from "./objects/certificates";
 import { DEFAULT_RENDER_ISOLATION, type RenderIsolationState } from "./rendering/renderIsolation";
+import { PlanarProjection } from "./rendering/PlanarProjection";
 import { isMobileRenderingViewport } from "./rendering/renderingIntent";
-import { measurePerformanceTask } from "./diagnostics/performance/performanceStore";
-import { useRenderDemand, useRenderSchedulerStore } from "./runtime/render-scheduler";
+import { useRenderDemand } from "./runtime/render-scheduler";
 
 import type { CinematicNavigationSystem } from "./camera/useCinematicCamera";
 import type { ScreenProjectionRef } from "./screenProjection";
@@ -74,67 +74,6 @@ const PHONE_SCREEN_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector
     new THREE.Vector3(0.1495, -0.309, 0),
     new THREE.Vector3(-0.1495, -0.309, 0),
   ];
-
-function PlanarProjection({
-  label,
-  corners,
-  screenRef,
-  projectionRef,
-  enabled = true,
-}: {
-  label: string;
-  corners: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector3, THREE.Vector3];
-  screenRef: React.MutableRefObject<THREE.Mesh | null>;
-  projectionRef: ScreenProjectionRef;
-  enabled?: boolean;
-}) {
-  const { camera, size } = useThree();
-  const scheduler = useRenderSchedulerStore();
-  const lastSignature = useRef("");
-  const projected = corners.map(() => new THREE.Vector3()) as [
-    THREE.Vector3,
-    THREE.Vector3,
-    THREE.Vector3,
-    THREE.Vector3,
-  ];
-  useFrame(() =>
-    measurePerformanceTask(label, () => {
-      if (!enabled) return;
-      const screen = screenRef.current;
-      if (!screen) return;
-      screen.updateWorldMatrix(true, false);
-      camera.updateMatrixWorld();
-      const signature = [
-        size.width,
-        size.height,
-        ...camera.matrixWorld.elements,
-        ...camera.projectionMatrix.elements,
-        ...screen.matrixWorld.elements,
-      ]
-        .map((value) => Math.round(value * 100000) / 100000)
-        .join(",");
-      if (signature === lastSignature.current) return;
-      lastSignature.current = signature;
-      projected.forEach((corner, index) => {
-        corner.copy(corners[index]).applyMatrix4(screen.matrixWorld).project(camera);
-      });
-      projectionRef.current = {
-        points: projected.map(({ x, y }) => ({
-          x: (x * 0.5 + 0.5) * size.width,
-          y: (-0.5 * y + 0.5) * size.height,
-        })) as [
-          { x: number; y: number },
-          { x: number; y: number },
-          { x: number; y: number },
-          { x: number; y: number },
-        ],
-        viewport: { width: size.width, height: size.height },
-      };
-      scheduler.recordProjection();
-    }),
-  );
-  return null;
-}
 
 const CinematicEffects = lazy(() => import("./effects/CinematicEffects"));
 

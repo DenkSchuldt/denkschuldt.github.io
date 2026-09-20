@@ -95,7 +95,6 @@ export function ProjectsOverlay({
       { x: SCREEN_LOGICAL_WIDTH, y: SCREEN_LOGICAL_HEIGHT },
       { x: 0, y: SCREEN_LOGICAL_HEIGHT },
     ];
-    let frame = 0;
     const update = () => {
       const shell = shellRef.current,
         projection = projectionRef.current;
@@ -115,11 +114,10 @@ export function ProjectsOverlay({
           shell.style.visibility = "visible";
         }
       }
-      frame = window.requestAnimationFrame(update);
     };
-    frame = window.requestAnimationFrame(update);
-    return () => window.cancelAnimationFrame(frame);
-  }, [projectionRef, visible]);
+    update();
+    return projectionRef.subscribe(update);
+  }, [projectionRef, visible, present]);
   useEffect(() => {
     if (!visible || !isMobileProjection) {
       setProjectionPhase("content");
@@ -198,7 +196,11 @@ export function ProjectsOverlay({
           <div
             className={`projects-overlay-title-card${projectionPhase === "transition" ? " is-leaving" : ""}`}
           >
-            <p>Directed by Denny K. Schuldt</p>
+            <p>
+              Directed by
+              <br />
+              Denny K. Schuldt
+            </p>
           </div>
         )}
         <div

@@ -1,10 +1,11 @@
 "use client";
 
-import { ContactShadows } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 
 import { useActiveReality } from "../reality";
 import { RENDERING_INTENT, resolveHemisphereIntensity } from "../rendering/renderingIntent";
+
+import { CachedContactShadows } from "./CachedContactShadows";
 
 import type { RenderingQualityProfile, ResolvedQualityFeatures } from "../rendering/quality";
 
@@ -69,14 +70,9 @@ export function Lighting({
         />
       )}
       {shadowsEnabled && features.allShadows && features.contactShadows && !blueprint && (
-        <ContactShadows
+        <CachedContactShadows
           key={`${profile.id}:${profile.shadows.contactResolution}`}
-          position={[0, 0.012, -0.8]}
-          opacity={profile.shadows.contactOpacity}
-          resolution={profile.shadows.contactResolution}
-          scale={12}
-          blur={profile.shadows.contactBlur}
-          far={4.5}
+          profile={profile}
         />
       )}
     </>

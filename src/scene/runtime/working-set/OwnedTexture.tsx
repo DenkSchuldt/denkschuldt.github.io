@@ -8,6 +8,7 @@ import * as THREE from "three";
 import { useRenderDemand } from "../render-scheduler";
 
 import { useWorkingSetStore } from "./WorkingSetProvider";
+import { loadOwnedTextureBatch } from "./ownedTextureBatch";
 
 import type { ReleaseEvidence } from "./types";
 
@@ -34,7 +35,6 @@ export function useOwnedTexture(url: string, resourceId: string, enabled = true)
         if (cancelled) {
           loaded.dispose();
           store.resourceEvent("prepare-cancel", resourceId, {
-            status: "released",
             cache: "owned",
             detail: "late completion disposed",
             evidence: [
@@ -51,7 +51,16 @@ export function useOwnedTexture(url: string, resourceId: string, enabled = true)
         loaded.needsUpdate = true;
         try {
           gl.initTexture(loaded);
-        } catch {}
+        } catch (error) {
+          loaded.dispose();
+          owned = null;
+          store.resourceEvent("error", resourceId, {
+            status: "error",
+            cache: "owned",
+            detail: error instanceof Error ? error.message : String(error),
+          });
+          return;
+        }
         setTexture(loaded);
         store.resourceEvent("prepare-end", resourceId, {
           status: "resident",
@@ -106,34 +115,22 @@ export function useOwnedTextures(urls: readonly string[], resourceId: string, en
       return;
     }
     let cancelled = false;
-    const owned: THREE.Texture[] = [];
     store.resourceEvent("prepare-start", resourceId, {
       status: "preparing",
       cache: "owned",
-      detail: `${urls.length} texture(s)`,
+      detail: "owned texture batch",
     });
-    Promise.all(
-      urls.map(
-        (url) =>
-          new Promise<THREE.Texture>((resolve, reject) => {
-            new THREE.TextureLoader().load(
-              url,
-              (texture) => {
-                texture.colorSpace = THREE.SRGBColorSpace;
-                texture.needsUpdate = true;
-                resolve(texture);
-              },
-              undefined,
-              reject,
-            );
-          }),
-      ),
-    )
+    const loader = new THREE.TextureLoader();
+    const batch = loadOwnedTextureBatch(key.split("\u0000").filter(Boolean), async (url) => {
+      const texture = await loader.loadAsync(url);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.needsUpdate = true;
+      return texture;
+    });
+    batch.promise
       .then((loaded) => {
         if (cancelled) {
-          loaded.forEach((texture) => texture.dispose());
           store.resourceEvent("prepare-cancel", resourceId, {
-            status: "released",
             cache: "owned",
             detail: "late batch disposed",
             evidence: [
@@ -145,12 +142,7 @@ export function useOwnedTextures(urls: readonly string[], resourceId: string, en
           });
           return;
         }
-        loaded.forEach((texture) => {
-          try {
-            gl.initTexture(texture);
-          } catch {}
-        });
-        owned.push(...loaded);
+        loaded.forEach((texture) => gl.initTexture(texture));
         setTextures(loaded);
         store.resourceEvent("prepare-end", resourceId, {
           status: "resident",
@@ -160,7 +152,7 @@ export function useOwnedTextures(urls: readonly string[], resourceId: string, en
         renderDemand.invalidate("asset-ready");
       })
       .catch((error) => {
-        owned.forEach((texture) => texture.dispose());
+        batch.dispose();
         if (!cancelled)
           store.resourceEvent("error", resourceId, {
             status: "error",
@@ -171,20 +163,20 @@ export function useOwnedTextures(urls: readonly string[], resourceId: string, en
     return () => {
       cancelled = true;
       setTextures([]);
-      owned.forEach((texture) => texture.dispose());
-      if (owned.length)
-        store.resourceEvent("dispose", resourceId, {
-          status: "released",
-          cache: "owned",
-          detail: `dispose() called for ${owned.length} texture(s); actual GPU/browser release unobservable`,
-          evidence: [
-            "unmounted",
-            "references-released",
-            "texture-disposed",
-            "browser-memory-unverified",
-            "gpu-memory-unverified",
-          ],
-        });
+      batch.dispose();
+      store.resourceEvent("dispose", resourceId, {
+        status: "released",
+        cache: "owned",
+        detail:
+          "batch cancelled and owned textures disposed; actual GPU/browser release unobservable",
+        evidence: [
+          "unmounted",
+          "references-released",
+          "texture-disposed",
+          "browser-memory-unverified",
+          "gpu-memory-unverified",
+        ],
+      });
     };
   }, [enabled, gl, key, renderDemand, resourceId, store]);
   return textures;

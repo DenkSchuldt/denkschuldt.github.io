@@ -7,6 +7,7 @@ export type QualitySelectionReason =
   | "high-pixel-workload"
   | "mobile-capability"
   | "desktop-capability"
+  | "adaptive-performance"
   | "safe-fallback";
 export type QualityChangeReason =
   | "initial-selection"
