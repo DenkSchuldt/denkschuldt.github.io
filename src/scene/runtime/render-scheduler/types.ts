@@ -58,6 +58,7 @@ export interface RenderSchedulerSnapshot {
   framesWhileIdle: number;
   projectionUpdates: number;
   dofUpdates: number;
+  shadowRevision: number;
   invalidationsByOwner: Readonly<Record<string, number>>;
   warnings: readonly string[];
   forcedMode: "demand" | "continuous" | null;

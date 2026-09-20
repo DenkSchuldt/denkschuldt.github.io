@@ -3,7 +3,6 @@
 import { lazy, Profiler, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Canvas } from "@react-three/fiber";
-import mixpanel from "mixpanel-browser";
 import * as THREE from "three";
 
 import {
@@ -12,6 +11,7 @@ import {
   useCinematicRuntimeController,
 } from "@denk/cinematic-navigation/react";
 
+import { scheduleAnalytics, trackEvent } from "./analytics";
 import { shouldSyncRouteShot } from "./camera/cameraNavigation";
 import { CinematicFade } from "./camera/CinematicFade";
 import { NavigationDebugPanel } from "./camera/NavigationDebugPanel";
@@ -68,11 +68,11 @@ import {
 } from "./runtime/working-set";
 import { Scene } from "./Scene";
 import { POEMS_FOLDER_LAYOUT } from "./sceneLayout";
+import { createScreenProjection } from "./screenProjection";
 
 import type { RuntimeNodeRegistration } from "@denk/cinematic-navigation";
 import type { NavigationLocation, SceneId } from "./camera/navigationTypes";
 import type { CinematicNavigationSystem } from "./camera/useCinematicCamera";
-import type { ScreenProjection } from "./screenProjection";
 import type { SceneSettings } from "./Scene";
 
 type PoemInteractionDetail = { slug?: string; title?: string; url?: string; comment?: string };
@@ -98,11 +98,6 @@ const PolaroidCaptionOverlay = lazy(() =>
 const PhoneOverlay = lazy(() =>
   import("./components/PhoneOverlay").then((module) => ({ default: module.PhoneOverlay })),
 );
-let mixpanelInitialized = false;
-const trackEvent = (event: string, properties?: Record<string, unknown>) => {
-  if (process.env.NODE_ENV !== "production") return;
-  mixpanel.track(event, properties);
-};
 const RUNTIME_NODES: readonly RuntimeNodeRegistration[] = [
   { id: "world", scope: "world", mountPolicy: "persistent" },
   ...GUIDED_SCENE_IDS.map((sceneId) => ({
@@ -235,24 +230,20 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
   const skippedSceneFocus = useRef(false);
   const lastSkipVersion = useRef(0);
   const laptopScreenRef = useRef<THREE.Mesh | null>(null);
-  const screenProjectionRef = useRef<ScreenProjection | null>(null);
+  const screenProjectionRef = useMemo(() => createScreenProjection(), []);
   const paperScreenRef = useRef<THREE.Mesh | null>(null);
-  const paperProjectionRef = useRef<ScreenProjection | null>(null);
+  const paperProjectionRef = useMemo(() => createScreenProjection(), []);
   const polaroidScreenRef = useRef<THREE.Mesh | null>(null);
-  const polaroidProjectionRef = useRef<ScreenProjection | null>(null);
+  const polaroidProjectionRef = useMemo(() => createScreenProjection(), []);
   const poemsScreenRef = useRef<THREE.Mesh | null>(null);
-  const poemsProjectionRef = useRef<ScreenProjection | null>(null);
+  const poemsProjectionRef = useMemo(() => createScreenProjection(), []);
   const phoneScreenRef = useRef<THREE.Mesh | null>(null);
-  const phoneProjectionRef = useRef<ScreenProjection | null>(null);
+  const phoneProjectionRef = useMemo(() => createScreenProjection(), []);
 
   useEffect(() => {
-    if (mixpanelInitialized || process.env.NODE_ENV !== "production") return;
-    mixpanel.init("ff576ce4c6538cde6328105772148efb", {
-      autocapture: true,
-      record_sessions_percent: 0,
-    });
-    mixpanelInitialized = true;
-  }, []);
+    if (!sceneReady) return;
+    return scheduleAnalytics();
+  }, [sceneReady]);
 
   const onSceneReady = useCallback(() => setSceneReady(true), []);
   const onCinematicFadeComplete = useCallback(() => setCinematicFadeReady(true), []);
@@ -893,7 +884,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
             onComplete={onCinematicFadeComplete}
           />
           <QualityPreferenceControl />
-          <PerformanceOverlay />
+          {performanceDiagnostics.enabled && <PerformanceOverlay />}
         </div>
       </CinematicRuntimeProvider>
     </Profiler>

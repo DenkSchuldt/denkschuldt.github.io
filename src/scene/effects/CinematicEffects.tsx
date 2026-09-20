@@ -54,7 +54,6 @@ export default function CinematicEffects({
   features: ResolvedQualityFeatures;
 }) {
   const dof = useRef<DepthOfFieldEffect | null>(null);
-  const lastFocus = useRef(Number.NaN);
   const gl = useThree((state) => state.gl);
   const blueprint = useActiveReality((reality) => reality.id === "blueprint");
   const renderDemand = useRenderDemand("cinematic-effects"),
@@ -77,9 +76,8 @@ export default function CinematicEffects({
         circleOfConfusionMaterial?: { uniforms?: { focusDistance?: { value: number } } };
       } | null;
       const uniform = effect?.circleOfConfusionMaterial?.uniforms?.focusDistance;
-      if (uniform && Math.abs(lastFocus.current - focusRef.current) > 0.000001) {
+      if (uniform && Math.abs(uniform.value - focusRef.current) > 0.000001) {
         uniform.value = focusRef.current;
-        lastFocus.current = focusRef.current;
         scheduler.recordDof();
       }
     }),

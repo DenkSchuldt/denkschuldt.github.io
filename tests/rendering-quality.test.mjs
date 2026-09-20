@@ -1,3 +1,4 @@
+import { ActiveFrameSamples } from "../src/scene/rendering/quality/frameSamples.ts";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
@@ -13,6 +14,7 @@ import {
   parseQualityPreference,
   resolveFeatureFlags,
   selectInitialQuality,
+  preserveAdaptiveSelection,
 } from "../src/scene/rendering/quality/qualitySelection.ts";
 
 const capabilities = {
@@ -184,4 +186,124 @@ test("hidden tabs, transitions and explicit profiles suspend adaptation", () => 
     evaluateAdaptiveDpr(state, { now: 6000, health: poor, profile, autoMode: false }).nextDpr,
     null,
   );
+});
+
+test("intentional periodic frames do not downgrade quality", () => {
+  for (const fps of [15, 30]) {
+    const samples = new ActiveFrameSamples();
+    for (let now = 0; now < 10000; now += 1000 / fps) {
+      samples.record({
+        now,
+        deltaMs: 1000 / fps,
+        continuous: false,
+        visible: true,
+        warmingUp: false,
+      });
+    }
+    const summary = samples.summarize(16.67);
+    assert.equal(summary.sampleCount, 0);
+    const result = evaluateAdaptiveDpr(createAdaptiveState(1.6, 0), {
+      now: 10000,
+      health: health(summary),
+      profile: RENDERING_QUALITY_PROFILES.ultra,
+      autoMode: true,
+    });
+    assert.equal(result.nextDpr, null);
+    assert.equal(result.nextProfileId, null);
+  }
+});
+
+test("active sampling excludes idle gaps, warmup and hidden intervals", () => {
+  const samples = new ActiveFrameSamples();
+  const record = (now, deltaMs, continuous = true, visible = true, warmingUp = false) =>
+    samples.record({ now, deltaMs, continuous, visible, warmingUp });
+  record(1000, 1000);
+  record(1017, 17);
+  record(1084, 67, false);
+  record(10000, 8916);
+  record(10017, 17);
+  assert.equal(samples.summarize(16.67).sampleDurationMs, 34);
+  assert.equal(samples.summarize(16.67).longestFrameMs, 17);
+  record(11000, 983, true, false);
+  assert.equal(samples.summarize(16.67).sampleCount, 0);
+  record(12000, 1000, true, true, true);
+  record(13000, 1000);
+  record(13017, 17);
+  assert.equal(samples.summarize(16.67).sampleCount, 1);
+  record(50000, 36983, false);
+  assert.equal(samples.summarize(16.67).sampleCount, 0);
+});
+
+test("stable 60 and 120 Hz rendering can recover DPR without exceeding native density", () => {
+  for (const fps of [60, 120]) {
+    const samples = new ActiveFrameSamples();
+    for (let now = 0; now < 20000; now += 1000 / fps) {
+      samples.record({
+        now,
+        deltaMs: 1000 / fps,
+        continuous: true,
+        visible: true,
+        warmingUp: false,
+      });
+    }
+    const input = {
+      now: 20000,
+      health: health(samples.summarize(16.67)),
+      profile: RENDERING_QUALITY_PROFILES.ultra,
+      autoMode: true,
+    };
+    assert.equal(evaluateAdaptiveDpr(createAdaptiveState(1, 0), input).nextDpr, 1.25);
+    assert.equal(
+      evaluateAdaptiveDpr(createAdaptiveState(1, 0), { ...input, maximumDpr: 1 }).nextDpr,
+      null,
+    );
+  }
+});
+
+test("sustained load at minimum DPR steps down effects after the transition", () => {
+  const samples = new ActiveFrameSamples();
+  for (let now = 0; now <= 5000; now += 40) {
+    samples.record({ now, deltaMs: 40, continuous: true, visible: true, warmingUp: false });
+  }
+  for (const [from, to] of [
+    ["ultra", "high"],
+    ["high", "balanced"],
+    ["balanced", "mobile"],
+    ["mobile", "fallback"],
+  ]) {
+    const state = createAdaptiveState(1, 0);
+    const profile = RENDERING_QUALITY_PROFILES[from];
+    const input = {
+      now: 6000,
+      health: health(samples.summarize(profile.runtime.targetFrameMs)),
+      profile,
+      autoMode: true,
+    };
+    assert.equal(
+      evaluateAdaptiveDpr(state, { ...input, health: { ...input.health, transitioning: true } })
+        .nextProfileId,
+      null,
+    );
+    assert.equal(evaluateAdaptiveDpr(state, { ...input, autoMode: false }).nextProfileId, null);
+    const result = evaluateAdaptiveDpr(state, input);
+    assert.equal(result.nextProfileId, to);
+    assert.equal(result.state.history.at(-1).kind, "profile");
+    assert.equal(evaluateAdaptiveDpr(result.state, { ...input, now: 7000 }).nextProfileId, null);
+  }
+});
+
+test("resize preserves adaptive degradation but honors explicit user profiles", () => {
+  const initial = selectInitialQuality({ diagnostics, preference: "auto", capabilities });
+  const degraded = { ...initial, profileId: "mobile", reason: "adaptive-performance" };
+  assert.equal(preserveAdaptiveSelection(degraded, initial).profileId, "mobile");
+  const mobile = selectInitialQuality({
+    diagnostics,
+    preference: "auto",
+    capabilities: { ...capabilities, coarsePointer: true },
+  });
+  const resized = preserveAdaptiveSelection({ ...degraded, profileId: "high" }, mobile);
+  assert.equal(preserveAdaptiveSelection(resized, initial).profileId, "mobile");
+  assert.equal(preserveAdaptiveSelection(degraded, mobile).reason, "adaptive-performance");
+  const forced = selectInitialQuality({ diagnostics, preference: "high", capabilities });
+  assert.equal(preserveAdaptiveSelection(degraded, forced).profileId, "high");
 });

@@ -19,6 +19,7 @@ import {
   isResourceResidentState,
   useDestinationWorkingSet,
   useOwnedTexture,
+  useWorkingSetStore,
 } from "../runtime/working-set";
 import { PHONE_LAYOUT } from "../sceneLayout";
 import { FadingGroup } from "./FadingGroup";
@@ -766,7 +767,15 @@ function PolaroidPhoto({
   onOpen?: () => void;
   screenRef?: MutableRefObject<THREE.Mesh | null>;
 }) {
-  const texture = useTexture(withSceneBasePath("/me.jpeg") + "?polaroid=1");
+  const texture = useTexture(withSceneBasePath("/me-polaroid.jpg"));
+  const workingSet = useWorkingSetStore();
+  useEffect(() => {
+    workingSet.resourceEvent("prepare-end", "polaroid-photo", {
+      status: "resident",
+      cache: "shared-loader",
+      detail: "768x1024 shared polaroid texture; original reserved for lightbox",
+    });
+  }, [texture, workingSet]);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = 8;
   const pointerDemand = useRenderDemand("polaroid-pointer");

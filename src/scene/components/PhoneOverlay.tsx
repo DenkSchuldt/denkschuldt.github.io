@@ -235,7 +235,6 @@ export function PhoneOverlay({
       { x: SCREEN_LOGICAL_WIDTH, y: SCREEN_LOGICAL_HEIGHT },
       { x: 0, y: SCREEN_LOGICAL_HEIGHT },
     ];
-    let frame = 0;
     const update = () => {
       const shell = shellRef.current,
         projection = projectionRef.current;
@@ -246,11 +245,10 @@ export function PhoneOverlay({
           shell.style.visibility = "visible";
         }
       }
-      frame = window.requestAnimationFrame(update);
     };
-    frame = window.requestAnimationFrame(update);
-    return () => window.cancelAnimationFrame(frame);
-  }, [projectionRef, visible]);
+    update();
+    return projectionRef.subscribe(update);
+  }, [projectionRef, visible, present]);
 
   if (!present) return null;
 

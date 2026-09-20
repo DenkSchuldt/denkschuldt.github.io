@@ -10,6 +10,15 @@ const cadenceMs = (cadence: RenderLease["cadence"]) =>
 const leaseKey = ({ ownerId, reason }: Pick<RenderLeaseRequest, "ownerId" | "reason">) =>
   `${ownerId}\u0000${reason}`;
 
+const SHADOW_CHANGE_REASONS = new Set<RenderReason>([
+  "asset-ready",
+  "working-set-change",
+  "initial-render",
+  "resize",
+  "quality-change",
+  "reality-transition",
+]);
+
 export class RenderSchedulerStore {
   private listeners = new Set<() => void>();
   private invalidator: (() => void) | null = null;
@@ -31,6 +40,7 @@ export class RenderSchedulerStore {
     framesWhileIdle: 0,
     projectionUpdates: 0,
     dofUpdates: 0,
+    shadowRevision: 0,
     invalidationsByOwner: {},
     warnings: [],
     forcedMode: null,
@@ -65,7 +75,12 @@ export class RenderSchedulerStore {
     };
     this.snapshot = {
       ...this.snapshot,
-      mode: this.leases.size ? "continuous" : "one-shot",
+      mode: resolveRenderMode(
+        this.snapshot.continuousLeases.length,
+        this.snapshot.periodicLeases.length,
+        1,
+      ),
+      shadowRevision: this.snapshot.shadowRevision + (SHADOW_CHANGE_REASONS.has(reason) ? 1 : 0),
       pendingInvalidations: this.snapshot.pendingInvalidations + 1,
       lastInvalidationReason: reason,
       lastInvalidationOwner: ownerId,
@@ -126,9 +141,14 @@ export class RenderSchedulerStore {
     this.commit();
   }
   expire(now = performance.now()) {
-    for (const [key, lease] of this.leases)
-      if (lease.expiresAt !== null && lease.expiresAt <= now) this.leases.delete(key);
-    this.commit();
+    let changed = false;
+    for (const [key, lease] of this.leases) {
+      if (lease.expiresAt !== null && lease.expiresAt <= now) {
+        this.leases.delete(key);
+        changed = true;
+      }
+    }
+    if (changed) this.commit();
   }
   setVisible(visible: boolean) {
     if (this.snapshot.visible === visible) return;
@@ -144,7 +164,8 @@ export class RenderSchedulerStore {
   }
   frame(now = performance.now()) {
     this.expire(now);
-    const active = [...this.leases.values()].filter((lease) => lease.cadence === "display");
+    const previousMode = this.snapshot.mode;
+    const active = this.snapshot.continuousLeases;
     const logicallyIdle = !active.length && this.snapshot.pendingInvalidations === 0;
     this.snapshot = {
       ...this.snapshot,
@@ -153,9 +174,9 @@ export class RenderSchedulerStore {
       pendingInvalidations: 0,
       lastRenderedAt: now,
       idleSince: active.length ? null : (this.snapshot.idleSince ?? now),
-      mode: active.length ? "continuous" : this.periodicLeases().length ? "periodic" : "idle",
+      mode: resolveRenderMode(active.length, this.snapshot.periodicLeases.length, 0),
     };
-    this.emit();
+    if (previousMode !== this.snapshot.mode) this.emit();
     if (this.snapshot.visible && (active.length || this.snapshot.forcedMode === "continuous"))
       this.invalidator?.();
   }
@@ -195,13 +216,11 @@ export class RenderSchedulerStore {
       ...this.snapshot,
       continuousLeases: continuous,
       periodicLeases: periodic,
-      mode: continuous.length
-        ? "continuous"
-        : periodic.length
-          ? "periodic"
-          : this.snapshot.pendingInvalidations
-            ? "one-shot"
-            : "idle",
+      mode: resolveRenderMode(
+        continuous.length,
+        periodic.length,
+        this.snapshot.pendingInvalidations,
+      ),
       idleSince:
         continuous.length || this.snapshot.pendingInvalidations
           ? null
@@ -215,8 +234,8 @@ export class RenderSchedulerStore {
       clearTimeout(this.periodicTimer);
       this.periodicTimer = null;
     }
-    const leases = this.periodicLeases();
-    if (!this.snapshot.visible || !leases.length) return;
+    const leases = this.snapshot.periodicLeases;
+    if (!this.snapshot.visible || this.snapshot.continuousLeases.length || !leases.length) return;
     const delay = Math.min(...leases.map(({ cadence }) => cadenceMs(cadence)));
     this.periodicTimer = setTimeout(() => {
       this.periodicTimer = null;
@@ -227,4 +246,14 @@ export class RenderSchedulerStore {
   private emit() {
     this.listeners.forEach((listener) => listener());
   }
+}
+
+function resolveRenderMode(
+  continuousCount: number,
+  periodicCount: number,
+  pendingInvalidations: number,
+): RenderSchedulerSnapshot["mode"] {
+  if (continuousCount) return "continuous";
+  if (periodicCount) return "periodic";
+  return pendingInvalidations ? "one-shot" : "idle";
 }

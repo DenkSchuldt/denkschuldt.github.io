@@ -1,4 +1,5 @@
 import { RENDERING_QUALITY_PROFILES } from "./profiles.ts";
+import { QUALITY_PROFILE_ORDER } from "./adaptiveController.ts";
 import type {
   DiagnosticQualityOverrides,
   PreliminaryCapabilities,
@@ -111,3 +112,12 @@ export function resolveFeatureFlags(
   };
 }
 export type ResolvedQualityFeatures = ReturnType<typeof resolveFeatureFlags>;
+
+export function preserveAdaptiveSelection(previous: QualitySelection, next: QualitySelection) {
+  if (next.userForced || previous.reason !== "adaptive-performance") return next;
+  // Resizing must not undo a downgrade already justified by sustained rendering load.
+  return QUALITY_PROFILE_ORDER.indexOf(previous.profileId) >=
+    QUALITY_PROFILE_ORDER.indexOf(next.profileId)
+    ? previous
+    : { ...next, reason: "adaptive-performance" as const };
+}

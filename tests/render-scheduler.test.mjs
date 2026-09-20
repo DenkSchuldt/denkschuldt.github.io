@@ -112,3 +112,58 @@ test("scheduler has no navigation mutation surface", () => {
   assert.equal("enterFocus" in store, false);
   store.dispose();
 });
+
+test("frames without lease expiry do not restart periodic cadence or publish unchanged control", (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const store = new RenderSchedulerStore();
+  let requests = 0;
+  let publications = 0;
+  store.setInvalidator(() => requests++);
+  store.acquirePeriodic({ ownerId: "steam", reason: "coffee-steam", cadence: "15fps" }, 0);
+  assert.equal(store.getSnapshot().mode, "periodic");
+  const unsubscribe = store.subscribe(() => publications++);
+  t.mock.timers.tick(60);
+  store.frame(60);
+  store.expire(61);
+  assert.equal(publications, 0);
+  t.mock.timers.tick(7);
+  assert.equal(requests, 2);
+  assert.equal(store.getSnapshot().mode, "periodic");
+  unsubscribe();
+  store.dispose();
+});
+
+test("periodic timers pause while a continuous owner supplies frames", (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const store = new RenderSchedulerStore();
+  let requests = 0;
+  store.setInvalidator(() => requests++);
+  store.acquirePeriodic({ ownerId: "steam", reason: "coffee-steam" });
+  const release = store.acquireContinuous({ ownerId: "camera", reason: "navigation-transition" });
+  const before = requests;
+  t.mock.timers.tick(200);
+  assert.equal(requests, before);
+  release();
+  t.mock.timers.tick(70);
+  assert.equal(requests, before + 1);
+  store.dispose();
+});
+
+test("shadow cache revisions follow resource changes rather than ambient frames", () => {
+  const store = new RenderSchedulerStore();
+  for (const reason of [
+    "asset-ready",
+    "working-set-change",
+    "resize",
+    "quality-change",
+    "reality-transition",
+  ]) {
+    const before = store.getSnapshot().shadowRevision;
+    store.invalidate("scene", reason);
+    assert.equal(store.getSnapshot().shadowRevision, before + 1);
+    store.frame();
+    store.invalidate("steam", "coffee-steam");
+    assert.equal(store.getSnapshot().shadowRevision, before + 1);
+  }
+  store.dispose();
+});

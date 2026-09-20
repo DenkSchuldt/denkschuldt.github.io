@@ -7,6 +7,7 @@ import type { ServerResponse } from "node:http";
 import type { Plugin, ViteDevServer } from "vite";
 import hostingConfig from "./.openai/hosting.json";
 import { sites } from "./build/sites-vite-plugin";
+import { performanceManifest } from "./scripts/performance-manifest";
 import { getPoemsAtomFeed, getStaticPoemManifest } from "./app/poems.server";
 import {
   getAboutMarkdown,
@@ -138,6 +139,7 @@ export default defineConfig(async () => {
       : undefined,
     plugins: [
       siteDiscovery(),
+      performanceManifest(),
       vinext(),
       sites(),
       cloudflare({

@@ -3,6 +3,7 @@ import type {
   FrameHealthSummary,
   QualityChangeReason,
   RenderingQualityProfile,
+  QualityProfileId,
 } from "./types.ts";
 
 export interface AdaptiveInput {
@@ -10,11 +11,21 @@ export interface AdaptiveInput {
   health: FrameHealthSummary;
   profile: RenderingQualityProfile;
   autoMode: boolean;
+  maximumDpr?: number;
 }
 export interface AdaptiveDecision {
   state: AdaptiveState;
   nextDpr: number | null;
+  nextProfileId: QualityProfileId | null;
 }
+
+export const QUALITY_PROFILE_ORDER: readonly QualityProfileId[] = [
+  "ultra",
+  "high",
+  "balanced",
+  "mobile",
+  "fallback",
+];
 const nextLevel = (levels: readonly number[], current: number, direction: -1 | 1) => {
   const sorted = [...levels].sort((a, b) => a - b),
     index = sorted.reduce(
@@ -48,13 +59,13 @@ export function evaluateAdaptiveDpr(state: AdaptiveState, input: AdaptiveInput):
     now < state.warmupUntil ||
     now < state.cooldownUntil
   )
-    return { state: { ...next, pending: null }, nextDpr: null };
+    return { state: { ...next, pending: null }, nextDpr: null, nextProfileId: null };
   const poor =
     health.sampleDurationMs >= profile.runtime.poorDurationMs &&
     (health.p95FrameMs > profile.runtime.targetFrameMs * 1.18 || health.overBudgetRatio > 0.35);
   const stable =
     health.sampleDurationMs >= profile.runtime.minimumStableDurationMs &&
-    health.p95FrameMs < profile.runtime.targetFrameMs * 0.88 &&
+    health.p95FrameMs <= profile.runtime.targetFrameMs * 1.08 &&
     health.overBudgetRatio < 0.08;
   let target = state.currentDpr,
     reason: QualityChangeReason | null = null;
@@ -62,24 +73,33 @@ export function evaluateAdaptiveDpr(state: AdaptiveState, input: AdaptiveInput):
     target = nextLevel(profile.renderer.dprLevels, state.currentDpr, -1);
     reason = "sustained-poor-frames";
   } else if (stable && profile.runtime.allowAutomaticUpgrade) {
-    target = nextLevel(profile.renderer.dprLevels, state.currentDpr, 1);
+    target = Math.min(
+      input.maximumDpr ?? profile.renderer.dprMax,
+      nextLevel(profile.renderer.dprLevels, state.currentDpr, 1),
+    );
     reason = "sustained-stable-frames";
   }
-  if (target === state.currentDpr || !reason)
+  const nextProfileId =
+    poor && profile.runtime.allowAutomaticDowngrade && state.currentDpr <= profile.renderer.dprMin
+      ? (QUALITY_PROFILE_ORDER[QUALITY_PROFILE_ORDER.indexOf(profile.id) + 1] ?? null)
+      : null;
+  if ((target === state.currentDpr && !nextProfileId) || !reason)
     return {
       state: { ...next, pending: poor ? "downgrade" : stable ? "upgrade" : null },
       nextDpr: null,
+      nextProfileId: null,
     };
   const change = {
     timestamp: now,
-    kind: "dpr" as const,
-    from: state.currentDpr,
-    to: target,
+    kind: nextProfileId ? ("profile" as const) : ("dpr" as const),
+    from: nextProfileId ? profile.id : state.currentDpr,
+    to: nextProfileId ?? target,
     reason,
     health,
   };
   return {
-    nextDpr: target,
+    nextDpr: target === state.currentDpr ? null : target,
+    nextProfileId,
     state: {
       ...next,
       currentDpr: target,

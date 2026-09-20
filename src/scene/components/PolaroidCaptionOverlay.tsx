@@ -28,7 +28,6 @@ export function PolaroidCaptionOverlay({
       { x: CARD_LOGICAL_WIDTH, y: CARD_LOGICAL_HEIGHT },
       { x: 0, y: CARD_LOGICAL_HEIGHT },
     ];
-    let frame = 0;
     const update = () => {
       const shell = shellRef.current,
         projection = projectionRef.current;
@@ -39,10 +38,9 @@ export function PolaroidCaptionOverlay({
           shell.style.visibility = "visible";
         }
       }
-      frame = window.requestAnimationFrame(update);
     };
-    frame = window.requestAnimationFrame(update);
-    return () => window.cancelAnimationFrame(frame);
+    update();
+    return projectionRef.subscribe(update);
   }, [projectionRef, visible]);
 
   if (!visible) return null;
