@@ -20,6 +20,7 @@ author:
 # Photons
 
 Have you ever flown too close to the sun?
+A poem written by Denny K. Schuldt.
 
 ***
 

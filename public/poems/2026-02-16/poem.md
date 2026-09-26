@@ -21,6 +21,7 @@ author:
 # A dead past haunted
 
 How do you declare a place… dead?
+A poem written by Denny K. Schuldt.
 
 ***
 

@@ -98,7 +98,9 @@ function readableDate(value: string) {
   const date = new Date(`${value}T00:00:00`);
   return Number.isNaN(date.valueOf())
     ? value
-    : new Intl.DateTimeFormat(undefined, { dateStyle: "long" }).format(date);
+    : new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(
+        date,
+      );
 }
 
 function poemImageTilt(slug: string) {

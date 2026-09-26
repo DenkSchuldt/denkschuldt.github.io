@@ -19,6 +19,7 @@ author:
 # Safebox
 
 Mutual, that’s the word. That’s the key to unravel my world.
+A poem written by Denny K. Schuldt.
 
 ***
 
