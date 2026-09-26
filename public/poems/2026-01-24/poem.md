@@ -23,6 +23,7 @@ author:
 # Mining my mind
 
 How heavy can consciousness be?
+A poem written by Denny K. Schuldt.
 
 ***
 

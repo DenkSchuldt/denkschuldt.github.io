@@ -18,6 +18,7 @@ author:
 # A zombie camouflaged
 
 How does one become undead?
+A poem written by Denny K. Schuldt.
 
 ***
 

@@ -19,6 +19,7 @@ author:
 # My Bible
 
 As it is written, shall it be done.
+A poem written by Denny K. Schuldt.
 
 ***
 

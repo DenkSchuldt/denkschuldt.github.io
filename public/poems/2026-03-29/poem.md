@@ -20,6 +20,7 @@ author:
 # Armored as knights
 
 In a world that swipes fast, how do we take off our shields?
+A poem written by Denny K. Schuldt.
 
 ***
 
