@@ -1,16 +1,8 @@
 "use client";
 
-import {
-  Suspense,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { Capsule, RoundedBox, Text, useCursor, useTexture } from "@react-three/drei";
+import { Capsule, RoundedBox, useCursor, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 
 import { withSceneBasePath } from "../camera/sceneRoutes";
@@ -18,15 +10,15 @@ import { useRenderDemand } from "../runtime/render-scheduler";
 import {
   isResourceResidentState,
   useDestinationWorkingSet,
-  useOwnedTexture,
   useWorkingSetStore,
 } from "../runtime/working-set";
 import { PHONE_LAYOUT } from "../sceneLayout";
 import { FadingGroup } from "./FadingGroup";
+import { PoemsTablet } from "./PoemsTablet";
 import { roundedRectangleShape } from "./geometry";
 import { useFeatureSettleLease, useMeasuredRuntimeTask } from "./runtimeHooks";
 
-import type { MutableRefObject, RefObject } from "react";
+import type { MutableRefObject } from "react";
 import type { SceneId } from "../camera/navigationTypes";
 
 const DESK_LAMP_METAL_MATERIAL = new THREE.MeshStandardMaterial({
@@ -166,110 +158,11 @@ STEAM_TEXTURE.minFilter = THREE.LinearFilter;
 STEAM_TEXTURE.magFilter = THREE.LinearFilter;
 STEAM_TEXTURE.generateMipmaps = false;
 STEAM_TEXTURE.needsUpdate = true;
-const PORTFOLIO_LEATHER_MATERIAL = new THREE.MeshStandardMaterial({
-  color: "#38231a",
-  roughness: 0.8,
-  metalness: 0,
-});
-const PORTFOLIO_LINING_MATERIAL = new THREE.MeshStandardMaterial({
-  color: "#211b18",
-  roughness: 0.92,
-  metalness: 0,
-});
-const PORTFOLIO_PAPER_MATERIAL = new THREE.MeshStandardMaterial({
-  color: "#d8ceb9",
-  roughness: 0.92,
-  metalness: 0,
-});
-const PORTFOLIO_METAL_MATERIAL = new THREE.MeshStandardMaterial({
-  color: "#7a7771",
-  roughness: 0.38,
-  metalness: 0.72,
-});
-const PORTFOLIO_COVER_GEOMETRY = new THREE.ExtrudeGeometry(
-  roundedRectangleShape(0.84, 0.78, 0.055),
-  {
-    depth: 0.045,
-    steps: 1,
-    curveSegments: 20,
-    bevelEnabled: true,
-    bevelSegments: 1,
-    bevelSize: 0.01,
-    bevelThickness: 0.01,
-  },
-);
-PORTFOLIO_COVER_GEOMETRY.center();
-PORTFOLIO_COVER_GEOMETRY.rotateX(-Math.PI / 2);
-PORTFOLIO_COVER_GEOMETRY.computeVertexNormals();
-const PORTFOLIO_LINING_GEOMETRY = new THREE.ShapeGeometry(
-  roundedRectangleShape(0.77, 0.71, 0.045),
-  20,
-);
-PORTFOLIO_LINING_GEOMETRY.rotateX(-Math.PI / 2);
-const PORTFOLIO_POCKET_GEOMETRY = new THREE.ExtrudeGeometry(
-  roundedRectangleShape(0.68, 0.5, 0.04),
-  {
-    depth: 0.014,
-    steps: 1,
-    curveSegments: 20,
-    bevelEnabled: true,
-    bevelSegments: 1,
-    bevelSize: 0.006,
-    bevelThickness: 0.006,
-  },
-);
-PORTFOLIO_POCKET_GEOMETRY.center();
-PORTFOLIO_POCKET_GEOMETRY.rotateX(-Math.PI / 2);
-PORTFOLIO_POCKET_GEOMETRY.computeVertexNormals();
-const PORTFOLIO_PAGE_GEOMETRY = new THREE.ExtrudeGeometry(roundedRectangleShape(0.72, 0.7, 0.025), {
-  depth: 0.007,
-  steps: 1,
-  curveSegments: 20,
-  bevelEnabled: true,
-  bevelSegments: 1,
-  bevelSize: 0.003,
-  bevelThickness: 0.003,
-});
-PORTFOLIO_PAGE_GEOMETRY.center();
-PORTFOLIO_PAGE_GEOMETRY.rotateX(-Math.PI / 2);
-PORTFOLIO_PAGE_GEOMETRY.computeVertexNormals();
-const PORTFOLIO_PAGE_SURFACE_GEOMETRY = new THREE.PlaneGeometry(0.704, 0.682);
-const PORTFOLIO_RING_GEOMETRY = new THREE.TorusGeometry(0.032, 0.007, 4, 8, Math.PI * 1.75);
-const PORTFOLIO_EYELET_GEOMETRY = new THREE.CylinderGeometry(0.014, 0.014, 0.003, 8, 1, false);
-const PORTFOLIO_STITCH_GEOMETRY = new THREE.BoxGeometry(0.035, 0.003, 0.006);
-const PORTFOLIO_PEN_LOOP_GEOMETRY = new THREE.TorusGeometry(0.026, 0.008, 4, 8);
-const PORTFOLIO_ZIPPER_CURVE = new THREE.CatmullRomCurve3(
-  [
-    new THREE.Vector3(-0.78, 0.011, -0.41),
-    new THREE.Vector3(0.78, 0.011, -0.41),
-    new THREE.Vector3(0.86, 0.011, -0.34),
-    new THREE.Vector3(0.86, 0.011, 0.34),
-    new THREE.Vector3(0.78, 0.011, 0.41),
-    new THREE.Vector3(-0.78, 0.011, 0.41),
-    new THREE.Vector3(-0.86, 0.011, 0.34),
-    new THREE.Vector3(-0.86, 0.011, -0.34),
-  ],
-  true,
-  "catmullrom",
-  0.1,
-);
-const PORTFOLIO_ZIPPER_GEOMETRY = new THREE.TubeGeometry(
-  PORTFOLIO_ZIPPER_CURVE,
-  48,
-  0.006,
-  3,
-  true,
-);
-const PORTFOLIO_POLAROID_GEOMETRY = new THREE.BoxGeometry(0.34, 0.008, 0.4);
-const PORTFOLIO_PHOTO_GEOMETRY = new THREE.PlaneGeometry(0.27, 0.285);
-const PORTFOLIO_SLOT_GEOMETRY = new THREE.BoxGeometry(0.32, 0.01, 0.045);
-const PORTFOLIO_PULL_GEOMETRY = new THREE.BoxGeometry(0.06, 0.012, 0.026);
-
 interface DeskObjectsProps {
   coffeePosition: [number, number, number];
   lampPosition: [number, number, number];
-  folderPosition: [number, number];
-  folderRotation: number;
+  tabletPosition: [number, number];
+  tabletRotation: number;
   paperPosition: [number, number];
   paperRotation: number;
   penPosition: [number, number];
@@ -285,8 +178,8 @@ interface DeskObjectsProps {
 export function DeskObjects({
   coffeePosition,
   lampPosition,
-  folderPosition,
-  folderRotation,
+  tabletPosition,
+  tabletRotation,
   paperPosition,
   paperRotation,
   penPosition,
@@ -320,10 +213,10 @@ export function DeskObjects({
 
       <Phone active={isPhoneActive} screenRef={phoneScreenRef} />
 
-      <FadingGroup id="poems-portfolio" visible={isPoemsVisible}>
-        <PoemsPortfolio
-          position={folderPosition}
-          rotation={folderRotation}
+      <FadingGroup id="poems-tablet" visible={isPoemsVisible}>
+        <PoemsTablet
+          position={tabletPosition}
+          rotation={tabletRotation}
           active={isPoemsActive}
           screenRef={poemsScreenRef}
         />
@@ -332,326 +225,6 @@ export function DeskObjects({
       <Coffee position={coffeePosition} active={isCoffeeActive} />
 
       <DeskLamp position={lampPosition} />
-    </group>
-  );
-}
-
-function PortfolioPhoto({
-  materialRef,
-}: {
-  materialRef: RefObject<THREE.MeshStandardMaterial | null>;
-}) {
-  const poemsState = useDestinationWorkingSet("poems");
-  const photo = useOwnedTexture(
-    withSceneBasePath("/pinscher.png"),
-    "pinscher-photo",
-    isResourceResidentState(poemsState.state),
-  );
-  if (!photo) return null;
-  photo.anisotropy = 8;
-  return (
-    <mesh
-      geometry={PORTFOLIO_PHOTO_GEOMETRY}
-      position={[0, 0.0045, -0.022]}
-      rotation-x={-Math.PI / 2}
-    >
-      <meshStandardMaterial
-        ref={materialRef}
-        map={photo}
-        emissiveMap={photo}
-        emissive="#ffffff"
-        emissiveIntensity={0}
-        color="#d2c9ba"
-        roughness={0.86}
-        metalness={0}
-      />
-    </mesh>
-  );
-}
-
-function PortfolioPolaroid({ active }: { active: boolean }) {
-  const pointerDemand = useRenderDemand("poems-polaroid-pointer");
-  const [hovered, setHovered] = useState(false);
-  const backingMaterialRef = useRef<THREE.MeshStandardMaterial>(null),
-    photoMaterialRef = useRef<THREE.MeshStandardMaterial>(null);
-  const update = useCallback(
-    ({ delta }: { delta: number }) => {
-      const target = active && hovered;
-      if (backingMaterialRef.current)
-        backingMaterialRef.current.emissiveIntensity = THREE.MathUtils.damp(
-          backingMaterialRef.current.emissiveIntensity,
-          target ? 0.13 : 0,
-          5.5,
-          delta,
-        );
-      if (photoMaterialRef.current)
-        photoMaterialRef.current.emissiveIntensity = THREE.MathUtils.damp(
-          photoMaterialRef.current.emissiveIntensity,
-          target ? 0.15 : 0,
-          5.5,
-          delta,
-        );
-    },
-    [active, hovered],
-  );
-  useMeasuredRuntimeTask({
-    id: "task:poems-polaroid",
-    nodeId: "collection:poems",
-    priority: 20,
-    update,
-  });
-  useCursor(active && hovered);
-  return (
-    <group
-      position={[-0.445, 0.045, 0.045]}
-      rotation-y={0.09}
-      onPointerOver={(event) => {
-        if (!active) return;
-        event.stopPropagation();
-        setHovered(true);
-        pointerDemand.invalidate("pointer-interaction");
-      }}
-      onPointerOut={() => {
-        setHovered(false);
-        pointerDemand.invalidate("pointer-interaction");
-      }}
-      onClick={(event) => {
-        if (!active) return;
-        event.stopPropagation();
-        window.open("https://www.instagram.com/misterpinscher/", "_blank", "noopener,noreferrer");
-      }}
-    >
-      <mesh geometry={PORTFOLIO_POLAROID_GEOMETRY} castShadow>
-        <meshStandardMaterial
-          ref={backingMaterialRef}
-          color="#d8ceb9"
-          roughness={0.92}
-          metalness={0}
-          emissive="#fff3df"
-          emissiveIntensity={0}
-        />
-      </mesh>
-      <Suspense
-        fallback={
-          <mesh
-            geometry={PORTFOLIO_PHOTO_GEOMETRY}
-            position={[0, 0.0045, -0.022]}
-            rotation-x={-Math.PI / 2}
-          >
-            <meshStandardMaterial color="#272522" roughness={0.9} />
-          </mesh>
-        }
-      >
-        <PortfolioPhoto materialRef={photoMaterialRef} />
-      </Suspense>
-      <Suspense fallback={null}>
-        <Text
-          position={[0, 0.0052, 0.163]}
-          rotation-x={-Math.PI / 2}
-          fontSize={0.027}
-          letterSpacing={0.012}
-          font={withSceneBasePath("/fonts/PatrickHand-Regular.ttf")}
-          anchorX="center"
-          anchorY="middle"
-        >
-          @misterpinscher
-          <meshBasicMaterial color="#000000" toneMapped={false} />
-        </Text>
-      </Suspense>
-    </group>
-  );
-}
-
-function PortfolioPoemPreview({ screenRef }: { screenRef?: MutableRefObject<THREE.Mesh | null> }) {
-  return (
-    <mesh
-      ref={screenRef}
-      geometry={PORTFOLIO_PAGE_SURFACE_GEOMETRY}
-      position={[0.395, 0.071, 0]}
-      rotation-x={-Math.PI / 2}
-    >
-      <meshBasicMaterial color="#eee4cf" toneMapped={false} />
-    </mesh>
-  );
-}
-
-function PoemsPortfolio({
-  position,
-  rotation,
-  active,
-  screenRef,
-}: {
-  position: [number, number];
-  rotation: number;
-  active: boolean;
-  screenRef?: MutableRefObject<THREE.Mesh | null>;
-}) {
-  useFeatureSettleLease("poems-feature", active, "poems-preview");
-  const coversRef = useRef<THREE.InstancedMesh>(null),
-    liningsRef = useRef<THREE.InstancedMesh>(null),
-    pagesRef = useRef<THREE.InstancedMesh>(null);
-  const ringsRef = useRef<THREE.InstancedMesh>(null),
-    eyeletsRef = useRef<THREE.InstancedMesh>(null),
-    stitchesRef = useRef<THREE.InstancedMesh>(null);
-  const readingLightRef = useRef<THREE.PointLight>(null);
-  const updateReadingLight = useCallback(
-    ({ delta }: { delta: number }) => {
-      if (readingLightRef.current)
-        readingLightRef.current.intensity = THREE.MathUtils.damp(
-          readingLightRef.current.intensity,
-          active ? 4.5 : 0,
-          3.2,
-          delta,
-        );
-    },
-    [active],
-  );
-  useMeasuredRuntimeTask({
-    id: "task:poems-reading-light",
-    nodeId: "collection:poems",
-    priority: 10,
-    update: updateReadingLight,
-  });
-  useLayoutEffect(() => {
-    const covers = coversRef.current,
-      linings = liningsRef.current,
-      pages = pagesRef.current,
-      rings = ringsRef.current,
-      eyelets = eyeletsRef.current,
-      stitches = stitchesRef.current;
-    if (!covers || !linings || !pages || !rings || !eyelets || !stitches) return;
-    const dummy = new THREE.Object3D();
-    [-0.43, 0.43].forEach((x, index) => {
-      dummy.position.set(x, -0.015, 0);
-      dummy.rotation.set(0, 0, 0);
-      dummy.scale.set(1, 1, 1);
-      dummy.updateMatrix();
-      covers.setMatrixAt(index, dummy.matrix);
-      dummy.position.set(x, 0.013, 0);
-      dummy.updateMatrix();
-      linings.setMatrixAt(index, dummy.matrix);
-    });
-    for (let index = 0; index < 6; index++) {
-      dummy.position.set(0.4, 0.024 + index * 0.0072, (index - 2.5) * 0.0012);
-      dummy.rotation.set(0, (index - 2.5) * 0.0012, 0);
-      dummy.scale.set(1 - index * 0.004, 1, 1 - index * 0.003);
-      dummy.updateMatrix();
-      pages.setMatrixAt(index, dummy.matrix);
-      const bindingZ = -0.245 + index * 0.098;
-      dummy.position.set(0.04, 0.057, bindingZ);
-      dummy.rotation.set(0, 0, index % 2 ? 0.025 : -0.018);
-      dummy.scale.set(1, 1, 1);
-      dummy.updateMatrix();
-      rings.setMatrixAt(index, dummy.matrix);
-      dummy.position.set(0.04, 0.071, bindingZ);
-      dummy.rotation.set(0, 0, 0);
-      dummy.scale.set(1, 1, 1);
-      dummy.updateMatrix();
-      eyelets.setMatrixAt(index, dummy.matrix);
-    }
-    let stitchIndex = 0;
-    [-0.43, 0.43].forEach((center) => {
-      for (let index = 0; index < 10; index++)
-        for (const z of [-0.34, 0.34]) {
-          dummy.position.set(center - 0.315 + index * 0.07, 0.015, z);
-          dummy.rotation.set(0, 0, 0);
-          dummy.scale.set(1, 1, 1);
-          dummy.updateMatrix();
-          stitches.setMatrixAt(stitchIndex++, dummy.matrix);
-        }
-      for (let index = 0; index < 6; index++) {
-        const outer = center < 0 ? center - 0.36 : center + 0.36;
-        dummy.position.set(outer, 0.015, -0.25 + index * 0.1);
-        dummy.rotation.set(0, Math.PI / 2, 0);
-        dummy.scale.set(1, 1, 1);
-        dummy.updateMatrix();
-        stitches.setMatrixAt(stitchIndex++, dummy.matrix);
-      }
-    });
-    [covers, linings, pages, rings, eyelets, stitches].forEach((mesh) => {
-      mesh.instanceMatrix.needsUpdate = true;
-      mesh.computeBoundingSphere();
-    });
-  }, []);
-  return (
-    <group
-      position={[position[0], -0.0325, position[1]]}
-      rotation-y={THREE.MathUtils.degToRad(rotation)}
-      dispose={null}
-    >
-      <instancedMesh
-        ref={coversRef}
-        args={[PORTFOLIO_COVER_GEOMETRY, PORTFOLIO_LEATHER_MATERIAL, 2]}
-        castShadow
-        receiveShadow
-      />
-      <instancedMesh
-        ref={liningsRef}
-        args={[PORTFOLIO_LINING_GEOMETRY, PORTFOLIO_LINING_MATERIAL, 2]}
-      />
-      <mesh geometry={PORTFOLIO_POCKET_GEOMETRY} position={[-0.43, 0.027, 0.055]} castShadow>
-        <primitive object={PORTFOLIO_LEATHER_MATERIAL} attach="material" />
-      </mesh>
-      <PortfolioPolaroid active={active} />
-      <mesh geometry={PORTFOLIO_SLOT_GEOMETRY} position={[-0.48, 0.043, 0.13]}>
-        <primitive object={PORTFOLIO_LEATHER_MATERIAL} attach="material" />
-      </mesh>
-      <mesh
-        geometry={PORTFOLIO_PEN_LOOP_GEOMETRY}
-        position={[-0.075, 0.06, 0.12]}
-        rotation-x={Math.PI / 2}
-      >
-        <primitive object={PORTFOLIO_LEATHER_MATERIAL} attach="material" />
-      </mesh>
-      <instancedMesh
-        ref={pagesRef}
-        args={[PORTFOLIO_PAGE_GEOMETRY, PORTFOLIO_PAPER_MATERIAL, 6]}
-        castShadow
-      />
-      <PortfolioPoemPreview screenRef={screenRef} />
-      {active && (
-        <pointLight
-          ref={readingLightRef}
-          position={[0.43, 0.62, 0.02]}
-          color="#ffd39a"
-          intensity={0}
-          distance={1.4}
-          decay={2}
-        />
-      )}
-      <instancedMesh
-        ref={ringsRef}
-        args={[PORTFOLIO_RING_GEOMETRY, PORTFOLIO_METAL_MATERIAL, 6]}
-        castShadow
-      />
-      <instancedMesh
-        ref={eyeletsRef}
-        args={[PORTFOLIO_EYELET_GEOMETRY, PORTFOLIO_METAL_MATERIAL, 6]}
-        castShadow
-      />
-      <mesh geometry={PORTFOLIO_ZIPPER_GEOMETRY} castShadow>
-        <primitive object={PORTFOLIO_METAL_MATERIAL} attach="material" />
-      </mesh>
-      <instancedMesh
-        ref={stitchesRef}
-        args={[PORTFOLIO_STITCH_GEOMETRY, PORTFOLIO_PAPER_MATERIAL, 52]}
-      />
-      <mesh
-        geometry={PORTFOLIO_PULL_GEOMETRY}
-        position={[0.81, 0.028, 0.36]}
-        rotation-y={-0.3}
-        castShadow
-      >
-        <primitive object={PORTFOLIO_METAL_MATERIAL} attach="material" />
-      </mesh>
-      <mesh
-        geometry={PORTFOLIO_RING_GEOMETRY}
-        position={[0.85, 0.042, 0.35]}
-        rotation={[Math.PI / 2, 0, -0.3]}
-        scale={0.58}
-      >
-        <primitive object={PORTFOLIO_METAL_MATERIAL} attach="material" />
-      </mesh>
     </group>
   );
 }

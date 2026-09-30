@@ -67,7 +67,7 @@ import {
   useDestinationResources,
 } from "./runtime/working-set";
 import { Scene } from "./Scene";
-import { POEMS_FOLDER_LAYOUT } from "./sceneLayout";
+import { POEMS_TABLET_LAYOUT } from "./sceneLayout";
 import { createScreenProjection } from "./screenProjection";
 
 import type { RuntimeNodeRegistration } from "@denk/cinematic-navigation";
@@ -165,8 +165,8 @@ const SETTINGS: SceneSettings = {
   helpers: false,
   laptopPosition: [-0.55, 0, -0.28],
   laptopRotation: -3,
-  folderPosition: POEMS_FOLDER_LAYOUT.position,
-  folderRotation: POEMS_FOLDER_LAYOUT.rotationDegrees,
+  tabletPosition: POEMS_TABLET_LAYOUT.position,
+  tabletRotation: POEMS_TABLET_LAYOUT.rotationDegrees,
   paperPosition: [-2, 0.518],
   paperRotation: 12,
   penPosition: [0.46, 0.05],
@@ -606,21 +606,12 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
   );
 
   const openPoemReader = useCallback(() => {
-    const slug =
-      cameraSystem.selectedFocusCollection === "poems"
-        ? cameraSystem.selectedFocusItem
-        : poemsContent.poems[0]?.slug;
+    const slug = poemsContent.poems[0]?.slug;
     if (!slug) return;
     setReaderPoemSlug(slug);
     if (routeScene === "poems") replaceWithinScene(pathForFocus("poems", slug));
     setPoemReaderOpen(true);
-  }, [
-    cameraSystem.selectedFocusCollection,
-    cameraSystem.selectedFocusItem,
-    poemsContent.poems,
-    replaceWithinScene,
-    routeScene,
-  ]);
+  }, [poemsContent.poems, replaceWithinScene, routeScene]);
 
   const changeReaderPoem = useCallback(
     (slug: string) => {
@@ -848,6 +839,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
                 visible={cameraSystem.selectedScene === "poems" && poemsOverlayReady}
                 projectionRef={poemsProjectionRef}
                 onRead={openPoemReader}
+                hasPoems={poemsContent.poems.length > 0}
               />
             </Suspense>
           )}

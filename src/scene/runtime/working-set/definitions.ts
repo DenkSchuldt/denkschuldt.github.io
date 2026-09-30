@@ -113,18 +113,12 @@ export const WORKING_SET_DEFINITIONS: Readonly<Record<SceneId, DestinationWorkin
     retentionMs: retain(30000, 20000, 10000, 4000, 0),
     speculative: true,
     resources: [
-      resource("poems", "notebook-body", "ambient", "PoemsPortfolio", { shared: true }),
+      resource("poems", "tablet-body", "ambient", "PoemsTablet", { shared: true }),
       resource("poems", "poem-manifest", "shared-cache", "usePoems", {
         shared: true,
         preparationRequired: true,
       }),
-      resource("poems", "pinscher-photo", "preparable", "PortfolioPhoto", {
-        preparationRequired: true,
-        estimatedDecodedBytes: Math.round((567 * 612 * 4 * 4) / 3),
-      }),
-      resource("poems", "poem-preview-texture", "active-only", "PortfolioPoemPreview", {
-        estimatedDecodedBytes: Math.round((1024 * 1160 * 4 * 4) / 3),
-      }),
+      resource("poems", "tablet-screen", "active-only", "PoemsTablet"),
       resource("poems", "poem-markdown", "overlay-only", "usePoems", { preparationRequired: true }),
       resource("poems", "poem-reader-chunk", "overlay-only", "PoemReader", {
         preparationRequired: true,

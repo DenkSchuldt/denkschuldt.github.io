@@ -9,6 +9,7 @@ const OBJECT_SOURCE_PATHS = [
   "Laptop.tsx",
   "MiniProjector.tsx",
   "Plant.tsx",
+  "PoemsTablet.tsx",
   "Posters.tsx",
   "Room.tsx",
   "Shelf.tsx",
@@ -114,9 +115,9 @@ test("keeps heavy WebGL resources outside the initial loading boundary", async (
   assert.match(effects, /multisampling=\{0\}/);
   assert.doesNotMatch(scene, /loadCertificates|loadTextures/);
   assert.match(primitives, /<CertificateGallery\s+illuminated=\{illuminated\}/);
-  assert.match(primitives, /<PortfolioPhoto materialRef=\{photoMaterialRef\} \/>/);
+  assert.match(primitives, /<PoemsTablet\s+position=\{tabletPosition\}/);
+  assert.match(primitives, /ref=\{screenRef\} geometry=\{SCREEN_GEOMETRY\}/);
   assert.match(primitives, /\/certificates\/thumbs\//);
-  assert.match(primitives, /\/fonts\/PatrickHand-Regular\.ttf/);
   assert.doesNotMatch(`${experience}\n${camera}`, /from "leva"/);
 });
 
