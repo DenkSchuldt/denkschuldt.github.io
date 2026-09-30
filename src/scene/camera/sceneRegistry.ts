@@ -1,11 +1,5 @@
 import { CERTIFICATES, CERTIFICATE_LAYOUT } from "../objects/certificates.ts";
-import {
-  PHONE_LAYOUT,
-  POEMS_FOLDER_LAYOUT,
-  POEMS_PAGE_LAYOUT,
-  poemsAlignedCameraPosition,
-  poemsPageCameraPosition,
-} from "../sceneLayout.ts";
+import { PHONE_LAYOUT, POEMS_TABLET_LAYOUT, poemsAlignedCameraPosition } from "../sceneLayout.ts";
 
 import type {
   FocusCollectionDefinition,
@@ -143,17 +137,17 @@ export const SCENE_REGISTRY: Record<SceneId, SceneDefinition> = {
     id: "poems",
     label: "Poems",
     route: "/poems",
-    subject: "folder",
+    subject: "tablet",
     cameraTarget: "poems",
-    framing: framing(poemsAlignedCameraPosition(3.24, 0.22), POEMS_FOLDER_LAYOUT.worldCenter, 26, {
-      waypoint: poemsAlignedCameraPosition(3.25, 1.15),
-      composition: "close stable overhead reading view aligned with writing portfolio",
+    framing: framing(poemsAlignedCameraPosition(3.45, 0.22), POEMS_TABLET_LAYOUT.worldCenter, 26, {
+      waypoint: poemsAlignedCameraPosition(3.5, 1.15),
+      composition: "close overhead view of a horizontal poetry tablet",
     }),
     cameraFocus: {
       enabled: true,
       focusDistance: 0.012,
       depthOfFieldStrength: 0,
-      focusTarget: "folder-pages",
+      focusTarget: "tablet-screen",
     },
     transition: {
       duration: 4.8,
@@ -161,15 +155,15 @@ export const SCENE_REGISTRY: Record<SceneId, SceneDefinition> = {
     },
     responsive: {
       mobile: {
-        position: poemsPageCameraPosition(3.55, 0.08),
-        lookAt: POEMS_PAGE_LAYOUT.mobileReadingTarget,
-        fov: 37,
+        position: poemsAlignedCameraPosition(5.9, 0.18),
+        lookAt: POEMS_TABLET_LAYOUT.worldCenter,
+        fov: 39,
         safeMargins: { top: 0.08, right: 0.07, bottom: 0.14, left: 0.07 },
-        composition: "single readable poem page with notebook spine context",
+        composition: "whole horizontal tablet in a portrait viewport",
       },
       tablet: {
-        position: poemsAlignedCameraPosition(3.72, 0.2),
-        lookAt: POEMS_FOLDER_LAYOUT.worldCenter,
+        position: poemsAlignedCameraPosition(3.75, 0.2),
+        lookAt: POEMS_TABLET_LAYOUT.worldCenter,
         fov: 33,
       },
     },

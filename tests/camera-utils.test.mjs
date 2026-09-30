@@ -45,7 +45,7 @@ import {
   resolveNavigationPath,
   STATIC_FOCUS_ROUTES,
 } from "../src/scene/camera/sceneRoutes.ts";
-import { PHONE_LAYOUT, POEMS_FOLDER_LAYOUT, POEMS_PAGE_LAYOUT } from "../src/scene/sceneLayout.ts";
+import { PHONE_LAYOUT, POEMS_TABLET_LAYOUT } from "../src/scene/sceneLayout.ts";
 
 test("cinematic easing preserves exact endpoints", () => {
   assert.equal(cinematicEase(0), 0);
@@ -297,27 +297,29 @@ test("Scene definitions own camera framing without changing About", () => {
   assert.equal(SCENE_REGISTRY.about.cameraFocus.depthOfFieldStrength, 0);
 });
 
-test("Poems camera remains centered on and aligned with the writing portfolio", () => {
+test("Poems camera remains centered on and aligned with the tablet", () => {
   const framing = SCENE_REGISTRY.poems.framing;
-  assert.deepEqual(framing.lookAt, POEMS_FOLDER_LAYOUT.worldCenter);
+  assert.deepEqual(framing.lookAt, POEMS_TABLET_LAYOUT.worldCenter);
   const cameraOffsetX = framing.position[0] - framing.lookAt[0];
   const cameraOffsetZ = framing.position[2] - framing.lookAt[2];
   const offsetLength = Math.hypot(cameraOffsetX, cameraOffsetZ);
   const screenRight = [cameraOffsetZ / offsetLength, -cameraOffsetX / offsetLength];
-  const angle = (POEMS_FOLDER_LAYOUT.rotationDegrees * Math.PI) / 180;
-  const folderRight = [Math.cos(angle), -Math.sin(angle)];
-  assert.ok(Math.abs(screenRight[0] - folderRight[0]) < 1e-9);
-  assert.ok(Math.abs(screenRight[1] - folderRight[1]) < 1e-9);
+  const tabletRight = [
+    Math.cos((POEMS_TABLET_LAYOUT.rotationDegrees * Math.PI) / 180),
+    -Math.sin((POEMS_TABLET_LAYOUT.rotationDegrees * Math.PI) / 180),
+  ];
+  assert.ok(Math.abs(screenRight[0] - tabletRight[0]) < 1e-9);
+  assert.ok(Math.abs(screenRight[1] - tabletRight[1]) < 1e-9);
   const verticalDistance = framing.position[1] - framing.lookAt[1];
   assert.ok(Math.atan2(offsetLength, verticalDistance) < (10 * Math.PI) / 180);
   assert.equal(SCENE_REGISTRY.poems.cameraFocus.depthOfFieldStrength, 0);
   assert.equal(locationForFocus("poems", "a-poet-lives").cameraTarget, "poems");
   const mobile = resolveShot("poems", 0.6).framing;
   assert.equal(mobile.roll, undefined);
-  assert.equal(mobile.fov, 37);
-  assert.deepEqual(mobile.lookAt, POEMS_PAGE_LAYOUT.mobileReadingTarget);
-  assert.equal(mobile.composition, "single readable poem page with notebook spine context");
-  assert.ok(mobile.position[1] < SCENE_REGISTRY.poems.responsive.tablet.position[1]);
+  assert.equal(mobile.fov, 39);
+  assert.deepEqual(mobile.lookAt, POEMS_TABLET_LAYOUT.worldCenter);
+  assert.equal(mobile.composition, "whole horizontal tablet in a portrait viewport");
+  assert.ok(mobile.position[1] > SCENE_REGISTRY.poems.responsive.tablet.position[1]);
 });
 
 test("Phone framing remains centered on the device at inspection distance", () => {

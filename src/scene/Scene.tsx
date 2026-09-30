@@ -15,6 +15,7 @@ import { FadingGroup } from "./objects/FadingGroup";
 import { Laptop } from "./objects/Laptop";
 import { MiniProjector } from "./objects/MiniProjector";
 import { Plant } from "./objects/Plant";
+import { POEMS_TABLET_SCREEN_HEIGHT, POEMS_TABLET_SCREEN_WIDTH } from "./objects/PoemsTablet";
 import { Posters } from "./objects/Posters";
 import { Room } from "./objects/Room";
 import { Shelf } from "./objects/Shelf";
@@ -61,10 +62,10 @@ const POLAROID_SCREEN_CORNERS: readonly [
 
 const POEMS_SCREEN_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector3, THREE.Vector3] =
   [
-    new THREE.Vector3(-0.352, 0.341, 0),
-    new THREE.Vector3(0.352, 0.341, 0),
-    new THREE.Vector3(0.352, -0.341, 0),
-    new THREE.Vector3(-0.352, -0.341, 0),
+    new THREE.Vector3(-POEMS_TABLET_SCREEN_WIDTH / 2, POEMS_TABLET_SCREEN_HEIGHT / 2, 0),
+    new THREE.Vector3(POEMS_TABLET_SCREEN_WIDTH / 2, POEMS_TABLET_SCREEN_HEIGHT / 2, 0),
+    new THREE.Vector3(POEMS_TABLET_SCREEN_WIDTH / 2, -POEMS_TABLET_SCREEN_HEIGHT / 2, 0),
+    new THREE.Vector3(-POEMS_TABLET_SCREEN_WIDTH / 2, -POEMS_TABLET_SCREEN_HEIGHT / 2, 0),
   ];
 
 const PHONE_SCREEN_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector3, THREE.Vector3] =
@@ -90,8 +91,8 @@ export interface SceneSettings {
   helpers: boolean;
   laptopPosition: [number, number, number];
   laptopRotation: number;
-  folderPosition: [number, number];
-  folderRotation: number;
+  tabletPosition: [number, number];
+  tabletRotation: number;
   paperPosition: [number, number];
   paperRotation: number;
   penPosition: [number, number];
@@ -253,8 +254,8 @@ export function Scene({
       <DeskObjects
         coffeePosition={s.coffeePosition}
         lampPosition={s.lampPosition}
-        folderPosition={s.folderPosition}
-        folderRotation={s.folderRotation}
+        tabletPosition={s.tabletPosition}
+        tabletRotation={s.tabletRotation}
         paperPosition={s.paperPosition}
         paperRotation={s.paperRotation}
         penPosition={s.penPosition}

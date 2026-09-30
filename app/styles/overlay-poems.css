@@ -2,9 +2,6 @@
   position: fixed;
   inset: 0;
   z-index: 34;
-  display: grid;
-  place-items: center;
-  padding: 0;
   pointer-events: none;
   animation: overlay-fade-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -18,52 +15,183 @@
   position: fixed;
   top: 0;
   left: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
   overflow: hidden;
-  padding: 40px 36px;
-  background: transparent;
-  color: #14110c;
-  font-family: "Patrick Hand", "Roboto", cursive;
+  border-radius: 30px;
+  background: #eee4d6;
+  color: #26211c;
   transform-origin: 0 0;
   pointer-events: auto;
 }
-.poems-overlay-shell h1 {
-  margin: 0 0 18px;
-  font-size: 56px;
-  font-weight: 700;
+.poems-overlay-orbits {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.poems-orbit {
+  position: absolute;
+  display: block;
+  width: 650px;
+  height: 430px;
+  border: 1px solid rgba(67, 59, 51, 0.35);
+  border-radius: 50%;
+}
+.poems-orbit-one {
+  top: 115px;
+  right: -160px;
+  transform: rotate(-32deg);
+}
+.poems-orbit-two {
+  top: 230px;
+  right: -250px;
+  transform: rotate(23deg);
+}
+.poems-planet {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  opacity: 0.82;
+}
+.poems-planet-sand {
+  top: 90px;
+  right: 200px;
+  width: 185px;
+  height: 185px;
+  background: radial-gradient(circle at 30% 25%, #d7c8bb, #a99788 83%);
+}
+.poems-planet-dusk {
+  top: 265px;
+  right: -90px;
+  width: 295px;
+  height: 295px;
+  background: radial-gradient(circle at 35% 28%, #858ba8, #ab8eb8 52%, #d7ae83 93%);
+}
+.poems-planet-cream {
+  top: 490px;
+  right: 155px;
+  width: 145px;
+  height: 145px;
+  background: radial-gradient(circle at 35% 25%, #e1d2c1, #cbb5a5 85%);
+}
+.poems-overlay-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 710px;
+  height: 100%;
+  padding: 95px 0 62px 110px;
+}
+.poems-overlay-content h1 {
+  margin: 0;
+  font:
+    400 78px/1.05 Georgia,
+    "Times New Roman",
+    serif;
+  letter-spacing: -0.045em;
+}
+.poems-overlay-subtitle {
+  max-width: 580px;
+  margin: 23px 0 0;
+  color: #69605a;
+  font:
+    400 25px/1.42 "Roboto",
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+  letter-spacing: 0.115em;
+}
+.poems-overlay-star {
+  margin: 30px 0 35px 18px;
+  color: #776b60;
+  font-size: 44px;
   line-height: 1;
-  letter-spacing: 0.01em;
+  font-weight: 200;
 }
-.poems-overlay-shell p {
-  margin: 0 0 20px;
-  font-size: 27px;
-  font-weight: 400;
-  line-height: 1.22;
-  font-family: "Coming Soon", "Patrick Hand", cursive;
+.poems-overlay-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 650px;
 }
-.poems-overlay-read-button {
-  margin-top: auto;
-  align-self: center;
-  padding: 16px 34px;
-  border: none;
-  border-radius: 999px;
-  background: #2b211b;
-  color: #f4ecdf;
-  font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
-  font-size: 16px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+.poems-overlay-action {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  width: 100%;
+  min-height: 115px;
+  padding: 8px 16px 8px 4px;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
   cursor: pointer;
-  transition:
-    background-color 0.2s ease,
-    transform 0.2s ease;
+  transition: background-color 0.25s ease;
 }
-.poems-overlay-read-button:hover {
-  background: #3a2d24;
-  transform: scale(1.04);
+.poems-overlay-action:hover,
+.poems-overlay-action:focus-visible {
+  background: rgba(255, 255, 255, 0.45);
+}
+.poems-overlay-action:disabled {
+  opacity: 0.45;
+  cursor: wait;
+}
+.poems-overlay-action:focus-visible {
+  outline: 3px solid #695e53;
+  outline-offset: 4px;
+}
+.poems-action-icon {
+  display: grid;
+  flex: 0 0 74px;
+  width: 74px;
+  height: 74px;
+  place-items: center;
+  border-radius: 50%;
+}
+.poems-action-book {
+  background: rgba(255, 255, 255, 0.36);
+  color: #544336;
+  font:
+    52px/1 Georgia,
+    serif;
+}
+.poems-action-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 7px;
+}
+.poems-action-text strong {
+  font:
+    400 35px/1.1 Georgia,
+    "Times New Roman",
+    serif;
+}
+.poems-action-text > span {
+  color: #7c7066;
+  font:
+    400 20px/1.3 "Roboto",
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+  letter-spacing: 0.075em;
+}
+.poems-action-arrow {
+  color: #6e5d4d;
+  font:
+    42px/1 Georgia,
+    serif;
+}
+@media (prefers-reduced-motion: reduce) {
+  .poems-overlay,
+  .poems-overlay.is-exiting {
+    animation-duration: 0.01ms;
+  }
+  .poems-overlay-action {
+    transition-duration: 0.01ms;
+  }
 }
 /* Homography-projected onto the polaroid card (see PolaroidCaptionOverlay
    and PolaroidPhoto's tracking mesh in objects/DeskObjects.tsx) — the

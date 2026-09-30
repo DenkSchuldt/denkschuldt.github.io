@@ -7,18 +7,17 @@ import { useWorkingSetStore } from "../runtime/working-set";
 
 import type { ScreenProjectionRef } from "../screenProjection";
 
-const SHEET_LOGICAL_WIDTH = 704;
-const SHEET_LOGICAL_HEIGHT = 682;
+const SCREEN_LOGICAL_WIDTH = 1200;
+const SCREEN_LOGICAL_HEIGHT = 770;
 
-export function PoemsOverlay({
-  visible,
-  projectionRef,
-  onRead,
-}: {
+interface PoemsOverlayProps {
   visible: boolean;
   projectionRef: ScreenProjectionRef;
   onRead: () => void;
-}) {
+  hasPoems: boolean;
+}
+
+export function PoemsOverlay({ visible, projectionRef, onRead, hasPoems }: PoemsOverlayProps) {
   const workingSet = useWorkingSetStore();
   const shellRef = useRef<HTMLDivElement | null>(null);
   const [present, setPresent] = useState(visible);
@@ -48,9 +47,9 @@ export function PoemsOverlay({
     if (!visible) return;
     const source = [
       { x: 0, y: 0 },
-      { x: SHEET_LOGICAL_WIDTH, y: 0 },
-      { x: SHEET_LOGICAL_WIDTH, y: SHEET_LOGICAL_HEIGHT },
-      { x: 0, y: SHEET_LOGICAL_HEIGHT },
+      { x: SCREEN_LOGICAL_WIDTH, y: 0 },
+      { x: SCREEN_LOGICAL_WIDTH, y: SCREEN_LOGICAL_HEIGHT },
+      { x: 0, y: SCREEN_LOGICAL_HEIGHT },
     ];
     const update = () => {
       const shell = shellRef.current,
@@ -68,26 +67,53 @@ export function PoemsOverlay({
   }, [projectionRef, visible, present]);
   if (!present) return null;
   return (
-    <section className={`poems-overlay${visible ? "" : " is-exiting"}`} aria-hidden="true">
+    <section className={`poems-overlay${visible ? "" : " is-exiting"}`} aria-hidden={!visible}>
       <div
         ref={shellRef}
         className="poems-overlay-shell"
         style={{
-          width: SHEET_LOGICAL_WIDTH,
-          height: SHEET_LOGICAL_HEIGHT,
+          width: SCREEN_LOGICAL_WIDTH,
+          height: SCREEN_LOGICAL_HEIGHT,
           visibility: "hidden",
         }}
       >
-        <h1>Poems</h1>
-        <p>
-          Poetry is how I make sense of what I feel, what I lose, and what I still hope to find.
-        </p>
-        <p>
-          I write about love, absence, identity, time, and the strange experience of being alive.
-        </p>
-        <button type="button" className="poems-overlay-read-button" onClick={onRead}>
-          Read my poetry
-        </button>
+        <div className="poems-overlay-orbits" aria-hidden="true">
+          <span className="poems-orbit poems-orbit-one" />
+          <span className="poems-orbit poems-orbit-two" />
+          <span className="poems-planet poems-planet-sand" />
+          <span className="poems-planet poems-planet-dusk" />
+          <span className="poems-planet poems-planet-cream" />
+        </div>
+        <div className="poems-overlay-content">
+          <h1>Poems</h1>
+          <p className="poems-overlay-subtitle">
+            Fragments, reflections,
+            <br />
+            and other orbiting thoughts.
+          </p>
+          <span className="poems-overlay-star" aria-hidden="true">
+            ✳
+          </span>
+          <div className="poems-overlay-actions">
+            <button
+              type="button"
+              className="poems-overlay-action"
+              onClick={onRead}
+              disabled={!hasPoems}
+            >
+              <span className="poems-action-icon poems-action-book" aria-hidden="true">
+                ◫
+              </span>
+              <span className="poems-action-text">
+                <strong>Meet my latest poem</strong>
+                <span>Read the newest piece.</span>
+              </span>
+              <span className="poems-action-arrow" aria-hidden="true">
+                →
+              </span>
+            </button>
+          </div>
+        </div>
       </div>
     </section>
   );
