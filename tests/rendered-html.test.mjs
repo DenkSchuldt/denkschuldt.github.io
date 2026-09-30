@@ -116,7 +116,7 @@ test("keeps heavy WebGL resources outside the initial loading boundary", async (
   assert.doesNotMatch(scene, /loadCertificates|loadTextures/);
   assert.match(primitives, /<CertificateGallery\s+illuminated=\{illuminated\}/);
   assert.match(primitives, /<PoemsTablet\s+position=\{tabletPosition\}/);
-  assert.match(primitives, /ref=\{screenRef\} geometry=\{SCREEN_GEOMETRY\}/);
+  assert.match(primitives, /ref=\{screenRef\}\s+geometry=\{SCREEN_GEOMETRY\}/);
   assert.match(primitives, /\/certificates\/thumbs\//);
   assert.doesNotMatch(`${experience}\n${camera}`, /from "leva"/);
 });
