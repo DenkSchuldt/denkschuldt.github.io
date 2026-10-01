@@ -7,7 +7,6 @@ export type ShotId =
   | "certificates"
   | "certificate-detail"
   | "poems"
-  | "poem-detail"
   | "phone"
   | "socials"
   | "wall"

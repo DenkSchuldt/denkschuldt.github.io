@@ -18,7 +18,6 @@ export function getAdjacentShot(
   if (
     current === "workspace" ||
     current === "project-detail" ||
-    current === "poem-detail" ||
     current === "socials" ||
     current === "movie-detail"
   )
