@@ -28,50 +28,127 @@
   overflow: hidden;
   pointer-events: none;
 }
+.poems-system {
+  position: absolute;
+  top: 400px;
+  left: 930px;
+  width: 0;
+  height: 0;
+  isolation: isolate;
+}
 .poems-orbit {
   position: absolute;
+  top: 0;
+  left: 0;
   display: block;
-  width: 650px;
-  height: 430px;
+  width: calc(var(--orbit-rx) * 2);
+  height: calc(var(--orbit-rx) * 2 * var(--orbit-squash));
   border: 1px solid rgba(67, 59, 51, 0.35);
   border-radius: 50%;
+  transform: translate(-50%, -50%) rotate(var(--orbit-tilt));
 }
-.poems-orbit-one {
-  top: 115px;
-  right: -160px;
-  transform: rotate(-32deg);
+.poems-orbit-inner,
+.poems-track-inner {
+  --orbit-rx: 250px;
+  --orbit-squash: 0.56;
+  --orbit-tilt: -16deg;
+  --orbit-period: 64s;
+  --orbit-phase: -22s;
 }
-.poems-orbit-two {
-  top: 230px;
-  right: -250px;
-  transform: rotate(23deg);
+.poems-orbit-outer,
+.poems-track-outer {
+  --orbit-rx: 370px;
+  --orbit-squash: 0.5;
+  --orbit-tilt: -9deg;
+  --orbit-period: 118s;
+  --orbit-phase: -84s;
+}
+.poems-sun {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  display: block;
+  width: 230px;
+  height: 230px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%, #858ba8, #ab8eb8 52%, #d7ae83 93%);
+  box-shadow: 0 0 60px rgba(215, 174, 131, 0.35);
+  opacity: 0.86;
+  transform: translate(-50%, -50%);
+  animation: poems-sun-glow 9s ease-in-out infinite alternate;
+}
+.poems-track {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  transform: rotate(var(--orbit-tilt)) scaleY(var(--orbit-squash));
+  animation: poems-track-depth var(--orbit-period) linear var(--orbit-phase) infinite;
+}
+.poems-arm {
+  position: absolute;
+  top: 0;
+  left: 0;
+  animation: poems-arm-spin var(--orbit-period) linear var(--orbit-phase) infinite;
 }
 .poems-planet {
   position: absolute;
+  top: 0;
+  left: 0;
   display: block;
   border-radius: 50%;
-  opacity: 0.82;
+  opacity: 0.88;
+  transform: translateX(var(--orbit-rx)) rotate(0deg) scaleY(calc(1 / var(--orbit-squash)))
+    translate(-50%, -50%);
+  transform-origin: 0 0;
+  animation: poems-planet-upright var(--orbit-period) linear var(--orbit-phase) infinite;
 }
 .poems-planet-sand {
-  top: 90px;
-  right: 200px;
-  width: 185px;
-  height: 185px;
+  width: 78px;
+  height: 78px;
   background: radial-gradient(circle at 30% 25%, #d7c8bb, #a99788 83%);
 }
-.poems-planet-dusk {
-  top: 265px;
-  right: -90px;
-  width: 295px;
-  height: 295px;
-  background: radial-gradient(circle at 35% 28%, #858ba8, #ab8eb8 52%, #d7ae83 93%);
-}
 .poems-planet-cream {
-  top: 490px;
-  right: 155px;
-  width: 145px;
-  height: 145px;
+  width: 52px;
+  height: 52px;
   background: radial-gradient(circle at 35% 25%, #e1d2c1, #cbb5a5 85%);
+}
+@keyframes poems-arm-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes poems-planet-upright {
+  from {
+    transform: translateX(var(--orbit-rx)) rotate(0deg) scaleY(calc(1 / var(--orbit-squash)))
+      translate(-50%, -50%);
+  }
+  to {
+    transform: translateX(var(--orbit-rx)) rotate(-360deg) scaleY(calc(1 / var(--orbit-squash)))
+      translate(-50%, -50%);
+  }
+}
+@keyframes poems-track-depth {
+  0%,
+  49.99% {
+    z-index: 2;
+  }
+  50%,
+  100% {
+    z-index: 0;
+  }
+}
+@keyframes poems-sun-glow {
+  from {
+    box-shadow: 0 0 46px rgba(215, 174, 131, 0.28);
+  }
+  to {
+    box-shadow: 0 0 74px rgba(215, 174, 131, 0.42);
+  }
 }
 .poems-overlay-content {
   position: relative;
@@ -121,22 +198,44 @@
   gap: 26px;
   width: 100%;
   min-height: 115px;
-  padding: 8px 16px 8px 4px;
-  border: 0;
-  border-radius: 16px;
-  background: transparent;
+  padding: 18px 22px 18px 18px;
+  border: 1px solid rgba(84, 67, 54, 0.22);
+  border-radius: 22px;
+  background: rgba(250, 245, 238, 0.62);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.8) inset,
+    0 2px 4px rgba(64, 50, 38, 0.08),
+    0 12px 28px rgba(64, 50, 38, 0.12);
   color: inherit;
   text-align: left;
   cursor: pointer;
-  transition: background-color 0.25s ease;
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.25s ease,
+    background-color 0.25s ease,
+    border-color 0.25s ease;
 }
 .poems-overlay-action:hover,
 .poems-overlay-action:focus-visible {
-  background: rgba(255, 255, 255, 0.45);
+  border-color: rgba(84, 67, 54, 0.38);
+  background: rgba(255, 251, 246, 0.78);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 4px 8px rgba(64, 50, 38, 0.1),
+    0 18px 38px rgba(64, 50, 38, 0.16);
+  transform: translateY(-3px);
+}
+.poems-overlay-action:active {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.8) inset,
+    0 1px 3px rgba(64, 50, 38, 0.12);
+  transform: translateY(0) scale(0.99);
 }
 .poems-overlay-action:disabled {
   opacity: 0.45;
   cursor: wait;
+  box-shadow: none;
+  transform: none;
 }
 .poems-overlay-action:focus-visible {
   outline: 3px solid #695e53;
@@ -149,13 +248,8 @@
   height: 74px;
   place-items: center;
   border-radius: 50%;
-}
-.poems-action-book {
-  background: rgba(255, 255, 255, 0.36);
+  background: #eadfcf;
   color: #544336;
-  font:
-    52px/1 Georgia,
-    serif;
 }
 .poems-action-text {
   display: flex;
@@ -179,18 +273,34 @@
   letter-spacing: 0.075em;
 }
 .poems-action-arrow {
-  color: #6e5d4d;
-  font:
-    42px/1 Georgia,
-    serif;
+  display: grid;
+  flex: 0 0 58px;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  border-radius: 50%;
+  background: #3a3029;
+  color: #f6efe5;
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.poems-overlay-action:hover .poems-action-arrow,
+.poems-overlay-action:focus-visible .poems-action-arrow {
+  transform: translateX(4px);
 }
 @media (prefers-reduced-motion: reduce) {
   .poems-overlay,
   .poems-overlay.is-exiting {
     animation-duration: 0.01ms;
   }
-  .poems-overlay-action {
+  .poems-overlay-action,
+  .poems-action-arrow {
     transition-duration: 0.01ms;
+  }
+  .poems-sun,
+  .poems-track,
+  .poems-arm,
+  .poems-planet {
+    animation-play-state: paused;
   }
 }
 /* Homography-projected onto the polaroid card (see PolaroidCaptionOverlay
