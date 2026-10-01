@@ -560,7 +560,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
       cameraSystem.engine.registerFocusItem("poems", {
         id: poem.slug,
         subjectId: `poem:${poem.slug}`,
-        cameraTargetId: "poem-detail",
+        cameraTargetId: "poems",
         framing: collection.defaultFraming,
         transition: collection.transition,
         neighbors: {

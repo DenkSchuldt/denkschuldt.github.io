@@ -354,7 +354,7 @@ export function useCinematicNavigation(
 
   const shouldReframeFocus = useCallback(
     (location: NavigationLocation) =>
-      !location.focusCollectionId ||
+      location.focusCollectionId !== null &&
       engine.getFocusCollection(location.focusCollectionId)?.reframeOnFocus !== false,
     [engine],
   );

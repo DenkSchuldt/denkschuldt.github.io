@@ -55,7 +55,6 @@ export const SHOT_REGISTRY: Record<ShotId, Shot> = {
     "certificate-detail",
   ),
   poems: sceneShot("poems"),
-  "poem-detail": focusShot("poem-detail", "Poem detail", "poems", "poem-detail"),
   phone: sceneShot("phone"),
   socials: focusShot("socials", "Socials", "phone", "socials", "/socials"),
   wall: sceneShot("wall"),

@@ -297,7 +297,7 @@ export const FOCUS_COLLECTIONS: Record<string, FocusCollectionDefinition> = {
   projects: dynamicCollection("projects", "projects", "project-detail", "/projects/:slug"),
   wall: dynamicCollection("wall", "wall", "movie-detail", "/wall/:slug"),
   poems: {
-    ...dynamicCollection("poems", "poems", "poem-detail", "/poems/:slug"),
+    ...dynamicCollection("poems", "poems", "poems", "/poems/:slug"),
     reframeOnFocus: false,
   },
   phone: {
