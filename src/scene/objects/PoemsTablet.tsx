@@ -15,7 +15,11 @@ const SCREEN_GEOMETRY = new THREE.ShapeGeometry(
   16,
 );
 const GLASS_GEOMETRY = new THREE.ShapeGeometry(roundedRectangleShape(1.52, 1.01, 0.075), 16);
-const SCREEN_MATERIAL = new THREE.MeshBasicMaterial({ color: "#eee4d6", toneMapped: false });
+const SCREEN_MATERIAL = new THREE.MeshStandardMaterial({
+  color: "#010203",
+  roughness: 0.16,
+  metalness: 0.04,
+});
 const GLASS_MATERIAL = new THREE.MeshStandardMaterial({
   color: "#090a0b",
   roughness: 0.24,

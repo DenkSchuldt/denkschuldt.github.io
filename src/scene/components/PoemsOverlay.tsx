@@ -10,6 +10,43 @@ import type { ScreenProjectionRef } from "../screenProjection";
 const SCREEN_LOGICAL_WIDTH = 1200;
 const SCREEN_LOGICAL_HEIGHT = 770;
 
+function FeatherIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="36"
+      height="36"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z" />
+      <line x1="16" y1="8" x2="2" y2="22" />
+      <line x1="17.5" y1="15" x2="9" y2="15" />
+    </svg>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="26"
+      height="26"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="5" y1="12" x2="19" y2="12" />
+      <polyline points="12 5 19 12 12 19" />
+    </svg>
+  );
+}
+
 interface PoemsOverlayProps {
   visible: boolean;
   projectionRef: ScreenProjectionRef;
@@ -78,11 +115,21 @@ export function PoemsOverlay({ visible, projectionRef, onRead, hasPoems }: Poems
         }}
       >
         <div className="poems-overlay-orbits" aria-hidden="true">
-          <span className="poems-orbit poems-orbit-one" />
-          <span className="poems-orbit poems-orbit-two" />
-          <span className="poems-planet poems-planet-sand" />
-          <span className="poems-planet poems-planet-dusk" />
-          <span className="poems-planet poems-planet-cream" />
+          <div className="poems-system">
+            <span className="poems-orbit poems-orbit-inner" />
+            <span className="poems-orbit poems-orbit-outer" />
+            <span className="poems-sun" />
+            <div className="poems-track poems-track-inner">
+              <div className="poems-arm">
+                <span className="poems-planet poems-planet-sand" />
+              </div>
+            </div>
+            <div className="poems-track poems-track-outer">
+              <div className="poems-arm">
+                <span className="poems-planet poems-planet-cream" />
+              </div>
+            </div>
+          </div>
         </div>
         <div className="poems-overlay-content">
           <h1>Poems</h1>
@@ -101,15 +148,15 @@ export function PoemsOverlay({ visible, projectionRef, onRead, hasPoems }: Poems
               onClick={onRead}
               disabled={!hasPoems}
             >
-              <span className="poems-action-icon poems-action-book" aria-hidden="true">
-                ◫
+              <span className="poems-action-icon" aria-hidden="true">
+                <FeatherIcon />
               </span>
               <span className="poems-action-text">
                 <strong>Meet my latest poem</strong>
                 <span>Read the newest piece.</span>
               </span>
               <span className="poems-action-arrow" aria-hidden="true">
-                →
+                <ArrowIcon />
               </span>
             </button>
           </div>
