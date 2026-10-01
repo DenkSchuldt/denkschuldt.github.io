@@ -31,7 +31,7 @@ export function CachedContactShadows({ profile }: CachedContactShadowsProps) {
       resolution={profile.shadows.contactResolution}
       scale={12}
       blur={profile.shadows.contactBlur}
-      far={4.5}
+      far={0.5}
     />
   );
 }
