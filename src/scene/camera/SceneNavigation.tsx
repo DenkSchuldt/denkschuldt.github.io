@@ -20,6 +20,7 @@ interface Props {
   onExitFocus: () => unknown;
   poemReaderOpen: boolean;
   photoLightboxOpen: boolean;
+  currentLabelOverride?: string | null;
 }
 
 function Arrow({ direction }: { direction: "left" | "right" }) {
@@ -64,6 +65,7 @@ export function SceneNavigation({
   onExitFocus,
   poemReaderOpen,
   photoLightboxOpen,
+  currentLabelOverride = null,
 }: Props) {
   const [introComplete, setIntroComplete] = useState(false);
   const [hasClickedNav, setHasClickedNav] = useState(false);
@@ -88,11 +90,8 @@ export function SceneNavigation({
   const resumeTarget = introComplete && current === "opening" ? resumeScene : null;
   const next = resumeTarget ?? getAdjacentScene(current, 1, visitedAutoScenes);
   const showNavHint = current === "opening" && !hasClickedNav;
-  const currentLabel = showNavHint
-    ? "Look around"
-    : current === "opening"
-      ? ""
-      : SCENE_REGISTRY[current].label;
+  const sceneLabel = current === "opening" ? "" : SCENE_REGISTRY[current].label;
+  const currentLabel = showNavHint ? "Look around" : (currentLabelOverride ?? sceneLabel);
   const collectionId = SCENE_REGISTRY[current].focusCollection ?? null;
   const collection = collectionId ? FOCUS_COLLECTIONS[collectionId] : null;
 

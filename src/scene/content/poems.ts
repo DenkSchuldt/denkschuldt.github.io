@@ -98,3 +98,12 @@ export async function loadPoemContent(
   const content = parsePoemMarkdown(markdown, poem.title);
   return { ...poem, title: frontmatter.title ?? content.title, body: content.body };
 }
+
+export function readablePoemDate(value: string) {
+  const date = new Date(`${value}T00:00:00`);
+  return Number.isNaN(date.valueOf())
+    ? value
+    : new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(
+        date,
+      );
+}

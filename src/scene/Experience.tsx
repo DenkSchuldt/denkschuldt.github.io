@@ -58,7 +58,7 @@ import {
   useRenderingQuality,
 } from "./rendering/quality";
 import { DEFAULT_RENDER_ISOLATION } from "./rendering/renderIsolation";
-import { RENDERING_INTENT } from "./rendering/renderingIntent";
+import { MOBILE_RENDERING_MEDIA_QUERY, RENDERING_INTENT } from "./rendering/renderingIntent";
 import {
   RenderSchedulerBridge,
   RenderSchedulerNavigationAdapter,
@@ -72,6 +72,7 @@ import {
 import { Scene } from "./Scene";
 import { POEMS_TABLET_LAYOUT } from "./sceneLayout";
 import { createScreenProjection } from "./screenProjection";
+import { useMediaQuery } from "./useMediaQuery";
 
 import type { RuntimeNodeRegistration } from "@denk/cinematic-navigation";
 import type { NavigationLocation, SceneId } from "./camera/navigationTypes";
@@ -247,6 +248,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
   const cameraGaze = useMemo(() => new CameraGaze(), []);
   const poemverseState = usePoemverse(poemverse);
   const poemversePhase = poemverseState.phase;
+  const isMobileViewport = useMediaQuery(MOBILE_RENDERING_MEDIA_QUERY);
 
   useEffect(() => {
     if (!sceneReady) return;
@@ -836,6 +838,9 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
               onExitFocus={cameraSystem.exitFocus}
               poemReaderOpen={poemReaderOpen}
               photoLightboxOpen={photoLightboxOpen}
+              currentLabelOverride={
+                isMobileViewport && poemversePhase === "landed" ? "Poemverse" : null
+              }
             />
           </Profiler>
           <CertificateGalleryOverlay
@@ -888,6 +893,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
               store={poemverse}
               origin={poemverseState.origin}
               reducedMotion={cameraSystem.reducedMotion}
+              poems={poemsContent.poems}
               onSelectPoem={openPoemBySlug}
             />
           )}

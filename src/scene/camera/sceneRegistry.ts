@@ -160,9 +160,10 @@ export const SCENE_REGISTRY: Record<SceneId, SceneDefinition> = {
     },
     responsive: {
       mobile: {
-        position: poemsAlignedCameraPosition(4.2, 0.1, POEMS_TABLET_PORTRAIT_LAYOUT.worldCenter),
-        lookAt: POEMS_TABLET_PORTRAIT_LAYOUT.worldCenter,
+        position: poemsAlignedCameraPosition(4.05, 0.1, POEMS_TABLET_PORTRAIT_LAYOUT.cameraTarget),
+        lookAt: POEMS_TABLET_PORTRAIT_LAYOUT.cameraTarget,
         fov: 39,
+        roll: -10,
         safeMargins: { top: 0.08, right: 0.07, bottom: 0.14, left: 0.07 },
         composition: "whole portrait tablet filling a portrait viewport",
       },

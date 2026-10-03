@@ -32,6 +32,7 @@ export const RENDERING_INTENT = {
 } as const;
 
 export const isMobileRenderingViewport = (aspect: number) => aspect < 0.82;
+export const MOBILE_RENDERING_MEDIA_QUERY = "(max-aspect-ratio: 41/50)";
 export const resolveHemisphereIntensity = (bounce: number, aspect: number) =>
   bounce *
   (isMobileRenderingViewport(aspect)

@@ -6,8 +6,11 @@ import { createGlowTexture } from "./poemverseTextures";
 export const POEMVERSE_CEILING_HEIGHT = 7.985;
 export const POEMVERSE_DECAL_SIZE = 0.36;
 
-const CEILING_WIDTH = 18;
-const CEILING_DEPTH = 15;
+const ROOM_INTERIOR = { minX: -6, maxX: 5.85, minZ: -4, maxZ: 7.5 };
+const CEILING_WIDTH = ROOM_INTERIOR.maxX - ROOM_INTERIOR.minX;
+const CEILING_DEPTH = ROOM_INTERIOR.maxZ - ROOM_INTERIOR.minZ;
+const CEILING_CENTRE_X = (ROOM_INTERIOR.minX + ROOM_INTERIOR.maxX) / 2;
+const CEILING_CENTRE_Z = (ROOM_INTERIOR.minZ + ROOM_INTERIOR.maxZ) / 2;
 const DOME_WALL_BOTTOM = 2.2;
 const DOME_WALL_HEIGHT = POEMVERSE_CEILING_HEIGHT - DOME_WALL_BOTTOM;
 
@@ -26,7 +29,7 @@ const DOME_PANELS: readonly DomePanel[] = [
     surface: "ceiling",
     width: CEILING_WIDTH,
     height: CEILING_DEPTH,
-    position: [0, POEMVERSE_CEILING_HEIGHT, 0],
+    position: [CEILING_CENTRE_X, POEMVERSE_CEILING_HEIGHT, CEILING_CENTRE_Z],
     rotation: [Math.PI / 2, 0, 0],
   },
   {
@@ -87,22 +90,34 @@ const SKY_FRAGMENT_SHADER = /* glsl */ `
     return fract(point.x * point.y);
   }
 
-  float noise(vec2 point) {
-    vec2 cell = floor(point);
-    vec2 local = fract(point);
-    vec2 blend = local * local * (3.0 - 2.0 * local);
-    return mix(
-      mix(hash(cell), hash(cell + vec2(1.0, 0.0)), blend.x),
-      mix(hash(cell + vec2(0.0, 1.0)), hash(cell + vec2(1.0, 1.0)), blend.x),
-      blend.y
-    );
+  float hash3(vec3 point) {
+    point = fract(point * vec3(123.34, 456.21, 289.17));
+    point += dot(point, point.yzx + 45.32);
+    return fract((point.x + point.y) * point.z);
   }
 
-  float fbm(vec2 point) {
+  float noise3(vec3 point) {
+    vec3 cell = floor(point);
+    vec3 local = fract(point);
+    vec3 blend = local * local * (3.0 - 2.0 * local);
+    float bottom = mix(
+      mix(hash3(cell), hash3(cell + vec3(1.0, 0.0, 0.0)), blend.x),
+      mix(hash3(cell + vec3(0.0, 1.0, 0.0)), hash3(cell + vec3(1.0, 1.0, 0.0)), blend.x),
+      blend.y
+    );
+    float top = mix(
+      mix(hash3(cell + vec3(0.0, 0.0, 1.0)), hash3(cell + vec3(1.0, 0.0, 1.0)), blend.x),
+      mix(hash3(cell + vec3(0.0, 1.0, 1.0)), hash3(cell + vec3(1.0, 1.0, 1.0)), blend.x),
+      blend.y
+    );
+    return mix(bottom, top, blend.z);
+  }
+
+  float fbm3(vec3 point) {
     float value = 0.0;
     float amplitude = 0.5;
     for (int octave = 0; octave < 4; octave++) {
-      value += amplitude * noise(point);
+      value += amplitude * noise3(point);
       point *= 2.03;
       amplitude *= 0.5;
     }
@@ -138,8 +153,9 @@ const SKY_FRAGMENT_SHADER = /* glsl */ `
     float distanceToCenter = length(vWorldPosition - uCenter);
     float mask = 1.0 - smoothstep(uReveal - 1.6, uReveal, distanceToCenter);
 
-    float nebula = fbm(point * 0.32 + vec2(uTime * 0.012, -uTime * 0.008));
-    float wisps = fbm(point * 0.85 - nebula * 1.7);
+    vec3 drift = vec3(uTime * 0.012, 0.0, -uTime * 0.008);
+    float nebula = fbm3(vWorldPosition * 0.32 + drift);
+    float wisps = fbm3(vWorldPosition * 0.85 - nebula * 1.7);
     vec3 sky = mix(uDeep, uMid, smoothstep(0.25, 0.85, nebula) * 0.9);
     sky += uLilac * pow(wisps, 3.0) * 0.26 + uGold * pow(nebula, 4.0) * 0.16;
     sky *= mix(0.5, 1.0, exp(-distanceToCenter * distanceToCenter * 0.02));

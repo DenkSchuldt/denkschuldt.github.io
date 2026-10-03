@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import DialogPackage from "@denkschuldt/react-dialog";
 
+import { readablePoemDate } from "../content/poems";
 import { useWorkingSetStore } from "../runtime/working-set";
 
 import type { ComponentType, ReactNode } from "react";
@@ -92,15 +93,6 @@ function smoothScrollBy(el: HTMLElement, distance: number, duration: number) {
     if (progress < 1) requestAnimationFrame(step);
   };
   requestAnimationFrame(step);
-}
-
-function readableDate(value: string) {
-  const date = new Date(`${value}T00:00:00`);
-  return Number.isNaN(date.valueOf())
-    ? value
-    : new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", year: "numeric" }).format(
-        date,
-      );
 }
 
 function poemImageTilt(slug: string) {
@@ -391,13 +383,14 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
       <div className="poem-reader-backdrop" aria-hidden="true" />
       <button
         type="button"
-        className="poem-reader-close"
+        className="certificate-gallery-close poem-reader-close-ink poem-reader-close"
         onClick={() => onClose(activeSlug)}
         aria-label="Close reader (ESC)"
         title="Close (ESC)"
       >
+        <span aria-hidden="true">ESC</span>
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5" />
+          <path d="M6 6l12 12M18 6 6 18" />
         </svg>
       </button>
       <div className="poem-reader-shell">
@@ -420,12 +413,12 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
             />
             <button
               type="button"
-              className="poem-reader-mobile-close"
+              className="certificate-gallery-close poem-reader-close-ink poem-reader-mobile-close"
               onClick={() => onClose(activeSlug)}
               aria-label="Close reader"
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5" />
+                <path d="M6 6l12 12M18 6 6 18" />
               </svg>
             </button>
           </div>
@@ -435,8 +428,8 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
             {displayRecord && (
               <>
                 <p className="poem-reader-date">
-                  {readableDate(displayRecord.date)} · {displayRecord.language} · {readingMinutes}{" "}
-                  min read
+                  {readablePoemDate(displayRecord.date)} · {displayRecord.language} ·{" "}
+                  {readingMinutes} min read
                 </p>
                 <h1>{displayRecord.title}</h1>
                 <div className="poem-reader-rule" />
@@ -467,7 +460,7 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
                       <figcaption className="poem-reader-image-caption">
                         <span>{displayRecord.title}</span>
                         <time dateTime={displayRecord.date}>
-                          {readableDate(displayRecord.date)}
+                          {readablePoemDate(displayRecord.date)}
                         </time>
                       </figcaption>
                     </figure>

@@ -319,9 +319,16 @@ test("Poems camera remains centered on and aligned with the tablet", () => {
   assert.equal(SCENE_REGISTRY.poems.cameraFocus.depthOfFieldStrength, 0);
   assert.equal(locationForFocus("poems", "a-poet-lives").cameraTarget, "poems");
   const mobile = resolveShot("poems", 0.6).framing;
-  assert.equal(mobile.roll, undefined);
+  assert.equal(mobile.roll, -10);
   assert.equal(mobile.fov, 39);
-  assert.deepEqual(mobile.lookAt, POEMS_TABLET_PORTRAIT_LAYOUT.worldCenter);
+  assert.deepEqual(mobile.lookAt, POEMS_TABLET_PORTRAIT_LAYOUT.cameraTarget);
+  assert.ok(
+    Math.hypot(
+      ...POEMS_TABLET_PORTRAIT_LAYOUT.cameraTarget.map(
+        (value, index) => value - POEMS_TABLET_PORTRAIT_LAYOUT.worldCenter[index],
+      ),
+    ) < 0.12,
+  );
   assert.equal(mobile.composition, "whole portrait tablet filling a portrait viewport");
   assert.equal(POEMS_TABLET_PORTRAIT_LAYOUT.rotationDegrees, POEMS_TABLET_LAYOUT.rotationDegrees);
   assert.ok(mobile.position[1] > SCENE_REGISTRY.poems.responsive.tablet.position[1]);

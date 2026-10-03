@@ -3,6 +3,7 @@ import * as THREE from "three";
 import constellationData from "./constellations.json";
 
 type SkyPoint = [number, number];
+export type ConnectionKind = "explicit-reference" | "shared-image" | "interpretive";
 type LayoutKind = "landscape" | "portrait";
 
 interface ConstellationStarData {
@@ -29,7 +30,7 @@ interface ConstellationData {
 interface ConstellationFile {
   layouts: Record<LayoutKind, { scale: number }>;
   constellations: ConstellationData[];
-  bridges: { from: string; to: string; reason: string }[];
+  bridges: { from: string; to: string; kind: ConnectionKind; reason: string }[];
 }
 
 export interface SkyStar {
@@ -47,6 +48,14 @@ export interface SkyLine {
   constellationIndex: number;
   isBridge: boolean;
   order: number;
+}
+
+export interface SkyConnection {
+  from: number;
+  to: number;
+  kind: ConnectionKind;
+  reason: string;
+  isDrawn: boolean;
 }
 
 export interface SkyLabel {
@@ -68,6 +77,7 @@ export interface SkyLayout {
   stars: SkyStar[];
   lines: SkyLine[];
   labels: SkyLabel[];
+  connections: SkyConnection[];
   bounds: SkyBounds;
 }
 
@@ -75,7 +85,7 @@ export interface ConstellationSummary {
   id: string;
   name: string;
   theme: string;
-  poems: { slug: string; title: string }[];
+  poems: { slug: string; title: string; connections: string[] }[];
 }
 
 const LABEL_DROP = 0.62;
@@ -86,7 +96,13 @@ export const CONSTELLATION_SUMMARIES: readonly ConstellationSummary[] = data.con
     id: constellation.id,
     name: constellation.name,
     theme: constellation.theme,
-    poems: constellation.stars.map(({ slug, title }) => ({ slug, title })),
+    poems: constellation.stars.map(({ slug, title }) => ({
+      slug,
+      title,
+      connections: data.bridges
+        .filter(({ from, to }) => from === slug || to === slug)
+        .map(({ reason }) => reason),
+    })),
   }),
 );
 
@@ -138,14 +154,25 @@ export function resolveSkyLayout(aspect: number): SkyLayout {
     });
   });
 
-  data.bridges.forEach(({ from, to }, order) => {
+  const structuralEdges = new Set(lines.map(({ from, to }) => edgeKey(from, to)));
+  const connections: SkyConnection[] = [];
+  data.bridges.forEach(({ from, to, kind, reason }) => {
     const fromIndex = indexBySlug.get(from);
     const toIndex = indexBySlug.get(to);
     if (fromIndex === undefined || toIndex === undefined) return;
-    lines.push({ from: fromIndex, to: toIndex, constellationIndex: -1, isBridge: true, order });
+    const isDrawn = !structuralEdges.has(edgeKey(fromIndex, toIndex));
+    connections.push({ from: fromIndex, to: toIndex, kind, reason, isDrawn });
+    if (!isDrawn) return;
+    lines.push({
+      from: fromIndex,
+      to: toIndex,
+      constellationIndex: -1,
+      isBridge: true,
+      order: connections.length - 1,
+    });
   });
 
-  return { stars, lines, labels, bounds: measureBounds(stars, labels) };
+  return { stars, lines, labels, connections, bounds: measureBounds(stars, labels) };
 }
 
 export function findSkyStar(layout: SkyLayout, slug: string | null) {
@@ -161,4 +188,8 @@ function measureBounds(stars: SkyStar[], labels: SkyLabel[]): SkyBounds {
     minY: Math.min(...points.map(([, y]) => y)),
     maxY: Math.max(...points.map(([, y]) => y)),
   };
+}
+
+function edgeKey(first: number, second: number) {
+  return first < second ? `${first}:${second}` : `${second}:${first}`;
 }
