@@ -6,6 +6,7 @@ export type RenderReason =
   | "certificate-animation"
   | "phone-screen"
   | "poems-preview"
+  | "poemverse"
   | "dof-focus"
   | "projection-sync"
   | "asset-ready"

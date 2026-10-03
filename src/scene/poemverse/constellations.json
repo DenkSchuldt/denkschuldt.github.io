@@ -1,0 +1,502 @@
+{
+  "version": 1,
+  "source": "public/llms-full.txt",
+  "description": "Denny K. Schuldt's poems grouped by theme into constellations. Offsets and layout centres are sky metres, rotations are degrees: x points right and y points up on screen when the ceiling is seen from below.",
+  "layouts": {
+    "landscape": {
+      "scale": 1
+    },
+    "portrait": {
+      "scale": 0.74
+    }
+  },
+  "constellations": [
+    {
+      "id": "lovers-heart",
+      "name": "The Lovers' Heart",
+      "theme": "Falling in love, and the mutual kind of love worth staying for.",
+      "tint": "#f4c7b6",
+      "layout": {
+        "landscape": {
+          "centre": [-1.15, 1.05],
+          "rotation": -6
+        },
+        "portrait": {
+          "centre": [-0.55, 2.4],
+          "rotation": -5
+        }
+      },
+      "stars": [
+        {
+          "slug": "safebox",
+          "title": "Safebox",
+          "offset": [0, 0.2]
+        },
+        {
+          "slug": "enamorado",
+          "title": "Enamorado",
+          "offset": [-0.25, 0.4]
+        },
+        {
+          "slug": "dime-que-me-quieres",
+          "title": "Dime que me quieres",
+          "offset": [-0.46, 0.14]
+        },
+        {
+          "slug": "quiero",
+          "title": "Quiero",
+          "offset": [-0.28, -0.16]
+        },
+        {
+          "slug": "lovestruck",
+          "title": "Lovestruck",
+          "offset": [0, -0.44]
+        },
+        {
+          "slug": "desde-el-otro-lado",
+          "title": "Desde el otro lado",
+          "offset": [0.28, -0.16]
+        },
+        {
+          "slug": "a-sublime-experience",
+          "title": "A sublime experience",
+          "offset": [0.46, 0.14]
+        },
+        {
+          "slug": "the-chocolate-factory",
+          "title": "The chocolate factory",
+          "offset": [0.25, 0.4]
+        }
+      ],
+      "lines": [
+        ["safebox", "enamorado"],
+        ["enamorado", "dime-que-me-quieres"],
+        ["dime-que-me-quieres", "quiero"],
+        ["quiero", "lovestruck"],
+        ["lovestruck", "desde-el-otro-lado"],
+        ["desde-el-otro-lado", "a-sublime-experience"],
+        ["a-sublime-experience", "the-chocolate-factory"],
+        ["the-chocolate-factory", "safebox"]
+      ]
+    },
+    {
+      "id": "seeker",
+      "name": "The Seeker",
+      "theme": "Waiting for someone who hasn't arrived yet.",
+      "tint": "#f3dfb0",
+      "layout": {
+        "landscape": {
+          "centre": [-2.55, 0.55],
+          "rotation": 8
+        },
+        "portrait": {
+          "centre": [0.75, 1.75],
+          "rotation": 8
+        }
+      },
+      "stars": [
+        {
+          "slug": "i-hope-you-find-me",
+          "title": "I hope you find me",
+          "offset": [0.4, 0.05]
+        },
+        {
+          "slug": "debe-ser-emocionante",
+          "title": "Debe ser emocionante",
+          "offset": [0.12, 0.3]
+        },
+        {
+          "slug": "dear-candidate",
+          "title": "Dear candidate",
+          "offset": [-0.15, 0.16]
+        },
+        {
+          "slug": "estoy-en-mis-30s",
+          "title": "Estoy en mis 30s",
+          "offset": [-0.4, 0.36]
+        },
+        {
+          "slug": "a-missing-gear",
+          "title": "A missing gear",
+          "offset": [-0.22, -0.2]
+        },
+        {
+          "slug": "quimica-accidental",
+          "title": "Química accidental",
+          "offset": [0.14, -0.36]
+        }
+      ],
+      "lines": [
+        ["i-hope-you-find-me", "debe-ser-emocionante"],
+        ["debe-ser-emocionante", "dear-candidate"],
+        ["dear-candidate", "estoy-en-mis-30s"],
+        ["dear-candidate", "a-missing-gear"],
+        ["a-missing-gear", "quimica-accidental"]
+      ]
+    },
+    {
+      "id": "fracture",
+      "name": "The Fracture",
+      "theme": "Love that burned, discarded or never answered back.",
+      "tint": "#dcaacb",
+      "layout": {
+        "landscape": {
+          "centre": [0.45, 0.75],
+          "rotation": 12
+        },
+        "portrait": {
+          "centre": [-0.7, 0.95],
+          "rotation": 10
+        }
+      },
+      "stars": [
+        {
+          "slug": "photons",
+          "title": "Photons",
+          "offset": [-0.42, 0.38]
+        },
+        {
+          "slug": "i-loved-so-very-deep",
+          "title": "I loved so very deep",
+          "offset": [-0.16, 0.32]
+        },
+        {
+          "slug": "do-you",
+          "title": "Do you…?",
+          "offset": [-0.05, 0.06]
+        },
+        {
+          "slug": "en-un-universo-paralelo",
+          "title": "En un universo paralelo",
+          "offset": [0.26, 0.16]
+        },
+        {
+          "slug": "an-orchid-left-to-wither",
+          "title": "An orchid left to wither",
+          "offset": [0.04, -0.2]
+        },
+        {
+          "slug": "another-one-of-his-cars",
+          "title": "Another one of his cars",
+          "offset": [0.3, -0.36]
+        },
+        {
+          "slug": "otro-de-sus-autos",
+          "title": "Otro de sus autos",
+          "offset": [0.46, -0.12]
+        }
+      ],
+      "lines": [
+        ["photons", "i-loved-so-very-deep"],
+        ["i-loved-so-very-deep", "do-you"],
+        ["do-you", "en-un-universo-paralelo"],
+        ["do-you", "an-orchid-left-to-wither"],
+        ["an-orchid-left-to-wither", "another-one-of-his-cars"],
+        ["another-one-of-his-cars", "otro-de-sus-autos"]
+      ]
+    },
+    {
+      "id": "flight",
+      "name": "The Flight",
+      "theme": "Letting go, healing, and learning to fly again.",
+      "tint": "#bcd0f3",
+      "layout": {
+        "landscape": {
+          "centre": [2.35, 1.15],
+          "rotation": -10
+        },
+        "portrait": {
+          "centre": [0.6, 0.25],
+          "rotation": -8
+        }
+      },
+      "stars": [
+        {
+          "slug": "dancing-to-my-music",
+          "title": "Dancing to my music",
+          "offset": [-0.44, 0.3]
+        },
+        {
+          "slug": "sweet-memory",
+          "title": "Sweet memory",
+          "offset": [-0.22, 0.1]
+        },
+        {
+          "slug": "vuelo",
+          "title": "Vuelo",
+          "offset": [0, -0.04]
+        },
+        {
+          "slug": "forgive-myself",
+          "title": "Forgive myself",
+          "offset": [0.22, 0.1]
+        },
+        {
+          "slug": "resiliente",
+          "title": "Resiliente",
+          "offset": [0.44, 0.3]
+        },
+        {
+          "slug": "only-those-who-know-can-tell",
+          "title": "Only those who know can tell",
+          "offset": [0, -0.4]
+        }
+      ],
+      "lines": [
+        ["dancing-to-my-music", "sweet-memory"],
+        ["sweet-memory", "vuelo"],
+        ["vuelo", "forgive-myself"],
+        ["forgive-myself", "resiliente"],
+        ["vuelo", "only-those-who-know-can-tell"]
+      ]
+    },
+    {
+      "id": "shield",
+      "name": "The Shield",
+      "theme": "Modern dating, armored hearts and the courage to be authentic.",
+      "tint": "#d6d9e8",
+      "layout": {
+        "landscape": {
+          "centre": [-2.1, -0.85],
+          "rotation": 15
+        },
+        "portrait": {
+          "centre": [-0.65, -0.55],
+          "rotation": 12
+        }
+      },
+      "stars": [
+        {
+          "slug": "armored-as-knights",
+          "title": "Armored as knights",
+          "offset": [0, 0.36]
+        },
+        {
+          "slug": "cheating-pills",
+          "title": "Cheating pills",
+          "offset": [0.32, 0.06]
+        },
+        {
+          "slug": "the-couple-on-the-other-table",
+          "title": "The couple on the other table",
+          "offset": [0, -0.38]
+        },
+        {
+          "slug": "the-strategy-of-the-mystery",
+          "title": "The strategy of the mystery",
+          "offset": [-0.32, 0.06]
+        }
+      ],
+      "lines": [
+        ["armored-as-knights", "cheating-pills"],
+        ["cheating-pills", "the-couple-on-the-other-table"],
+        ["the-couple-on-the-other-table", "the-strategy-of-the-mystery"],
+        ["the-strategy-of-the-mystery", "armored-as-knights"]
+      ]
+    },
+    {
+      "id": "quill",
+      "name": "The Quill",
+      "theme": "On being a poet: why and how the verses come.",
+      "tint": "#f4ead8",
+      "layout": {
+        "landscape": {
+          "centre": [-0.65, -0.35],
+          "rotation": -14
+        },
+        "portrait": {
+          "centre": [0.75, -1.25],
+          "rotation": -12
+        }
+      },
+      "stars": [
+        {
+          "slug": "a-poet-lives",
+          "title": "A Poet lives",
+          "offset": [0.36, 0.4]
+        },
+        {
+          "slug": "my-bible",
+          "title": "My Bible",
+          "offset": [-0.04, 0.34]
+        },
+        {
+          "slug": "i-write-poems",
+          "title": "I write poems",
+          "offset": [0.18, 0.18]
+        },
+        {
+          "slug": "inside-the-body-of-a-software-guy",
+          "title": "Inside the body of a software guy",
+          "offset": [0.44, 0.02]
+        },
+        {
+          "slug": "under-poetry-light",
+          "title": "Under poetry light",
+          "offset": [0, -0.02]
+        },
+        {
+          "slug": "im-thankful",
+          "title": "I’m thankful",
+          "offset": [-0.2, -0.2]
+        },
+        {
+          "slug": "vacio",
+          "title": "Vacío",
+          "offset": [-0.4, -0.42]
+        }
+      ],
+      "lines": [
+        ["a-poet-lives", "i-write-poems"],
+        ["my-bible", "a-poet-lives"],
+        ["i-write-poems", "inside-the-body-of-a-software-guy"],
+        ["i-write-poems", "under-poetry-light"],
+        ["under-poetry-light", "im-thankful"],
+        ["im-thankful", "vacio"]
+      ]
+    },
+    {
+      "id": "storm",
+      "name": "The Storm",
+      "theme": "Inner weather: overthinking, numbness, fear and time.",
+      "tint": "#cbb6ff",
+      "layout": {
+        "landscape": {
+          "centre": [0.95, -0.95],
+          "rotation": 6
+        },
+        "portrait": {
+          "centre": [-0.5, -2.05],
+          "rotation": 6
+        }
+      },
+      "stars": [
+        {
+          "slug": "memory",
+          "title": "Memory.",
+          "offset": [0, 0]
+        },
+        {
+          "slug": "mining-my-mind",
+          "title": "Mining my mind",
+          "offset": [0.26, 0.2]
+        },
+        {
+          "slug": "fears",
+          "title": "Fears",
+          "offset": [-0.04, 0.4]
+        },
+        {
+          "slug": "a-zombie-camouflaged",
+          "title": "A zombie camouflaged",
+          "offset": [-0.36, 0.16]
+        },
+        {
+          "slug": "into-the-blue",
+          "title": "Into the blue",
+          "offset": [-0.32, -0.26]
+        },
+        {
+          "slug": "bottle-of-wine",
+          "title": "Bottle of wine",
+          "offset": [0.08, -0.38]
+        },
+        {
+          "slug": "coffee",
+          "title": "Coffee",
+          "offset": [0.44, -0.16]
+        }
+      ],
+      "lines": [
+        ["memory", "mining-my-mind"],
+        ["mining-my-mind", "fears"],
+        ["fears", "a-zombie-camouflaged"],
+        ["a-zombie-camouflaged", "into-the-blue"],
+        ["into-the-blue", "bottle-of-wine"],
+        ["bottle-of-wine", "coffee"]
+      ]
+    },
+    {
+      "id": "aidita",
+      "name": "Aidita",
+      "theme": "Grief, family, and the grandmother who became the brightest star.",
+      "tint": "#ffd79e",
+      "layout": {
+        "landscape": {
+          "centre": [2.6, -0.35],
+          "rotation": -8
+        },
+        "portrait": {
+          "centre": [0.65, -2.75],
+          "rotation": -6
+        }
+      },
+      "stars": [
+        {
+          "slug": "to-the-brightest-star",
+          "title": "To the brightest star",
+          "offset": [0, 0.04]
+        },
+        {
+          "slug": "grandmas-in-danger-of-extinction",
+          "title": "Grandmas in danger of extinction",
+          "offset": [-0.32, 0.28]
+        },
+        {
+          "slug": "abuelitas-en-peligro-de-extincion",
+          "title": "Abuelitas en peligro de extinción",
+          "offset": [-0.44, -0.04]
+        },
+        {
+          "slug": "algunas-memorias-sobre-aidita",
+          "title": "Algunas memorias sobre Aidita",
+          "offset": [0.32, 0.3]
+        },
+        {
+          "slug": "i-dont-feel-like-christmas",
+          "title": "I don’t feel like Christmas",
+          "offset": [0.36, -0.2]
+        },
+        {
+          "slug": "a-dead-past-haunted",
+          "title": "A dead past haunted",
+          "offset": [-0.04, -0.4]
+        }
+      ],
+      "lines": [
+        ["to-the-brightest-star", "grandmas-in-danger-of-extinction"],
+        ["grandmas-in-danger-of-extinction", "abuelitas-en-peligro-de-extincion"],
+        ["to-the-brightest-star", "algunas-memorias-sobre-aidita"],
+        ["to-the-brightest-star", "i-dont-feel-like-christmas"],
+        ["to-the-brightest-star", "a-dead-past-haunted"]
+      ]
+    }
+  ],
+  "bridges": [
+    {
+      "from": "lovestruck",
+      "to": "fears",
+      "reason": "2025 opened by wishing with Lovestruck; 2026 opened by facing with Fears."
+    },
+    {
+      "from": "a-sublime-experience",
+      "to": "grandmas-in-danger-of-extinction",
+      "reason": "Both name love as something that transcends space and time."
+    },
+    {
+      "from": "en-un-universo-paralelo",
+      "to": "desde-el-otro-lado",
+      "reason": "Imagining a love from another side, another universe."
+    },
+    {
+      "from": "armored-as-knights",
+      "to": "a-missing-gear",
+      "reason": "Hearts whose fears lock their gears."
+    },
+    {
+      "from": "forgive-myself",
+      "to": "bottle-of-wine",
+      "reason": "Wine and ink as the slow way back to oneself."
+    }
+  ]
+}

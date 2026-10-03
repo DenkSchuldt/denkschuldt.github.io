@@ -15,7 +15,7 @@ import { FadingGroup } from "./objects/FadingGroup";
 import { Laptop } from "./objects/Laptop";
 import { MiniProjector } from "./objects/MiniProjector";
 import { Plant } from "./objects/Plant";
-import { POEMS_TABLET_SCREEN_HEIGHT, POEMS_TABLET_SCREEN_WIDTH } from "./objects/PoemsTablet";
+import { poemsTabletScreenSize } from "./objects/PoemsTablet";
 import { Posters } from "./objects/Posters";
 import { Room } from "./objects/Room";
 import { Shelf } from "./objects/Shelf";
@@ -23,9 +23,12 @@ import { getCertificateFocusBySlug, type CertificateFocus } from "./objects/cert
 import { DEFAULT_RENDER_ISOLATION, type RenderIsolationState } from "./rendering/renderIsolation";
 import { PlanarProjection } from "./rendering/PlanarProjection";
 import { isMobileRenderingViewport } from "./rendering/renderingIntent";
+import { PORTRAIT_COFFEE_POSITION, POEMS_TABLET_PORTRAIT_LAYOUT } from "./sceneLayout";
 import { useRenderDemand } from "./runtime/render-scheduler";
 
+import type { CameraGaze } from "./camera/cameraGaze";
 import type { CinematicNavigationSystem } from "./camera/useCinematicCamera";
+import type { PoemverseStore } from "./poemverse/poemverseStore";
 import type { ScreenProjectionRef } from "./screenProjection";
 import type { RenderingQualityProfile, ResolvedQualityFeatures } from "./rendering/quality";
 
@@ -60,13 +63,8 @@ const POLAROID_SCREEN_CORNERS: readonly [
   new THREE.Vector3(-0.13, -0.185, 0),
 ];
 
-const POEMS_SCREEN_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector3, THREE.Vector3] =
-  [
-    new THREE.Vector3(-POEMS_TABLET_SCREEN_WIDTH / 2, POEMS_TABLET_SCREEN_HEIGHT / 2, 0),
-    new THREE.Vector3(POEMS_TABLET_SCREEN_WIDTH / 2, POEMS_TABLET_SCREEN_HEIGHT / 2, 0),
-    new THREE.Vector3(POEMS_TABLET_SCREEN_WIDTH / 2, -POEMS_TABLET_SCREEN_HEIGHT / 2, 0),
-    new THREE.Vector3(-POEMS_TABLET_SCREEN_WIDTH / 2, -POEMS_TABLET_SCREEN_HEIGHT / 2, 0),
-  ];
+const LANDSCAPE_POEMS_SCREEN_CORNERS = screenCorners(poemsTabletScreenSize(false));
+const PORTRAIT_POEMS_SCREEN_CORNERS = screenCorners(poemsTabletScreenSize(true));
 
 const PHONE_SCREEN_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector3, THREE.Vector3] =
   [
@@ -77,6 +75,9 @@ const PHONE_SCREEN_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector
   ];
 
 const CinematicEffects = lazy(() => import("./effects/CinematicEffects"));
+const Poemverse = lazy(() =>
+  import("./poemverse/Poemverse").then((module) => ({ default: module.Poemverse })),
+);
 
 export interface SceneSettings {
   desk: number;
@@ -122,6 +123,10 @@ interface SceneProps {
   poemsProjectionRef: ScreenProjectionRef;
   phoneScreenRef: React.MutableRefObject<THREE.Mesh | null>;
   phoneProjectionRef: ScreenProjectionRef;
+  cameraGaze: CameraGaze;
+  poemverse: PoemverseStore | null;
+  featuredPoemSlug: string | null;
+  onSelectPoem: (slug: string) => void;
   onPhotoOpen?: () => void;
 }
 
@@ -144,6 +149,10 @@ export function Scene({
   poemsProjectionRef,
   phoneScreenRef,
   phoneProjectionRef,
+  cameraGaze,
+  poemverse,
+  featuredPoemSlug,
+  onSelectPoem,
   onPhotoOpen,
 }: SceneProps) {
   const { size } = useThree();
@@ -203,6 +212,7 @@ export function Scene({
         system={cameraSystem}
         focusRef={focusRef}
         certificateFocusRef={certificateFocusRef}
+        gaze={cameraGaze}
       />
       <Room mobile={isMobileViewport} />
       <Desk />
@@ -252,14 +262,15 @@ export function Scene({
         </>
       )}
       <DeskObjects
-        coffeePosition={s.coffeePosition}
+        coffeePosition={isMobileViewport ? PORTRAIT_COFFEE_POSITION : s.coffeePosition}
         lampPosition={s.lampPosition}
-        tabletPosition={s.tabletPosition}
+        tabletPosition={isMobileViewport ? POEMS_TABLET_PORTRAIT_LAYOUT.position : s.tabletPosition}
         tabletRotation={s.tabletRotation}
         paperPosition={s.paperPosition}
         paperRotation={s.paperRotation}
         penPosition={s.penPosition}
         penRotation={s.penRotation}
+        portraitTablet={isMobileViewport}
         paperScreenRef={paperScreenRef}
         photoScreenRef={polaroidScreenRef}
         poemsScreenRef={poemsScreenRef}
@@ -283,7 +294,7 @@ export function Scene({
       />
       <PlanarProjection
         label="PoemsScreenProjection"
-        corners={POEMS_SCREEN_CORNERS}
+        corners={isMobileViewport ? PORTRAIT_POEMS_SCREEN_CORNERS : LANDSCAPE_POEMS_SCREEN_CORNERS}
         screenRef={poemsScreenRef}
         projectionRef={poemsProjectionRef}
         enabled={qualityFeatures.screenProjection}
@@ -307,6 +318,17 @@ export function Scene({
       <Posters mobile={isMobileViewport} />
       <Plant position={s.plantPosition} rotationY={s.plantRotationY} />
       <DebugHelpers visible={s.helpers} />
+      {poemverse && (
+        <Suspense fallback={null}>
+          <Poemverse
+            store={poemverse}
+            gaze={cameraGaze}
+            featuredSlug={featuredPoemSlug}
+            reducedMotion={cameraSystem.reducedMotion}
+            onSelectPoem={onSelectPoem}
+          />
+        </Suspense>
+      )}
       {effectsReady && (
         <Suspense fallback={null}>
           <CinematicEffects
@@ -326,4 +348,19 @@ export function Scene({
       )}
     </>
   );
+}
+
+function screenCorners({
+  width,
+  height,
+}: {
+  width: number;
+  height: number;
+}): readonly [THREE.Vector3, THREE.Vector3, THREE.Vector3, THREE.Vector3] {
+  return [
+    new THREE.Vector3(-width / 2, height / 2, 0),
+    new THREE.Vector3(width / 2, height / 2, 0),
+    new THREE.Vector3(width / 2, -height / 2, 0),
+    new THREE.Vector3(-width / 2, -height / 2, 0),
+  ];
 }

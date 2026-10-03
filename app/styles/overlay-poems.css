@@ -287,6 +287,28 @@
 .poems-overlay-action:focus-visible .poems-action-arrow {
   transform: translateX(4px);
 }
+.poems-overlay-shell.is-portrait .poems-system {
+  top: 1000px;
+  left: 560px;
+}
+.poems-overlay-shell.is-portrait .poems-overlay-content {
+  width: 100%;
+  padding: 130px 70px 80px;
+}
+.poems-overlay-shell.is-portrait .poems-overlay-content h1 {
+  font-size: 96px;
+}
+.poems-overlay-shell.is-portrait .poems-overlay-subtitle {
+  margin-top: 28px;
+  font-size: 28px;
+}
+.poems-overlay-shell.is-portrait .poems-overlay-star {
+  margin: 40px 0 48px 18px;
+}
+.poems-overlay-shell.is-portrait .poems-overlay-actions {
+  gap: 16px;
+  width: 100%;
+}
 @media (prefers-reduced-motion: reduce) {
   .poems-overlay,
   .poems-overlay.is-exiting {

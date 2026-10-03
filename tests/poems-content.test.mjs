@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import {
   loadPoemContent,
   loadPoemManifest,
@@ -101,4 +102,24 @@ test("generated discovery assets expose canonical poem URLs without bloating the
     /\[Markdown\]\(https:\/\/denkschuldt\.github\.io\/poems\/2023-12-30\/poem\.md\)/,
   );
   assert.match(await getRobotsText(), /User-agent: OAI-SearchBot\nAllow: \//);
+});
+
+test("every published poem belongs to exactly one Poemverse constellation", async () => {
+  const [manifest, constellationFile] = await Promise.all([
+    getStaticPoemManifest(),
+    readFile(new URL("../src/scene/poemverse/constellations.json", import.meta.url), "utf8"),
+  ]);
+  const { constellations, bridges } = JSON.parse(constellationFile);
+  const placed = constellations.flatMap(({ stars }) => stars.map(({ slug }) => slug));
+  assert.equal(new Set(placed).size, placed.length, "A poem is placed in two constellations.");
+  assert.deepEqual(
+    manifest.map(({ slug }) => slug).filter((slug) => !placed.includes(slug)),
+    [],
+    "Published poems are missing from constellations.json.",
+  );
+  for (const { stars, lines } of constellations) {
+    const members = new Set(stars.map(({ slug }) => slug));
+    for (const line of lines) for (const slug of line) assert.ok(members.has(slug), slug);
+  }
+  for (const { from, to } of bridges) assert.ok(placed.includes(from) && placed.includes(to));
 });

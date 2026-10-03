@@ -1,5 +1,10 @@
 import { CERTIFICATES, CERTIFICATE_LAYOUT } from "../objects/certificates.ts";
-import { PHONE_LAYOUT, POEMS_TABLET_LAYOUT, poemsAlignedCameraPosition } from "../sceneLayout.ts";
+import {
+  PHONE_LAYOUT,
+  POEMS_TABLET_LAYOUT,
+  POEMS_TABLET_PORTRAIT_LAYOUT,
+  poemsAlignedCameraPosition,
+} from "../sceneLayout.ts";
 
 import type {
   FocusCollectionDefinition,
@@ -155,11 +160,11 @@ export const SCENE_REGISTRY: Record<SceneId, SceneDefinition> = {
     },
     responsive: {
       mobile: {
-        position: poemsAlignedCameraPosition(5.9, 0.18),
-        lookAt: POEMS_TABLET_LAYOUT.worldCenter,
+        position: poemsAlignedCameraPosition(4.2, 0.1, POEMS_TABLET_PORTRAIT_LAYOUT.worldCenter),
+        lookAt: POEMS_TABLET_PORTRAIT_LAYOUT.worldCenter,
         fov: 39,
         safeMargins: { top: 0.08, right: 0.07, bottom: 0.14, left: 0.07 },
-        composition: "whole horizontal tablet in a portrait viewport",
+        composition: "whole portrait tablet filling a portrait viewport",
       },
       tablet: {
         position: poemsAlignedCameraPosition(3.75, 0.2),

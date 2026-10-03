@@ -45,7 +45,11 @@ import {
   resolveNavigationPath,
   STATIC_FOCUS_ROUTES,
 } from "../src/scene/camera/sceneRoutes.ts";
-import { PHONE_LAYOUT, POEMS_TABLET_LAYOUT } from "../src/scene/sceneLayout.ts";
+import {
+  PHONE_LAYOUT,
+  POEMS_TABLET_LAYOUT,
+  POEMS_TABLET_PORTRAIT_LAYOUT,
+} from "../src/scene/sceneLayout.ts";
 
 test("cinematic easing preserves exact endpoints", () => {
   assert.equal(cinematicEase(0), 0);
@@ -317,8 +321,9 @@ test("Poems camera remains centered on and aligned with the tablet", () => {
   const mobile = resolveShot("poems", 0.6).framing;
   assert.equal(mobile.roll, undefined);
   assert.equal(mobile.fov, 39);
-  assert.deepEqual(mobile.lookAt, POEMS_TABLET_LAYOUT.worldCenter);
-  assert.equal(mobile.composition, "whole horizontal tablet in a portrait viewport");
+  assert.deepEqual(mobile.lookAt, POEMS_TABLET_PORTRAIT_LAYOUT.worldCenter);
+  assert.equal(mobile.composition, "whole portrait tablet filling a portrait viewport");
+  assert.equal(POEMS_TABLET_PORTRAIT_LAYOUT.rotationDegrees, POEMS_TABLET_LAYOUT.rotationDegrees);
   assert.ok(mobile.position[1] > SCENE_REGISTRY.poems.responsive.tablet.position[1]);
 });
 

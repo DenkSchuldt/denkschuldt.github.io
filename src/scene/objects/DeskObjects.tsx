@@ -158,11 +158,40 @@ STEAM_TEXTURE.minFilter = THREE.LinearFilter;
 STEAM_TEXTURE.magFilter = THREE.LinearFilter;
 STEAM_TEXTURE.generateMipmaps = false;
 STEAM_TEXTURE.needsUpdate = true;
+const MUG_CONTACT_SIZE = 32;
+const MUG_CONTACT_DATA = new Uint8Array(MUG_CONTACT_SIZE * MUG_CONTACT_SIZE * 4);
+for (let y = 0; y < MUG_CONTACT_SIZE; y++)
+  for (let x = 0; x < MUG_CONTACT_SIZE; x++) {
+    const index = (y * MUG_CONTACT_SIZE + x) * 4,
+      distance = Math.hypot(x - 15.5, y - 15.5) / 15.5,
+      falloff = Math.max(0, 1 - distance);
+    MUG_CONTACT_DATA[index + 3] = Math.round(255 * falloff * falloff * (3 - 2 * falloff));
+  }
+const MUG_CONTACT_TEXTURE = new THREE.DataTexture(
+  MUG_CONTACT_DATA,
+  MUG_CONTACT_SIZE,
+  MUG_CONTACT_SIZE,
+  THREE.RGBAFormat,
+);
+MUG_CONTACT_TEXTURE.minFilter = THREE.LinearFilter;
+MUG_CONTACT_TEXTURE.magFilter = THREE.LinearFilter;
+MUG_CONTACT_TEXTURE.generateMipmaps = false;
+MUG_CONTACT_TEXTURE.needsUpdate = true;
+const MUG_CONTACT_GEOMETRY = new THREE.PlaneGeometry(0.46, 0.46);
+const MUG_CONTACT_MATERIAL = new THREE.MeshBasicMaterial({
+  color: "#000000",
+  alphaMap: MUG_CONTACT_TEXTURE,
+  transparent: true,
+  opacity: 0.55,
+  depthWrite: false,
+  toneMapped: false,
+});
 interface DeskObjectsProps {
   coffeePosition: [number, number, number];
   lampPosition: [number, number, number];
   tabletPosition: [number, number];
   tabletRotation: number;
+  portraitTablet: boolean;
   paperPosition: [number, number];
   paperRotation: number;
   penPosition: [number, number];
@@ -180,6 +209,7 @@ export function DeskObjects({
   lampPosition,
   tabletPosition,
   tabletRotation,
+  portraitTablet,
   paperPosition,
   paperRotation,
   penPosition,
@@ -218,6 +248,7 @@ export function DeskObjects({
           position={tabletPosition}
           rotation={tabletRotation}
           active={isPoemsActive}
+          portrait={portraitTablet}
           screenRef={poemsScreenRef}
         />
       </FadingGroup>
@@ -651,6 +682,14 @@ function Coffee({ position, active }: { position: [number, number, number]; acti
       </mesh>
       <mesh geometry={MUG_COFFEE_GEOMETRY} position={[0, 0.083, 0]} rotation-x={-Math.PI / 2}>
         <primitive object={MUG_COFFEE_MATERIAL} attach="material" />
+      </mesh>
+      <mesh
+        geometry={MUG_CONTACT_GEOMETRY}
+        position={[0, -0.243, 0]}
+        rotation-x={-Math.PI / 2}
+        renderOrder={1}
+      >
+        <primitive object={MUG_CONTACT_MATERIAL} attach="material" />
       </mesh>
       <CoffeeSteam active={active} />
     </group>

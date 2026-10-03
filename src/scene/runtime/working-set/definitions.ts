@@ -123,6 +123,7 @@ export const WORKING_SET_DEFINITIONS: Readonly<Record<SceneId, DestinationWorkin
       resource("poems", "poem-reader-chunk", "overlay-only", "PoemReader", {
         preparationRequired: true,
       }),
+      resource("poems", "poemverse-scene", "overlay-only", "Poemverse"),
     ],
   },
   drawer: {

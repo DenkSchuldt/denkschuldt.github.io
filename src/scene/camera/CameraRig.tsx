@@ -20,6 +20,7 @@ import { INTRO_DESTINATION, INTRO_PAN_SHOT } from "./shotRegistry";
 import { measurePerformanceTask } from "../diagnostics/performance/performanceStore";
 import { useRenderDemand } from "../runtime/render-scheduler";
 
+import type { CameraGaze } from "./cameraGaze";
 import type { CameraNavigationState } from "./navigationTypes";
 import type { CameraTargetId, ResolvedCameraTarget } from "./cameraTypes";
 import type { ShotTransition } from "./shotTypes";
@@ -59,6 +60,7 @@ interface Props {
     | undefined;
   onResponsiveMode?: (mode: string) => void;
   onIntroState?: (active: boolean, completed: boolean) => void;
+  gaze?: CameraGaze;
 }
 
 const startPosition = new THREE.Vector3();
@@ -233,8 +235,11 @@ export function CameraRig(props: Props) {
     transitioning.current = true;
   };
 
+  const composeGaze = () => props.gaze?.apply(camera);
+
   useFrame(({ clock, pointer }, delta) =>
     measurePerformanceTask("CameraRig", () => {
+      props.gaze?.releaseLens(camera);
       const now = clock.elapsedTime;
       if (!initialized.current) {
         initialized.current = true;
@@ -518,6 +523,7 @@ export function CameraRig(props: Props) {
 
           props.onTransitionComplete?.();
         }
+        composeGaze();
         return;
       }
 
@@ -558,6 +564,7 @@ export function CameraRig(props: Props) {
           baseLook.z,
         );
         camera.rotateZ(baseRoll.current);
+        composeGaze();
         return;
       }
 
@@ -567,6 +574,7 @@ export function CameraRig(props: Props) {
         camera.position.copy(basePosition);
         camera.lookAt(baseLook);
         camera.rotateZ(baseRoll.current);
+        composeGaze();
         return;
       }
 
@@ -586,6 +594,7 @@ export function CameraRig(props: Props) {
         baseLook.z,
       );
       camera.rotateZ(baseRoll.current);
+      composeGaze();
     }),
   );
   return null;
