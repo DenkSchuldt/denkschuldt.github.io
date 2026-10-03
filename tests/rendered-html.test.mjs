@@ -152,7 +152,7 @@ test("GET / exposes site identity and links to every section", async () => {
   const [document] = main;
   assert.match(document, /<h1>Denny K\. Schuldt<\/h1>/);
   assert.match(document, /experiences people can feel/);
-  assert.match(document, /persistent 3D room/);
+  assert.match(document, /Explore Denny K\. Schuldt/);
   for (const path of ["/about", "/projects", "/certificates", "/poems", "/phone"]) {
     assert.match(document, new RegExp(`href="${path}"`), `root links to ${path}`);
   }

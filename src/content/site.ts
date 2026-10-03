@@ -1,14 +1,18 @@
+import { PHONE_SUMMARY } from "./phone.ts";
+
+export const POEMS_DESCRIPTION =
+  "A collection of original poems curated by the German-Ecuadorian poet Denny K. Schuldt.";
+
 export const SITE = {
   name: "Denny's Workspace",
   owner: "Denny K. Schuldt",
   tagline: "I turn complex things into experiences people can feel.",
   description:
-    "Denny K. Schuldt's portfolio, rendered as an interactive 3D room — software " +
-    "engineering and product work, poetry, and certificates to explore.",
+    "The portfolio of Denny K. Schuldt: software engineering, UX, product strategy, " +
+    "original poetry, and professional certifications.",
   summary:
-    "Denny's Workspace is a personal portfolio built as one persistent 3D room. " +
-    "Each section — About, Projects, Certificates, and Poems — is a place in that " +
-    "room with its own canonical URL.",
+    "Explore Denny K. Schuldt's work, professional background, certifications, and " +
+    "original poetry.",
   defaultOrigin: "https://denkschuldt.github.io",
   locale: "en_US",
 } as const;
@@ -25,31 +29,32 @@ export const SITE_SECTIONS: readonly SiteSection[] = [
     id: "about",
     label: "About",
     path: "/about",
-    summary: "Who Denny K. Schuldt is, how he works, and where to find him.",
+    summary: "Denny K. Schuldt's background in software engineering, UX, and product strategy.",
   },
   {
     id: "projects",
     label: "Projects",
     path: "/projects",
-    summary: "Selected work, professional experience, and independent experiments.",
+    summary:
+      "Product and engineering work, from logistics platforms to AI and independent projects.",
   },
   {
     id: "certificates",
     label: "Certificates",
     path: "/certificates",
-    summary: "Professional certifications and credentials, most recent first.",
+    summary: "Credentials in UX, AI, accessibility, business analytics, and product management.",
   },
   {
     id: "poems",
     label: "Poems",
     path: "/poems",
-    summary: "Original poetry by Denny K. Schuldt, newest first.",
+    summary: POEMS_DESCRIPTION,
   },
   {
     id: "phone",
     label: "Phone",
     path: "/phone",
-    summary: "denkOS, the workspace phone — a pointer to the latest poem.",
+    summary: PHONE_SUMMARY,
   },
 ];
 
@@ -73,9 +78,8 @@ export const SITE_ROUTES: readonly SiteRoute[] = [
     path: "/about",
     title: "About — Denny K. Schuldt",
     description:
-      "Denny K. Schuldt builds products that think clearly and experiences that move " +
-      "with purpose, working at the intersection of software engineering, UX, and " +
-      "product strategy.",
+      "Denny K. Schuldt brings over a decade of experience in software engineering, UX, " +
+      "and product strategy to building intuitive, human experiences.",
     indexable: true,
     ogImage: "/og/about.jpg",
   },
@@ -83,8 +87,8 @@ export const SITE_ROUTES: readonly SiteRoute[] = [
     path: "/projects",
     title: "Projects — Denny K. Schuldt",
     description:
-      "Selected work by Denny K. Schuldt: a decade of product and engineering across " +
-      "logistics platforms, plus independent experiments.",
+      "Selected work by Denny K. Schuldt across product strategy, software engineering, " +
+      "logistics platforms, AI-enabled products, and independent experiments.",
     indexable: true,
     ogImage: "/og/projects.jpg",
   },
@@ -92,24 +96,22 @@ export const SITE_ROUTES: readonly SiteRoute[] = [
     path: "/certificates",
     title: "Certificates — Denny K. Schuldt",
     description:
-      "Professional certifications held by Denny K. Schuldt, covering UX management, " +
-      "AI design, HCI, accessibility, and product management.",
+      "Professional certifications earned by Denny K. Schuldt in UX, AI, accessibility, " +
+      "business analytics, and product management.",
     indexable: true,
     ogImage: "/og/certificates.jpg",
   },
   {
     path: "/phone",
     title: "Phone — Denny K. Schuldt",
-    description:
-      "denkOS, the workspace phone. Its lock screen surfaces the latest poem. No private " +
-      "data lives here.",
+    description: PHONE_SUMMARY,
     indexable: true,
     ogImage: "/og/phone.jpg",
   },
   {
     path: "/poems",
     title: "Poems — Denny K. Schuldt",
-    description: "Original poetry by Denny K. Schuldt, presented as a cinematic writing portfolio.",
+    description: POEMS_DESCRIPTION,
     indexable: true,
     ogImage: "/og/poems.jpg",
   },

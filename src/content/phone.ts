@@ -11,5 +11,4 @@ export const NOW_PLAYING_TRACK: NowPlayingTrack = {
 };
 
 export const PHONE_SUMMARY =
-  "denkOS is the workspace phone. Its lock screen surfaces the latest poem. Nothing private " +
-  "lives here.";
+  "A glimpse into Denny K. Schuldt's world: the latest poem and the music playing on denkOS.";
