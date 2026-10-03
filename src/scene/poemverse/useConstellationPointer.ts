@@ -16,6 +16,9 @@ interface ConstellationPointerOptions {
   onSelectPoem: (slug: string) => void;
 }
 
+const MOUSE_PICK_RADIUS_PX = 26;
+const TOUCH_PICK_RADIUS_PX = 38;
+
 export function useConstellationPointer({
   store,
   skyStage,
@@ -26,68 +29,96 @@ export function useConstellationPointer({
   const renderDemand = useRenderDemand("poemverse-pointer");
 
   useEffect(() => {
-    const clearHover = () => {
+    let lastPointerType = "mouse";
+
+    const clearSelection = () => {
       if (skyStage.hover(-1)) renderDemand.invalidate("pointer-interaction");
       store.setHover(null);
       canvas.style.cursor = "";
     };
 
-    const handlePointerMove = (event: PointerEvent) => {
+    const pickStar = (event: PointerEvent | MouseEvent, radius: number) => {
       const sky = skyStage.current;
-      if (store.phase !== "landed" || !sky) {
-        clearHover();
-        return;
-      }
-      const bounds = canvas.getBoundingClientRect();
-      const index = sky.pick(
+      if (store.phase !== "landed" || !sky) return -1;
+      return sky.pick(
         camera,
         { x: event.clientX, y: event.clientY },
-        bounds,
+        canvas.getBoundingClientRect(),
         skyStage.sinceLanding,
+        radius,
       );
-      if (index < 0) {
-        clearHover();
-        return;
-      }
-      if (!skyStage.hover(index)) return;
+    };
+
+    const selectStar = (index: number, isPinned: boolean) => {
+      const sky = skyStage.current;
+      if (!sky || !skyStage.hover(index)) return;
       const star = sky.star(index);
-      const position = sky.screenPosition(camera, index, bounds);
+      const position = sky.screenPosition(camera, index, canvas.getBoundingClientRect());
       store.setHover({
         slug: star.slug,
         title: star.title,
         constellation: CONSTELLATION_SUMMARIES[star.constellationIndex]?.name ?? "",
+        isPinned,
         x: position.x,
         y: position.y,
       });
-      canvas.style.cursor = "pointer";
       renderDemand.invalidate("pointer-interaction");
     };
 
-    const handleClick = () => {
+    const handlePointerDown = (event: PointerEvent) => {
+      lastPointerType = event.pointerType;
+    };
+
+    const handlePointerMove = (event: PointerEvent) => {
+      if (event.pointerType !== "mouse") return;
+      const index = pickStar(event, MOUSE_PICK_RADIUS_PX);
+      if (index < 0) {
+        clearSelection();
+        return;
+      }
+      selectStar(index, false);
+      canvas.style.cursor = "pointer";
+    };
+
+    const handleClick = (event: MouseEvent) => {
+      const isTouch = lastPointerType !== "mouse";
+      const picked = pickStar(event, isTouch ? TOUCH_PICK_RADIUS_PX : MOUSE_PICK_RADIUS_PX);
+      const index = !isTouch && skyStage.hovered >= 0 ? skyStage.hovered : picked;
+      if (index < 0) {
+        clearSelection();
+        return;
+      }
       const sky = skyStage.current;
-      const index = skyStage.hovered;
-      if (store.phase !== "landed" || !sky || index < 0) return;
+      if (!sky) return;
+      if (isTouch && skyStage.hovered !== index) {
+        selectStar(index, true);
+        return;
+      }
       const slug = sky.star(index).slug;
-      clearHover();
+      clearSelection();
       onSelectPoem(slug);
     };
 
-    const handlePhaseChange = () => {
-      if (store.phase !== "landed") clearHover();
+    const handlePointerLeave = (event: PointerEvent) => {
+      if (event.pointerType === "mouse") clearSelection();
     };
 
+    const handlePhaseChange = () => {
+      if (store.phase !== "landed") clearSelection();
+    };
+
+    canvas.addEventListener("pointerdown", handlePointerDown);
     canvas.addEventListener("pointermove", handlePointerMove);
-    canvas.addEventListener("pointerdown", handlePointerMove);
-    canvas.addEventListener("pointerleave", clearHover);
+    canvas.addEventListener("pointerleave", handlePointerLeave);
     canvas.addEventListener("click", handleClick);
     const unsubscribe = store.subscribe(handlePhaseChange);
     return () => {
+      canvas.removeEventListener("pointerdown", handlePointerDown);
       canvas.removeEventListener("pointermove", handlePointerMove);
-      canvas.removeEventListener("pointerdown", handlePointerMove);
-      canvas.removeEventListener("pointerleave", clearHover);
+      canvas.removeEventListener("pointerleave", handlePointerLeave);
       canvas.removeEventListener("click", handleClick);
       unsubscribe();
-      clearHover();
+      clearSelection();
     };
   }, [camera, canvas, onSelectPoem, renderDemand, skyStage, store]);
 }

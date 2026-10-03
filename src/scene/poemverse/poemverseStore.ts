@@ -19,6 +19,7 @@ export interface PoemverseHover {
   slug: string;
   title: string;
   constellation: string;
+  isPinned: boolean;
   x: number;
   y: number;
 }

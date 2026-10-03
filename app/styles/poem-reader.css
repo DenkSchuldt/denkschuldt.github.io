@@ -62,7 +62,6 @@
 .poem-reader-mobile-close {
   display: none;
 }
-.poem-reader-close,
 .poem-reader-share,
 .poem-reader-footer button {
   border: 0;
@@ -81,23 +80,23 @@
   top: max(9px, env(safe-area-inset-top));
   right: max(14px, env(safe-area-inset-right));
   z-index: 3;
-  display: grid;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  place-items: center;
-  border: 1px solid rgba(49, 40, 33, 0.52);
-  border-radius: 50%;
-  color: #201b17;
+}
+.poem-reader-close-ink {
+  border-color: rgba(49, 40, 33, 0.28);
+  color: rgba(32, 27, 23, 0.78);
+  background: rgba(49, 40, 33, 0.04);
+}
+.poem-reader-close-ink:hover {
+  border-color: rgba(49, 40, 33, 0.5);
+  color: #17120f;
   background: rgba(49, 40, 33, 0.08);
 }
-.poem-reader-close svg {
-  width: 17px;
-  height: 17px;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-width: 2;
+.poem-reader-close-ink span {
+  color: rgba(32, 27, 23, 0.5);
+}
+.poem-reader-close-ink:focus-visible {
+  outline: 2px solid #695e53;
+  outline-offset: 3px;
 }
 .poem-reader-header-actions {
   display: flex;
@@ -312,7 +311,6 @@
   animation: poem-heart-ring 0.68s ease-out both;
   pointer-events: none;
 }
-.poem-reader-close:hover,
 .poem-reader-footer button:not(:disabled):hover {
   color: #17120f;
 }
@@ -732,26 +730,9 @@
     gap: 12px;
   }
   .poem-reader-mobile-close {
-    display: grid;
+    display: inline-flex;
     flex: 0 0 34px;
-    width: 34px;
-    height: 34px;
     margin-left: 14px;
-    padding: 0;
-    place-items: center;
-    border: 1px solid rgba(49, 40, 33, 0.52);
-    border-radius: 50%;
-    color: #201b17;
-    background: rgba(49, 40, 33, 0.08);
-    cursor: pointer;
-  }
-  .poem-reader-mobile-close svg {
-    width: 17px;
-    height: 17px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-width: 2;
   }
   .poem-reader-kicker {
     min-width: 0;

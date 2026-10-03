@@ -23,7 +23,18 @@ const LABEL_WIDTH = 1.15;
 const LABEL_TEXTURE_WIDTH = 640;
 const LABEL_TEXTURE_HEIGHT = 128;
 const STAR_SIZE = 0.075;
-const PICK_RADIUS_PX = 26;
+
+export const LINE_STYLE = {
+  structural: { opacity: 0.34, hoverBoost: 1.3, penGlow: 0.9 },
+  literary: {
+    opacityRatio: 0.25,
+    highlightRatio: 0.6,
+    dimmedRatio: 0.1,
+    luminance: 0.72,
+    dashesPerMetre: 7,
+    dashDuty: 0.4,
+  },
+} as const;
 
 const STAR_VERTEX_SHADER = /* glsl */ `
   uniform float uTime;
@@ -87,12 +98,16 @@ const LINE_VERTEX_SHADER = /* glsl */ `
   attribute float aGroup;
   attribute float aBridge;
   attribute float aLength;
+  attribute float aFromIndex;
+  attribute float aToIndex;
   attribute vec3 aTint;
   varying float vAlong;
   varying float vDelay;
   varying float vGroup;
   varying float vBridge;
   varying float vLength;
+  varying float vFromIndex;
+  varying float vToIndex;
   varying vec3 vTint;
 
   void main() {
@@ -101,6 +116,8 @@ const LINE_VERTEX_SHADER = /* glsl */ `
     vGroup = aGroup;
     vBridge = aBridge;
     vLength = aLength;
+    vFromIndex = aFromIndex;
+    vToIndex = aToIndex;
     vTint = aTint;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
@@ -108,23 +125,49 @@ const LINE_VERTEX_SHADER = /* glsl */ `
 
 const LINE_FRAGMENT_SHADER = /* glsl */ `
   uniform float uTime;
+  uniform float uHover;
   uniform float uHoverGroup;
+  uniform float uStructuralOpacity;
+  uniform float uStructuralHoverBoost;
+  uniform float uStructuralPenGlow;
+  uniform float uLiteraryOpacity;
+  uniform float uLiteraryHighlightOpacity;
+  uniform float uLiteraryDimmedOpacity;
+  uniform float uLiteraryLuminance;
+  uniform float uLiteraryDashFrequency;
+  uniform float uLiteraryDashDuty;
   varying float vAlong;
   varying float vDelay;
   varying float vGroup;
   varying float vBridge;
   varying float vLength;
+  varying float vFromIndex;
+  varying float vToIndex;
   varying vec3 vTint;
 
   void main() {
     float progress = clamp((uTime - vDelay) / ${LINE_DRAW_SECONDS.toFixed(2)}, 0.0, 1.0);
     if (vAlong > progress) discard;
-    if (vBridge > 0.5 && fract(vAlong * vLength * 6.0) > 0.5) discard;
-    float inGroup = 1.0 - step(0.5, abs(vGroup - uHoverGroup));
-    float base = mix(0.34, 0.2, vBridge) * (1.0 + inGroup * 1.3);
+
+    if (vBridge > 0.5) {
+      if (fract(vAlong * vLength * uLiteraryDashFrequency) > uLiteraryDashDuty) discard;
+      float isSelecting = step(-0.5, uHover);
+      float touchesSelection = max(
+        1.0 - step(0.5, abs(vFromIndex - uHover)),
+        1.0 - step(0.5, abs(vToIndex - uHover))
+      );
+      float selectedOpacity = mix(uLiteraryDimmedOpacity, uLiteraryHighlightOpacity, touchesSelection);
+      float opacity = mix(uLiteraryOpacity, selectedOpacity, isSelecting);
+      gl_FragColor = vec4(vTint * uLiteraryLuminance, opacity);
+      #include <colorspace_fragment>
+      return;
+    }
+
+    float inGroup = step(-0.5, uHoverGroup) * (1.0 - step(0.5, abs(vGroup - uHoverGroup)));
+    float base = uStructuralOpacity * (1.0 + inGroup * uStructuralHoverBoost);
     float pen = progress < 1.0 ? exp(-(progress - vAlong) * vLength * 9.0) : 0.0;
     vec3 color = mix(vTint, vec3(1.0, 0.96, 0.9), pen);
-    gl_FragColor = vec4(color, clamp(base + pen * 0.9, 0.0, 1.0));
+    gl_FragColor = vec4(color, clamp(base + pen * uStructuralPenGlow, 0.0, 1.0));
     #include <colorspace_fragment>
   }
 `;
@@ -167,7 +210,26 @@ export class ConstellationSky {
     this.lineMaterial = new THREE.ShaderMaterial({
       vertexShader: LINE_VERTEX_SHADER,
       fragmentShader: LINE_FRAGMENT_SHADER,
-      uniforms: { uTime: { value: -1000 }, uHoverGroup: { value: -1 } },
+      uniforms: {
+        uTime: { value: -1000 },
+        uHover: { value: -1 },
+        uHoverGroup: { value: -1 },
+        uStructuralOpacity: { value: LINE_STYLE.structural.opacity },
+        uStructuralHoverBoost: { value: LINE_STYLE.structural.hoverBoost },
+        uStructuralPenGlow: { value: LINE_STYLE.structural.penGlow },
+        uLiteraryOpacity: {
+          value: LINE_STYLE.structural.opacity * LINE_STYLE.literary.opacityRatio,
+        },
+        uLiteraryHighlightOpacity: {
+          value: LINE_STYLE.structural.opacity * LINE_STYLE.literary.highlightRatio,
+        },
+        uLiteraryDimmedOpacity: {
+          value: LINE_STYLE.structural.opacity * LINE_STYLE.literary.dimmedRatio,
+        },
+        uLiteraryLuminance: { value: LINE_STYLE.literary.luminance },
+        uLiteraryDashFrequency: { value: LINE_STYLE.literary.dashesPerMetre },
+        uLiteraryDashDuty: { value: LINE_STYLE.literary.dashDuty },
+      },
       transparent: true,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
@@ -240,6 +302,8 @@ export class ConstellationSky {
     const lineDelays = new Float32Array(lineCount * 2);
     const lineGroups = new Float32Array(lineCount * 2);
     const bridges = new Float32Array(lineCount * 2);
+    const fromIndices = new Float32Array(lineCount * 2);
+    const toIndices = new Float32Array(lineCount * 2);
     const lengths = new Float32Array(lineCount * 2);
     const lineTints = new Float32Array(lineCount * 6);
     const bridgeTint = new THREE.Color("#e9d8ff");
@@ -260,6 +324,8 @@ export class ConstellationSky {
         lineDelays[slot] = delay;
         lineGroups[slot] = line.constellationIndex;
         bridges[slot] = line.isBridge ? 1 : 0;
+        fromIndices[slot] = line.from;
+        toIndices[slot] = line.to;
         lengths[slot] = from.distanceTo(to);
         tint.toArray(lineTints, slot * 3);
       }
@@ -269,6 +335,8 @@ export class ConstellationSky {
     this.lineGeometry.setAttribute("aDelay", new THREE.BufferAttribute(lineDelays, 1));
     this.lineGeometry.setAttribute("aGroup", new THREE.BufferAttribute(lineGroups, 1));
     this.lineGeometry.setAttribute("aBridge", new THREE.BufferAttribute(bridges, 1));
+    this.lineGeometry.setAttribute("aFromIndex", new THREE.BufferAttribute(fromIndices, 1));
+    this.lineGeometry.setAttribute("aToIndex", new THREE.BufferAttribute(toIndices, 1));
     this.lineGeometry.setAttribute("aLength", new THREE.BufferAttribute(lengths, 1));
     this.lineGeometry.setAttribute("aTint", new THREE.BufferAttribute(lineTints, 3));
 
@@ -295,6 +363,7 @@ export class ConstellationSky {
     this.starMaterial.uniforms.uHover.value = hoverIndex;
     this.starMaterial.uniforms.uHoverGroup.value = hoverGroup;
     this.lineMaterial.uniforms.uTime.value = time;
+    this.lineMaterial.uniforms.uHover.value = hoverIndex;
     this.lineMaterial.uniforms.uHoverGroup.value = hoverGroup;
     this.labelMeshes.forEach((mesh, index) => {
       const reveal = THREE.MathUtils.clamp(
@@ -317,9 +386,10 @@ export class ConstellationSky {
     pointer: { x: number; y: number },
     viewport: DOMRect,
     sinceLanding: number,
+    radius: number,
   ) {
     let nearest = -1;
-    let nearestDistance = PICK_RADIUS_PX;
+    let nearestDistance = radius;
     this.worldPositions.forEach((world, index) => {
       if (sinceLanding < this.delays[index] + 0.3) return;
       projected.copy(world).project(camera);

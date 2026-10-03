@@ -121,5 +121,14 @@ test("every published poem belongs to exactly one Poemverse constellation", asyn
     const members = new Set(stars.map(({ slug }) => slug));
     for (const line of lines) for (const slug of line) assert.ok(members.has(slug), slug);
   }
-  for (const { from, to } of bridges) assert.ok(placed.includes(from) && placed.includes(to));
+  const kinds = new Set(["explicit-reference", "shared-image", "interpretive"]);
+  const pairs = new Set();
+  for (const { from, to, kind, reason } of bridges) {
+    assert.ok(placed.includes(from) && placed.includes(to), `${from} ↔ ${to}`);
+    assert.ok(kinds.has(kind), `${from} ↔ ${to} has an unknown kind`);
+    assert.ok(reason.length > 40, `${from} ↔ ${to} needs a concrete reading`);
+    const pair = [from, to].sort().join("↔");
+    assert.ok(!pairs.has(pair), `${pair} is defined twice`);
+    pairs.add(pair);
+  }
 });

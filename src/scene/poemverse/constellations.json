@@ -1,13 +1,13 @@
 {
   "version": 1,
   "source": "public/llms-full.txt",
-  "description": "Denny K. Schuldt's poems grouped by theme into constellations. Offsets and layout centres are sky metres, rotations are degrees: x points right and y points up on screen when the ceiling is seen from below.",
+  "description": "Denny K. Schuldt's poems grouped by theme into constellations. Offsets and layout centres are sky metres, rotations are degrees: x points right and y points up on screen when the ceiling is seen from below. Constellation lines draw each figure; bridges are literary connections between two poems, inside one constellation or across two, classified as explicit-reference, shared-image or interpretive.",
   "layouts": {
     "landscape": {
       "scale": 1
     },
     "portrait": {
-      "scale": 0.74
+      "scale": 0.7
     }
   },
   "constellations": [
@@ -22,8 +22,8 @@
           "rotation": -6
         },
         "portrait": {
-          "centre": [-0.55, 2.4],
-          "rotation": -5
+          "centre": [-0.35, 2.55],
+          "rotation": -12
         }
       },
       "stars": [
@@ -90,8 +90,8 @@
           "rotation": 8
         },
         "portrait": {
-          "centre": [0.75, 1.75],
-          "rotation": 8
+          "centre": [0.85, 1.65],
+          "rotation": 18
         }
       },
       "stars": [
@@ -145,8 +145,8 @@
           "rotation": 12
         },
         "portrait": {
-          "centre": [-0.7, 0.95],
-          "rotation": 10
+          "centre": [-0.85, 1.05],
+          "rotation": 8
         }
       },
       "stars": [
@@ -206,8 +206,8 @@
           "rotation": -10
         },
         "portrait": {
-          "centre": [0.6, 0.25],
-          "rotation": -8
+          "centre": [0.35, 0.3],
+          "rotation": -20
         }
       },
       "stars": [
@@ -261,8 +261,8 @@
           "rotation": 15
         },
         "portrait": {
-          "centre": [-0.65, -0.55],
-          "rotation": 12
+          "centre": [-0.95, -0.55],
+          "rotation": 22
         }
       },
       "stars": [
@@ -305,8 +305,8 @@
           "rotation": -14
         },
         "portrait": {
-          "centre": [0.75, -1.25],
-          "rotation": -12
+          "centre": [0.8, -0.95],
+          "rotation": -6
         }
       },
       "stars": [
@@ -366,8 +366,8 @@
           "rotation": 6
         },
         "portrait": {
-          "centre": [-0.5, -2.05],
-          "rotation": 6
+          "centre": [-0.25, -1.75],
+          "rotation": 14
         }
       },
       "stars": [
@@ -427,8 +427,8 @@
           "rotation": -8
         },
         "portrait": {
-          "centre": [0.65, -2.75],
-          "rotation": -6
+          "centre": [0.7, -2.7],
+          "rotation": -16
         }
       },
       "stars": [
@@ -474,29 +474,52 @@
   ],
   "bridges": [
     {
-      "from": "lovestruck",
-      "to": "fears",
-      "reason": "2025 opened by wishing with Lovestruck; 2026 opened by facing with Fears."
+      "from": "safebox",
+      "to": "lovestruck",
+      "kind": "explicit-reference",
+      "reason": "Safebox opens with “Mutual, that’s the word,” the line from section VI of Lovestruck. There, reciprocity is what a new love has to live up to; in Safebox it becomes the key to intimacy itself, the condition for opening up and keeping each other’s heart safe."
     },
     {
-      "from": "a-sublime-experience",
-      "to": "grandmas-in-danger-of-extinction",
-      "reason": "Both name love as something that transcends space and time."
+      "from": "lovestruck",
+      "to": "fears",
+      "kind": "explicit-reference",
+      "reason": "Fears names Lovestruck in its opening note: 2025 began “by wishing” with that poem, 2026 begins “by facing” with this one. The New Year’s poem returns, but the gesture turns inward, from manifesting a love still to come to confronting fear as “a constant in my life’s equation.”"
+    },
+    {
+      "from": "i-loved-so-very-deep",
+      "to": "photons",
+      "kind": "explicit-reference",
+      "reason": "Photons retakes the central line of I loved so very deep: “that it almost got me blind” becomes “that it almost made me blind.” What was a remembered devotion becomes a literal image: looking up to the sun for someone’s light, overexposure, burning, and a darkened tale."
+    },
+    {
+      "from": "i-write-poems",
+      "to": "a-zombie-camouflaged",
+      "kind": "interpretive",
+      "reason": "Interpretive reading: I write poems treats writing as shelter, a way “to sometimes stay” and take refuge in oneself. In A zombie camouflaged the notebook becomes a morgue where longings are “destined to stay,” and writing as a coping mechanism “turned into a gun”: the refuge becomes the site of the wound, and of survival."
+    },
+    {
+      "from": "grandmas-in-danger-of-extinction",
+      "to": "a-sublime-experience",
+      "kind": "shared-image",
+      "reason": "Shared image: love that is timeless and “sublime.” In Grandmas it is the grandmother’s love that “transcends space and time” as she dies; months later A sublime experience turns that into a definition of love itself, “ever changing and timeless.”"
     },
     {
       "from": "en-un-universo-paralelo",
       "to": "desde-el-otro-lado",
-      "reason": "Imagining a love from another side, another universe."
+      "kind": "shared-image",
+      "reason": "Shared image: a love lived on another side of reality. En un universo paralelo places the shared life in another universe precisely because in this one it ended; Desde el otro lado wants to cross the limits and live it “desde el otro lado,” where time is cyclical, not linear."
     },
     {
-      "from": "armored-as-knights",
-      "to": "a-missing-gear",
-      "reason": "Hearts whose fears lock their gears."
+      "from": "a-missing-gear",
+      "to": "armored-as-knights",
+      "kind": "shared-image",
+      "reason": "Shared image: the heart as a stalled machine. A missing gear keeps one person’s machinery from gleaming and asks for “another motor,” not an anchor; Armored as knights widens it to a generation whose fears “lock their gears,” where “nothing moves if nothing changes.”"
     },
     {
       "from": "forgive-myself",
       "to": "bottle-of-wine",
-      "reason": "Wine and ink as the slow way back to oneself."
+      "kind": "shared-image",
+      "reason": "Shared image: wine as what loosens the words. In Forgive myself “a glass of wine, pen and paper” start the verses of a chapter he cannot close; in Bottle of wine the uninhibited night gives way to the morning after, coming back to himself “one thought at a time.”"
     }
   ]
 }

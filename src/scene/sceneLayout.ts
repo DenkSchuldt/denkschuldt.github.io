@@ -8,6 +8,7 @@ export const POEMS_TABLET_PORTRAIT_LAYOUT = {
   position: [1.35, 0.2] as [number, number],
   rotationDegrees: POEMS_TABLET_LAYOUT.rotationDegrees,
   worldCenter: [1.35, 1.282, -1.3] as [number, number, number],
+  cameraTarget: [1.265, 1.282, -1.331] as [number, number, number],
 } as const;
 
 export const PORTRAIT_COFFEE_POSITION: [number, number, number] = [1.18, 0.175, -0.95];

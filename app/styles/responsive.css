@@ -21,6 +21,13 @@
   .certificate-gallery-close span {
     display: none;
   }
+  .certificate-gallery-close {
+    width: 34px;
+    height: 34px;
+    justify-content: center;
+    padding: 0;
+    gap: 0;
+  }
   .collection-tab-navigation {
     top: max(20px, env(safe-area-inset-top));
     max-width: calc(100vw - 120px);
