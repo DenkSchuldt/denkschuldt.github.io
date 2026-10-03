@@ -1,3 +1,5 @@
+import { SITE } from "../src/content/site.ts";
+
 import type { Metadata } from "next";
 
 import "./globals.css";
@@ -9,8 +11,7 @@ const SITE_ORIGIN = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://denkschuldt.gi
 const SITE_URL = `${SITE_ORIGIN}/`;
 
 const SITE_TITLE = "Denny K. Schuldt";
-const SITE_DESCRIPTION =
-  "Denny K. Schuldt's portfolio, rendered as an interactive 3D room — software engineering and product work, poetry, and certificates to explore.";
+const SITE_DESCRIPTION = SITE.description;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
@@ -44,8 +45,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/preview.png",
-        width: 2664,
-        height: 1310,
+        width: 1200,
+        height: 630,
         alt: SITE_TITLE,
       },
     ],

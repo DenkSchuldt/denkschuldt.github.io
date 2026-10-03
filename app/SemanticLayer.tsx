@@ -1,3 +1,5 @@
+import { POEMS_DESCRIPTION } from "../src/content/site.ts";
+
 import { getSiteContent } from "./site.server.ts";
 import { hrefFor } from "./site-url.ts";
 import { buildStructuredData, serializeJsonLd } from "./structured-data.ts";
@@ -289,7 +291,7 @@ function PoemsIndexDocument({ content }: { content: SiteContent }) {
       <SiteNav content={content} current="/poems" />
       <article aria-label="Poems by Denny K. Schuldt">
         <h1>Poems by Denny K. Schuldt</h1>
-        <p>Original poetry, newest first.</p>
+        <p>{POEMS_DESCRIPTION}</p>
         <ol>
           {content.poems.items.map((poem) => (
             <li key={poem.slug}>
