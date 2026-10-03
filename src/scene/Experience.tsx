@@ -12,6 +12,7 @@ import {
 } from "@denk/cinematic-navigation/react";
 
 import { scheduleAnalytics, trackEvent } from "./analytics";
+import { CameraGaze } from "./camera/cameraGaze";
 import { shouldSyncRouteShot } from "./camera/cameraNavigation";
 import { CinematicFade } from "./camera/CinematicFade";
 import { NavigationDebugPanel } from "./camera/NavigationDebugPanel";
@@ -35,6 +36,7 @@ import {
 import { useSceneRouter } from "./camera/useSceneRouter";
 import { CertificateGalleryOverlay } from "./components/CertificateGalleryOverlay";
 import { PhotoLightbox } from "./components/PhotoLightbox";
+import { PoemverseLaunch } from "./components/PoemverseLaunch";
 import { usePoems } from "./content/usePoems";
 import {
   MeasuredRuntimeFrameBridge,
@@ -42,6 +44,7 @@ import {
   PerformanceProbe,
 } from "./diagnostics/performance/PerformanceDiagnostics";
 import { performanceDiagnostics } from "./diagnostics/performance/performanceStore";
+import { createPoemverseStore, usePoemverse } from "./poemverse/poemverseStore";
 import {
   RealityProvider,
   RealityRuntimeBridge,
@@ -73,6 +76,7 @@ import { createScreenProjection } from "./screenProjection";
 import type { RuntimeNodeRegistration } from "@denk/cinematic-navigation";
 import type { NavigationLocation, SceneId } from "./camera/navigationTypes";
 import type { CinematicNavigationSystem } from "./camera/useCinematicCamera";
+import type { PoemverseScreenPoint } from "./poemverse/poemverseStore";
 import type { SceneSettings } from "./Scene";
 
 type PoemInteractionDetail = { slug?: string; title?: string; url?: string; comment?: string };
@@ -239,6 +243,10 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
   const poemsProjectionRef = useMemo(() => createScreenProjection(), []);
   const phoneScreenRef = useRef<THREE.Mesh | null>(null);
   const phoneProjectionRef = useMemo(() => createScreenProjection(), []);
+  const poemverse = useMemo(() => createPoemverseStore(), []);
+  const cameraGaze = useMemo(() => new CameraGaze(), []);
+  const poemverseState = usePoemverse(poemverse);
+  const poemversePhase = poemverseState.phase;
 
   useEffect(() => {
     if (!sceneReady) return;
@@ -308,6 +316,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
   const runtime = useCinematicRuntimeController(cameraSystem.engine);
 
   const poemsSceneActive = cameraSystem.selectedScene === "poems";
+  const poemverseMounted = poemverseState.isRetained || poemversePhase !== "idle";
   const poemsResourcesResident = useDestinationResources("poems");
   const projectsResourcesResident = useDestinationResources("projects");
   const aboutResourcesResident = useDestinationResources("about");
@@ -325,6 +334,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
       ...(projectsOverlayReady ? ["projects-overlay"] : []),
       ...(aboutOverlayReady ? ["about-overlay"] : []),
       ...(poemsOverlayReady ? ["poems-overlay"] : []),
+      ...(poemverseMounted ? ["poemverse-scene"] : []),
       ...(phoneOverlayReady ? ["phone-overlay"] : []),
     ],
     [
@@ -333,6 +343,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
       projectsOverlayReady,
       aboutOverlayReady,
       poemsOverlayReady,
+      poemverseMounted,
       phoneOverlayReady,
     ],
   );
@@ -518,6 +529,10 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
   }, [cameraSystem.selectedScene]);
 
   useEffect(() => {
+    if (!poemsSceneActive) poemverse.release();
+  }, [poemsSceneActive, poemverse]);
+
+  useEffect(() => {
     setPhoneOverlayReady(
       sceneReady &&
         cameraSystem.selectedScene === "phone" &&
@@ -605,13 +620,27 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
     [resumeFromStart, goToScene],
   );
 
+  const openPoemBySlug = useCallback(
+    (slug: string) => {
+      setReaderPoemSlug(slug);
+      if (routeScene === "poems") replaceWithinScene(pathForFocus("poems", slug));
+      setPoemReaderOpen(true);
+    },
+    [replaceWithinScene, routeScene],
+  );
+
   const openPoemReader = useCallback(() => {
     const slug = poemsContent.poems[0]?.slug;
-    if (!slug) return;
-    setReaderPoemSlug(slug);
-    if (routeScene === "poems") replaceWithinScene(pathForFocus("poems", slug));
-    setPoemReaderOpen(true);
-  }, [poemsContent.poems, replaceWithinScene, routeScene]);
+    if (slug) openPoemBySlug(slug);
+  }, [openPoemBySlug, poemsContent.poems]);
+
+  const enterPoemverse = useCallback(
+    (origin: PoemverseScreenPoint) => {
+      poemverse.launch(origin);
+      trackEvent("poemverse_entered");
+    },
+    [poemverse],
+  );
 
   const changeReaderPoem = useCallback(
     (slug: string) => {
@@ -761,6 +790,10 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
                     poemsProjectionRef={poemsProjectionRef}
                     phoneScreenRef={phoneScreenRef}
                     phoneProjectionRef={phoneProjectionRef}
+                    cameraGaze={cameraGaze}
+                    poemverse={poemverseMounted ? poemverse : null}
+                    featuredPoemSlug={poemsContent.poems[0]?.slug ?? null}
+                    onSelectPoem={openPoemBySlug}
                     onPhotoOpen={openPhotoLightbox}
                   />
                 </Suspense>
@@ -836,12 +869,27 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
           {poemsResourcesResident && (
             <Suspense fallback={null}>
               <PoemsOverlay
-                visible={cameraSystem.selectedScene === "poems" && poemsOverlayReady}
+                visible={
+                  cameraSystem.selectedScene === "poems" &&
+                  poemsOverlayReady &&
+                  poemversePhase === "idle"
+                }
                 projectionRef={poemsProjectionRef}
                 onRead={openPoemReader}
+                onConnect={enterPoemverse}
                 hasPoems={poemsContent.poems.length > 0}
+                starLaunched={poemversePhase !== "idle"}
               />
             </Suspense>
+          )}
+          {poemverseState.origin && (
+            <PoemverseLaunch
+              key={poemverseState.launchId}
+              store={poemverse}
+              origin={poemverseState.origin}
+              reducedMotion={cameraSystem.reducedMotion}
+              onSelectPoem={openPoemBySlug}
+            />
           )}
           {phoneResourcesResident && (
             <Suspense fallback={null}>

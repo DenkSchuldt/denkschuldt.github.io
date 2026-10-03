@@ -4,6 +4,14 @@ export const POEMS_TABLET_LAYOUT = {
   worldCenter: [1.35, 1.282, -1.18] as [number, number, number],
 } as const;
 
+export const POEMS_TABLET_PORTRAIT_LAYOUT = {
+  position: [1.35, 0.2] as [number, number],
+  rotationDegrees: POEMS_TABLET_LAYOUT.rotationDegrees,
+  worldCenter: [1.35, 1.282, -1.3] as [number, number, number],
+} as const;
+
+export const PORTRAIT_COFFEE_POSITION: [number, number, number] = [1.18, 0.175, -0.95];
+
 const POEMS_ROTATION_RADIANS = (POEMS_TABLET_LAYOUT.rotationDegrees * Math.PI) / 180;
 
 export const PHONE_LAYOUT = {
@@ -19,10 +27,11 @@ export const PHONE_LAYOUT = {
 export function poemsAlignedCameraPosition(
   height: number,
   groundDistance: number,
+  worldCenter: readonly [number, number, number] = POEMS_TABLET_LAYOUT.worldCenter,
 ): [number, number, number] {
   return [
-    POEMS_TABLET_LAYOUT.worldCenter[0] + Math.sin(POEMS_ROTATION_RADIANS) * groundDistance,
+    worldCenter[0] + Math.sin(POEMS_ROTATION_RADIANS) * groundDistance,
     height,
-    POEMS_TABLET_LAYOUT.worldCenter[2] + Math.cos(POEMS_ROTATION_RADIANS) * groundDistance,
+    worldCenter[2] + Math.cos(POEMS_ROTATION_RADIANS) * groundDistance,
   ];
 }

@@ -4,16 +4,19 @@ import { sceneForCameraTarget } from "./sceneRegistry";
 import { CameraRig } from "./CameraRig";
 import { CameraTargetHelpers } from "./CameraTargetHelper";
 
+import type { CameraGaze } from "./cameraGaze";
 import type { CinematicNavigationSystem } from "./useCinematicCamera";
 
 export function CameraController({
   system,
   focusRef,
   certificateFocusRef,
+  gaze,
 }: {
   system: CinematicNavigationSystem;
   focusRef: React.MutableRefObject<number>;
   certificateFocusRef: React.MutableRefObject<{ x: number; y: number } | null>;
+  gaze?: CameraGaze;
 }) {
   return (
     <>
@@ -50,6 +53,7 @@ export function CameraController({
         onTransitionComplete={system.engine.completeTransition}
         onResponsiveMode={system.engine.setResponsiveMode}
         onIntroState={system.engine.setIntroState}
+        gaze={gaze}
       />
       <CameraTargetHelpers visible={system.targetHelpers} />
     </>

@@ -1,14 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { solveHomography } from "../homography";
+import { POEM_STAR_IMAGE_URL } from "../poemverse/poemStarAsset";
+import { isMobileRenderingViewport } from "../rendering/renderingIntent";
 import { useWorkingSetStore } from "../runtime/working-set";
 
+import type { PoemverseScreenPoint } from "../poemverse/poemverseStore";
 import type { ScreenProjectionRef } from "../screenProjection";
 
-const SCREEN_LOGICAL_WIDTH = 1200;
-const SCREEN_LOGICAL_HEIGHT = 770;
+const SCREEN_LONG_SIDE = 1200;
+const SCREEN_SHORT_SIDE = 770;
+const STAR_GLYPH_STYLE = { backgroundImage: `url("${POEM_STAR_IMAGE_URL}")` };
 
 function FeatherIcon() {
   return (
@@ -51,13 +55,26 @@ interface PoemsOverlayProps {
   visible: boolean;
   projectionRef: ScreenProjectionRef;
   onRead: () => void;
+  onConnect: (origin: PoemverseScreenPoint) => void;
   hasPoems: boolean;
+  starLaunched: boolean;
 }
 
-export function PoemsOverlay({ visible, projectionRef, onRead, hasPoems }: PoemsOverlayProps) {
+export function PoemsOverlay({
+  visible,
+  projectionRef,
+  onRead,
+  onConnect,
+  hasPoems,
+  starLaunched,
+}: PoemsOverlayProps) {
   const workingSet = useWorkingSetStore();
   const shellRef = useRef<HTMLDivElement | null>(null);
+  const starGlyphRef = useRef<HTMLSpanElement | null>(null);
   const [present, setPresent] = useState(visible);
+  const isPortrait = useProjectionPortrait(projectionRef);
+  const logicalWidth = isPortrait ? SCREEN_SHORT_SIDE : SCREEN_LONG_SIDE;
+  const logicalHeight = isPortrait ? SCREEN_LONG_SIDE : SCREEN_SHORT_SIDE;
   useEffect(() => {
     workingSet.resourceEvent("prepare-end", "poems-overlay", {
       status: "resident",
@@ -84,9 +101,9 @@ export function PoemsOverlay({ visible, projectionRef, onRead, hasPoems }: Poems
     if (!visible) return;
     const source = [
       { x: 0, y: 0 },
-      { x: SCREEN_LOGICAL_WIDTH, y: 0 },
-      { x: SCREEN_LOGICAL_WIDTH, y: SCREEN_LOGICAL_HEIGHT },
-      { x: 0, y: SCREEN_LOGICAL_HEIGHT },
+      { x: logicalWidth, y: 0 },
+      { x: logicalWidth, y: logicalHeight },
+      { x: 0, y: logicalHeight },
     ];
     const update = () => {
       const shell = shellRef.current,
@@ -101,16 +118,26 @@ export function PoemsOverlay({ visible, projectionRef, onRead, hasPoems }: Poems
     };
     update();
     return projectionRef.subscribe(update);
-  }, [projectionRef, visible, present]);
+  }, [projectionRef, visible, present, logicalWidth, logicalHeight]);
+  const handleConnect = () => {
+    const glyph = starGlyphRef.current;
+    if (!glyph || starLaunched) return;
+    const bounds = glyph.getBoundingClientRect();
+    onConnect({
+      x: bounds.left + bounds.width / 2,
+      y: bounds.top + bounds.height / 2,
+      size: Math.max(bounds.width, bounds.height),
+    });
+  };
   if (!present) return null;
   return (
     <section className={`poems-overlay${visible ? "" : " is-exiting"}`} aria-hidden={!visible}>
       <div
         ref={shellRef}
-        className="poems-overlay-shell"
+        className={`poems-overlay-shell${isPortrait ? " is-portrait" : ""}`}
         style={{
-          width: SCREEN_LOGICAL_WIDTH,
-          height: SCREEN_LOGICAL_HEIGHT,
+          width: logicalWidth,
+          height: logicalHeight,
           visibility: "hidden",
         }}
       >
@@ -159,9 +186,36 @@ export function PoemsOverlay({ visible, projectionRef, onRead, hasPoems }: Poems
                 <ArrowIcon />
               </span>
             </button>
+            <button type="button" className="poems-overlay-action" onClick={handleConnect}>
+              <span className="poems-action-icon poems-action-icon-star" aria-hidden="true">
+                <span
+                  ref={starGlyphRef}
+                  className={`poems-star-glyph${starLaunched ? " is-launched" : ""}`}
+                  style={STAR_GLYPH_STYLE}
+                />
+              </span>
+              <span className="poems-action-text">
+                <strong>See how they connect</strong>
+                <span>Follow the light upward.</span>
+              </span>
+              <span className="poems-action-arrow" aria-hidden="true">
+                <ArrowIcon />
+              </span>
+            </button>
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+function useProjectionPortrait(projection: ScreenProjectionRef) {
+  return useSyncExternalStore(
+    projection.subscribe,
+    () => {
+      const viewport = projection.current?.viewport;
+      return viewport ? isMobileRenderingViewport(viewport.width / viewport.height) : false;
+    },
+    () => false,
   );
 }
