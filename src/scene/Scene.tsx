@@ -17,6 +17,7 @@ import { MiniProjector } from "./objects/MiniProjector";
 import { Plant } from "./objects/Plant";
 import { poemsTabletScreenSize } from "./objects/PoemsTablet";
 import { Posters } from "./objects/Posters";
+import { ProjectorBeam } from "./objects/ProjectorBeam";
 import { Room } from "./objects/Room";
 import { Shelf } from "./objects/Shelf";
 import { getCertificateFocusBySlug, type CertificateFocus } from "./objects/certificates";
@@ -42,6 +43,10 @@ const LAPTOP_SCREEN_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vecto
 
 const PROJECTS_WALL_PROJECTION_POSITION: [number, number, number] = [0, 3.2, -3.965];
 const PROJECTS_WALL_PROJECTION_SCALE: [number, number, number] = [2.4, 4.24, 1];
+const PROJECTS_WALL_BEAM_TARGET = {
+  position: PROJECTS_WALL_PROJECTION_POSITION,
+  scale: PROJECTS_WALL_PROJECTION_SCALE,
+};
 
 const PAPER_SURFACE_CORNERS: readonly [THREE.Vector3, THREE.Vector3, THREE.Vector3, THREE.Vector3] =
   [
@@ -107,7 +112,6 @@ export interface SceneSettings {
 interface SceneProps {
   s: SceneSettings;
   cameraSystem: CinematicNavigationSystem;
-  projectsOverlayVisible: boolean;
   certificateSlug?: string;
   renderIsolation?: RenderIsolationState;
   qualityProfile: RenderingQualityProfile;
@@ -133,7 +137,6 @@ interface SceneProps {
 export function Scene({
   s,
   cameraSystem,
-  projectsOverlayVisible,
   certificateSlug,
   renderIsolation = DEFAULT_RENDER_ISOLATION,
   qualityProfile,
@@ -157,8 +160,10 @@ export function Scene({
 }: SceneProps) {
   const { size } = useThree();
   const isMobileViewport = isMobileRenderingViewport(size.width / size.height);
+  const isProjectorOn = cameraSystem.selectedScene === "projects";
   const renderDemand = useRenderDemand("scene");
   const focusRef = useRef(s.focusDistance);
+  const projectorLensRef = useRef<THREE.Object3D | null>(null);
   const [effectsReady, setEffectsReady] = useState(false);
   const certificateFocusRef = useRef<CertificateFocus | null>(
     getCertificateFocusBySlug(certificateSlug),
@@ -219,9 +224,16 @@ export function Scene({
       {isMobileViewport ? (
         <>
           <MiniProjector
-            active={projectsOverlayVisible}
+            active={isProjectorOn}
+            lensRef={projectorLensRef}
             position={s.laptopPosition}
             rotation={-10}
+          />
+          <ProjectorBeam
+            active={isProjectorOn}
+            reducedMotion={cameraSystem.reducedMotion}
+            lensRef={projectorLensRef}
+            target={PROJECTS_WALL_BEAM_TARGET}
           />
           {cameraSystem.selectedScene === "projects" && (
             <>

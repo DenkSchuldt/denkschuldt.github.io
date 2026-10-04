@@ -3,6 +3,7 @@ export type RenderReason =
   | "camera-settle"
   | "camera-breathing"
   | "coffee-steam"
+  | "projector-beam"
   | "certificate-animation"
   | "phone-screen"
   | "poems-preview"

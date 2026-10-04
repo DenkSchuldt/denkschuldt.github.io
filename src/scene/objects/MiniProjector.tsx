@@ -8,33 +8,36 @@ import * as THREE from "three";
 import { withSceneBasePath } from "../camera/sceneRoutes";
 import { useRenderDemand } from "../runtime/render-scheduler";
 
+import type { MutableRefObject } from "react";
+
 const MINI_PROJECTOR_PATH = withSceneBasePath("/models/mini-projector.glb");
 const PROJECTOR_TILT_RADIANS = THREE.MathUtils.degToRad(46);
 
 interface MiniProjectorProps {
   active: boolean;
+  lensRef?: MutableRefObject<THREE.Object3D | null>;
   position: [number, number, number];
   rotation: number;
 }
 
-export function MiniProjector({ active, position, rotation }: MiniProjectorProps) {
+export function MiniProjector({ active, lensRef, position, rotation }: MiniProjectorProps) {
   const { scene } = useGLTF(MINI_PROJECTOR_PATH);
   const renderDemand = useRenderDemand("projector-lens");
-  const { lensMaterial, projector } = useMemo(() => {
+  const { lens, lensMaterial, projector } = useMemo(() => {
     const clone = scene.clone(true);
     const tiltingBody = clone.getObjectByName("ProjectorTilt");
     const lens = clone.getObjectByName("ProjectorLens");
     tiltingBody?.rotation.set(PROJECTOR_TILT_RADIANS, 0, 0);
 
     if (!(lens instanceof THREE.Mesh) || !(lens.material instanceof THREE.MeshStandardMaterial)) {
-      return { lensMaterial: null, projector: clone };
+      return { lens: lens ?? null, lensMaterial: null, projector: clone };
     }
 
     const material = lens.material.clone();
     material.emissive.set("#b8dcff");
     material.emissiveIntensity = 0;
     lens.material = material;
-    return { lensMaterial: material, projector: clone };
+    return { lens, lensMaterial: material, projector: clone };
   }, [scene]);
   const lensMaterialRef = useRef(lensMaterial);
 
@@ -45,6 +48,13 @@ export function MiniProjector({ active, position, rotation }: MiniProjectorProps
       child.receiveShadow = true;
     });
   }, [projector]);
+  useLayoutEffect(() => {
+    if (!lensRef) return;
+    lensRef.current = lens;
+    return () => {
+      lensRef.current = null;
+    };
+  }, [lens, lensRef]);
   useEffect(() => {
     lensMaterialRef.current = lensMaterial;
     return () => {
