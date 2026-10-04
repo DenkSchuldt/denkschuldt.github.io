@@ -19,6 +19,7 @@ export const RENDERING_INTENT = {
   },
   lighting: {
     essentialLights: ["sun-key", "hemisphere-fill"] as const,
+    sunPosition: [-5.7, 6.4, 1.6] as [number, number, number],
     hemisphereDesktopFactor: 0.5,
     hemisphereMobileFactor: 1.75,
     sunShadowRadius: 6,

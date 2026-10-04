@@ -6,6 +6,7 @@ import { Capsule, RoundedBox, useCursor, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 
 import { withSceneBasePath } from "../camera/sceneRoutes";
+import { RENDERING_INTENT } from "../rendering/renderingIntent";
 import { useRenderDemand } from "../runtime/render-scheduler";
 import {
   isResourceResidentState,
@@ -158,26 +159,49 @@ STEAM_TEXTURE.minFilter = THREE.LinearFilter;
 STEAM_TEXTURE.magFilter = THREE.LinearFilter;
 STEAM_TEXTURE.generateMipmaps = false;
 STEAM_TEXTURE.needsUpdate = true;
-const MUG_CONTACT_SIZE = 32;
-const MUG_CONTACT_DATA = new Uint8Array(MUG_CONTACT_SIZE * MUG_CONTACT_SIZE * 4);
-for (let y = 0; y < MUG_CONTACT_SIZE; y++)
-  for (let x = 0; x < MUG_CONTACT_SIZE; x++) {
-    const index = (y * MUG_CONTACT_SIZE + x) * 4,
-      distance = Math.hypot(x - 15.5, y - 15.5) / 15.5,
-      falloff = Math.max(0, 1 - distance);
-    MUG_CONTACT_DATA[index + 3] = Math.round(255 * falloff * falloff * (3 - 2 * falloff));
+const MUG_CONTACT_LENGTH = 0.72;
+const MUG_CONTACT_WIDTH = 0.36;
+const MUG_CONTACT_BEHIND_BASE = 0.18;
+const MUG_CONTACT_TAIL = 0.3;
+const MUG_CONTACT_INNER_RADIUS = 0.12;
+const MUG_CONTACT_OUTER_RADIUS = 0.18;
+const MUG_CONTACT_COLUMNS = 64;
+const MUG_CONTACT_ROWS = 32;
+const MUG_CONTACT_YAW = Math.atan2(
+  RENDERING_INTENT.lighting.sunPosition[2],
+  -RENDERING_INTENT.lighting.sunPosition[0],
+);
+const MUG_CONTACT_DATA = new Uint8Array(MUG_CONTACT_COLUMNS * MUG_CONTACT_ROWS * 4);
+for (let row = 0; row < MUG_CONTACT_ROWS; row++)
+  for (let column = 0; column < MUG_CONTACT_COLUMNS; column++) {
+    const along =
+        ((column + 0.5) / MUG_CONTACT_COLUMNS) * MUG_CONTACT_LENGTH - MUG_CONTACT_BEHIND_BASE,
+      across = ((row + 0.5) / MUG_CONTACT_ROWS - 0.5) * MUG_CONTACT_WIDTH,
+      nearestOnTail = THREE.MathUtils.clamp(along, 0, MUG_CONTACT_TAIL),
+      distance = Math.hypot(along - nearestOnTail, across),
+      edge = THREE.MathUtils.smoothstep(
+        MUG_CONTACT_OUTER_RADIUS - distance,
+        0,
+        MUG_CONTACT_OUTER_RADIUS - MUG_CONTACT_INNER_RADIUS,
+      ),
+      strength = 1 - 0.65 * THREE.MathUtils.clamp(along / MUG_CONTACT_TAIL, 0, 1);
+    MUG_CONTACT_DATA.fill(
+      Math.round(255 * edge * strength),
+      (row * MUG_CONTACT_COLUMNS + column) * 4,
+      (row * MUG_CONTACT_COLUMNS + column + 1) * 4,
+    );
   }
 const MUG_CONTACT_TEXTURE = new THREE.DataTexture(
   MUG_CONTACT_DATA,
-  MUG_CONTACT_SIZE,
-  MUG_CONTACT_SIZE,
+  MUG_CONTACT_COLUMNS,
+  MUG_CONTACT_ROWS,
   THREE.RGBAFormat,
 );
 MUG_CONTACT_TEXTURE.minFilter = THREE.LinearFilter;
 MUG_CONTACT_TEXTURE.magFilter = THREE.LinearFilter;
 MUG_CONTACT_TEXTURE.generateMipmaps = false;
 MUG_CONTACT_TEXTURE.needsUpdate = true;
-const MUG_CONTACT_GEOMETRY = new THREE.PlaneGeometry(0.46, 0.46);
+const MUG_CONTACT_GEOMETRY = new THREE.PlaneGeometry(MUG_CONTACT_LENGTH, MUG_CONTACT_WIDTH);
 const MUG_CONTACT_MATERIAL = new THREE.MeshBasicMaterial({
   color: "#000000",
   alphaMap: MUG_CONTACT_TEXTURE,
@@ -671,9 +695,11 @@ function CoffeeSteam({ active }: { active: boolean }) {
   );
 }
 
+const MUG_ROTATION_Y = Math.PI + THREE.MathUtils.degToRad(5);
+
 function Coffee({ position, active }: { position: [number, number, number]; active: boolean }) {
   return (
-    <group position={position} rotation-y={Math.PI + THREE.MathUtils.degToRad(5)} dispose={null}>
+    <group position={position} rotation-y={MUG_ROTATION_Y} dispose={null}>
       <mesh geometry={MUG_BODY_GEOMETRY} position={[0, -0.075, 0]} castShadow receiveShadow>
         <primitive object={MUG_CERAMIC_MATERIAL} attach="material" />
       </mesh>
@@ -683,14 +709,16 @@ function Coffee({ position, active }: { position: [number, number, number]; acti
       <mesh geometry={MUG_COFFEE_GEOMETRY} position={[0, 0.083, 0]} rotation-x={-Math.PI / 2}>
         <primitive object={MUG_COFFEE_MATERIAL} attach="material" />
       </mesh>
-      <mesh
-        geometry={MUG_CONTACT_GEOMETRY}
-        position={[0, -0.243, 0]}
-        rotation-x={-Math.PI / 2}
-        renderOrder={1}
-      >
-        <primitive object={MUG_CONTACT_MATERIAL} attach="material" />
-      </mesh>
+      <group position={[0, -0.243, 0]} rotation-y={MUG_CONTACT_YAW - MUG_ROTATION_Y}>
+        <mesh
+          geometry={MUG_CONTACT_GEOMETRY}
+          position-x={MUG_CONTACT_LENGTH / 2 - MUG_CONTACT_BEHIND_BASE}
+          rotation-x={-Math.PI / 2}
+          renderOrder={1}
+        >
+          <primitive object={MUG_CONTACT_MATERIAL} attach="material" />
+        </mesh>
+      </group>
       <CoffeeSteam active={active} />
     </group>
   );

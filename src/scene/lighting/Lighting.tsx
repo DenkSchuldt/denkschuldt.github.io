@@ -47,7 +47,7 @@ export function Lighting({
       <directionalLight
         key={`sun-key:${profile.shadows.directionalMapSize}`}
         name="sun-key"
-        position={[-5.7, 6.4, 1.6]}
+        position={RENDERING_INTENT.lighting.sunPosition}
         color={blueprint ? "#cfe0f5" : sunColor}
         intensity={blueprint ? sun * 0.2 : sun}
         castShadow={directionalShadows}
