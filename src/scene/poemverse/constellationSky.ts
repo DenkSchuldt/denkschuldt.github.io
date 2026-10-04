@@ -41,6 +41,8 @@ const STAR_VERTEX_SHADER = /* glsl */ `
   uniform float uScale;
   uniform float uHover;
   uniform float uHoverGroup;
+  uniform float uPulseIndex;
+  uniform float uPulseAge;
   attribute vec3 aTint;
   attribute float aDelay;
   attribute float aSeed;
@@ -57,14 +59,16 @@ const STAR_VERTEX_SHADER = /* glsl */ `
     float flash = age >= 0.0 ? exp(-age * 2.6) : 0.0;
     float hovered = 1.0 - step(0.5, abs(aIndex - uHover));
     float inGroup = 1.0 - step(0.5, abs(aGroup - uHoverGroup));
+    float pulsed = (1.0 - step(0.5, abs(aIndex - uPulseIndex))) * step(0.0, uPulseAge)
+      * exp(-max(uPulseAge, 0.0) * 1.8);
     float twinkle = 0.82 + 0.18 * sin(uTime * (1.1 + aSeed * 2.3) + aSeed * 31.0);
     vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
     gl_Position = projectionMatrix * viewPosition;
-    float size = ${STAR_SIZE.toFixed(3)} * (0.75 + aSeed * 0.5) * (1.0 + flash * 1.8 + hovered * 0.9 + inGroup * 0.25);
+    float size = ${STAR_SIZE.toFixed(3)} * (0.75 + aSeed * 0.5) * (1.0 + flash * 1.8 + hovered * 0.9 + inGroup * 0.25 + pulsed * 2.6);
     gl_PointSize = lit * twinkle * size * uScale / max(0.05, -viewPosition.z);
     vTint = aTint;
     vAlpha = lit;
-    vFlash = flash;
+    vFlash = max(flash, pulsed);
     vHover = max(hovered, inGroup * 0.4);
   }
 `;
@@ -202,6 +206,8 @@ export class ConstellationSky {
         uScale: { value: 1 },
         uHover: { value: -1 },
         uHoverGroup: { value: -1 },
+        uPulseIndex: { value: -1 },
+        uPulseAge: { value: -1 },
       },
       transparent: true,
       depthWrite: false,
@@ -271,6 +277,15 @@ export class ConstellationSky {
 
   worldPosition(index: number) {
     return this.worldPositions[index];
+  }
+
+  findStarIndex(slug: string) {
+    return this.layout.stars.findIndex((star) => star.slug === slug);
+  }
+
+  setPulse(index: number, age: number) {
+    this.starMaterial.uniforms.uPulseIndex.value = index;
+    this.starMaterial.uniforms.uPulseAge.value = age;
   }
 
   place(basis: SkyBasis, landing: THREE.Vector3, orientation: THREE.Quaternion) {

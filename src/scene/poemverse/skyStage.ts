@@ -11,6 +11,8 @@ export class SkyStage {
   private landedAt = -1;
   private now = 0;
   private hoverIndex = -1;
+  private pulseIndex = -1;
+  private pulseStartedAt = -1;
 
   get current() {
     return this.sky;
@@ -41,15 +43,23 @@ export class SkyStage {
     this.root.add(this.sky.group);
     this.landedAt = -1;
     this.hoverIndex = -1;
+    this.pulseIndex = -1;
+    this.pulseStartedAt = -1;
   }
 
   markLanded(time: number) {
     this.landedAt = time;
   }
 
+  pulse(index: number, time: number) {
+    this.pulseIndex = index;
+    this.pulseStartedAt = time;
+  }
+
   tick(time: number, scale: number) {
     this.now = time;
     this.sky?.update(this.sinceLanding, scale, this.hoverIndex);
+    this.sky?.setPulse(this.pulseIndex, this.pulseIndex >= 0 ? time - this.pulseStartedAt : -1);
   }
 
   hover(index: number) {

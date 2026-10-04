@@ -24,6 +24,13 @@ export interface PoemverseHover {
   y: number;
 }
 
+export interface PoemverseInkRequest {
+  slug: string;
+  points: Float32Array;
+  count: number;
+  spacing: number;
+}
+
 export interface PoemverseStore {
   readonly phase: PoemversePhase;
   readonly handoff: PoemverseScreenPoint | null;
@@ -41,6 +48,8 @@ export interface PoemverseStore {
   getHover: () => PoemverseHover | null;
   subscribeHover: (listener: () => void) => () => void;
   setHover: (hover: PoemverseHover | null) => void;
+  requestInk: (request: PoemverseInkRequest) => void;
+  takeInkRequest: () => PoemverseInkRequest | null;
 }
 
 export function createPoemverseStore(): PoemverseStore {
@@ -54,6 +63,7 @@ export function createPoemverseStore(): PoemverseStore {
   let flightId = 0;
   let sceneReady = false;
   let hover: PoemverseHover | null = null;
+  let inkRequest: PoemverseInkRequest | null = null;
   const listeners = new Set<() => void>();
   const hoverListeners = new Set<() => void>();
 
@@ -130,6 +140,16 @@ export function createPoemverseStore(): PoemverseStore {
       if (hover === next || (hover === null && next === null)) return;
       hover = next;
       hoverListeners.forEach((listener) => listener());
+    },
+    requestInk(request) {
+      if (snapshot.phase !== "landed") return;
+      inkRequest = request;
+      notify();
+    },
+    takeInkRequest() {
+      const request = inkRequest;
+      inkRequest = null;
+      return request;
     },
   };
 }

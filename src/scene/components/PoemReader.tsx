@@ -7,9 +7,11 @@ import DialogPackage from "@denkschuldt/react-dialog";
 
 import { readablePoemDate } from "../content/poems";
 import { useWorkingSetStore } from "../runtime/working-set";
+import { samplePoemGlyphs } from "./poemGlyphSampler";
 
 import type { ComponentType, ReactNode } from "react";
 import type { PoemRecord } from "../content/poems";
+import type { PoemGlyphSample } from "./poemGlyphSampler";
 
 type ReactDialogProps = {
   title?: string;
@@ -64,7 +66,8 @@ interface Props {
   poems: PoemRecord[];
   slug: string | null;
   onSlugChange: (slug: string) => void;
-  onClose: (slug: string | null) => void;
+  captureGlyphsOnClose?: boolean;
+  onClose: (slug: string | null, glyphs: PoemGlyphSample | null) => void;
 }
 
 interface PoemActionButtonsProps {
@@ -187,7 +190,14 @@ function readLovedPoems(): Record<string, boolean> {
   }
 }
 
-export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) {
+export function PoemReader({
+  open,
+  poems,
+  slug,
+  captureGlyphsOnClose = false,
+  onSlugChange,
+  onClose,
+}: Props) {
   const workingSet = useWorkingSetStore();
   useEffect(() => {
     if (!open) return;
@@ -230,6 +240,12 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
     },
     [onSlugChange, poems],
   );
+
+  const handleClose = useCallback(() => {
+    const column = columnRef.current;
+    const glyphs = captureGlyphsOnClose && column ? samplePoemGlyphs(column) : null;
+    onClose(activeSlug, glyphs);
+  }, [activeSlug, captureGlyphsOnClose, onClose]);
 
   useEffect(() => {
     contentRef.current?.scrollTo({ top: 0, left: 0, behavior: "auto" });
@@ -353,7 +369,7 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
     if (!open) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (commentOpen) return;
-      if (event.key === "Escape") onClose(activeSlug);
+      if (event.key === "Escape") handleClose();
       if (event.key === "ArrowLeft" && poems[currentIndex - 1])
         changeSlug(poems[currentIndex - 1].slug);
       if (event.key === "ArrowRight" && poems[currentIndex + 1])
@@ -361,7 +377,7 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open, activeSlug, currentIndex, poems, onClose, changeSlug, commentOpen]);
+  }, [open, currentIndex, poems, handleClose, changeSlug, commentOpen]);
 
   const paragraphs = useMemo(
     () => (displayRecord?.body ?? "").split(/\n{2,}/).filter(Boolean),
@@ -384,7 +400,7 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
       <button
         type="button"
         className="certificate-gallery-close poem-reader-close-ink poem-reader-close"
-        onClick={() => onClose(activeSlug)}
+        onClick={handleClose}
         aria-label="Close reader (ESC)"
         title="Close (ESC)"
       >
@@ -414,7 +430,7 @@ export function PoemReader({ open, poems, slug, onSlugChange, onClose }: Props) 
             <button
               type="button"
               className="certificate-gallery-close poem-reader-close-ink poem-reader-mobile-close"
-              onClick={() => onClose(activeSlug)}
+              onClick={handleClose}
               aria-label="Close reader"
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">

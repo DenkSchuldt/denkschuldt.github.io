@@ -6,6 +6,7 @@ import { useThree } from "@react-three/fiber";
 
 import { useRenderDemand } from "../runtime/render-scheduler";
 import { useWorkingSetStore } from "../runtime/working-set";
+import { InkStardust } from "./inkStardust";
 import { PoemStarRig } from "./poemStarRig";
 import { PoemverseCeiling } from "./poemverseCeiling";
 import { SkyStage } from "./skyStage";
@@ -38,6 +39,7 @@ export function Poemverse({
   const camera = useThree((state) => state.camera);
   const star = useMemo(() => new PoemStarRig(), []);
   const stardust = useMemo(() => new StardustEmitter(), []);
+  const ink = useMemo(() => new InkStardust(), []);
   const skyStage = useMemo(() => new SkyStage(), []);
   const ceiling = useMemo(
     () => new PoemverseCeiling(() => renderDemand.invalidate("asset-ready")),
@@ -50,6 +52,7 @@ export function Poemverse({
     star,
     ceiling,
     stardust,
+    ink,
     skyStage,
     featuredSlug,
     reducedMotion,
@@ -58,6 +61,7 @@ export function Poemverse({
 
   useEffect(() => () => star.dispose(), [star]);
   useEffect(() => () => stardust.dispose(), [stardust]);
+  useEffect(() => () => ink.dispose(), [ink]);
   useEffect(() => () => ceiling.dispose(), [ceiling]);
   useEffect(() => () => skyStage.dispose(), [skyStage]);
 
@@ -65,7 +69,7 @@ export function Poemverse({
     workingSet.resourceEvent("prepare-end", "poemverse-scene", {
       status: "resident",
       cache: "owned",
-      detail: "ceiling, constellations, star and stardust created on demand",
+      detail: "ceiling, constellations, star, stardust and ink created on demand",
     });
     return () =>
       workingSet.resourceEvent("release", "poemverse-scene", {
@@ -99,6 +103,7 @@ export function Poemverse({
       <primitive object={skyStage.root} />
       <primitive object={star.group} />
       <primitive object={stardust.points} />
+      <primitive object={ink.points} />
     </group>
   );
 }

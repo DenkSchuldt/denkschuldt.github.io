@@ -22,6 +22,7 @@ import {
 } from "./poemverseFlight";
 
 import type { CameraGaze } from "../camera/cameraGaze";
+import type { InkStardust } from "./inkStardust";
 import type { PoemStarLook, PoemStarRig } from "./poemStarRig";
 import type { PoemverseCeiling } from "./poemverseCeiling";
 import type { FlightPlan } from "./poemverseFlight";
@@ -46,6 +47,9 @@ interface DirectorState {
   lastTime: number;
   lease: LeaseKind;
   releaseLease: (() => void) | null;
+  inkTarget: THREE.Vector3;
+  inkStarIndex: number;
+  hasInkArrived: boolean;
 }
 
 interface PoemverseDirectorOptions {
@@ -54,6 +58,7 @@ interface PoemverseDirectorOptions {
   star: PoemStarRig;
   ceiling: PoemverseCeiling;
   stardust: StardustEmitter;
+  ink: InkStardust;
   skyStage: SkyStage;
   featuredSlug: string | null;
   reducedMotion: boolean;
@@ -93,6 +98,7 @@ export function usePoemverseDirector({
   star,
   ceiling,
   stardust,
+  ink,
   skyStage,
   featuredSlug,
   reducedMotion,
@@ -115,12 +121,15 @@ export function usePoemverseDirector({
     lastTime: 0,
     lease: "none",
     releaseLease: null,
+    inkTarget: new THREE.Vector3(),
+    inkStarIndex: -1,
+    hasInkArrived: true,
   });
 
   const syncLease = useCallback(
     (phase: PoemversePhase, time: number) => {
       const state = director.current;
-      const next = resolveLease(state, phase, time, stardust, skyStage);
+      const next = resolveLease(state, phase, time, stardust, skyStage, ink);
       if (next === state.lease) return;
       state.releaseLease?.();
       state.releaseLease = null;
@@ -134,7 +143,7 @@ export function usePoemverseDirector({
           priority: 1,
         });
     },
-    [renderDemand, skyStage, stardust],
+    [ink, renderDemand, skyStage, stardust],
   );
 
   useEffect(() => {
@@ -207,6 +216,30 @@ export function usePoemverseDirector({
     [camera, ceiling, featuredSlug, gaze, gl, reducedMotion, skyStage, stardust, store],
   );
 
+  const releaseInk = useCallback(
+    (time: number) => {
+      const state = director.current;
+      const request = store.takeInkRequest();
+      const sky = skyStage.current;
+      if (!request || !sky || store.phase !== "landed" || reducedMotion) return;
+      const starIndex = sky.findStarIndex(request.slug);
+      if (starIndex < 0) return;
+      state.inkTarget.copy(sky.worldPosition(starIndex));
+      const emitted = ink.emit({
+        request,
+        camera,
+        canvasBounds: gl.domElement.getBoundingClientRect(),
+        target: state.inkTarget,
+        tint: sky.star(starIndex).tint,
+        time,
+      });
+      if (!emitted) return;
+      state.inkStarIndex = starIndex;
+      state.hasInkArrived = false;
+    },
+    [camera, gl, ink, reducedMotion, skyStage, store],
+  );
+
   const update = useCallback(
     ({ elapsed, delta }: { elapsed: number; delta: number }) => {
       const state = director.current;
@@ -216,6 +249,12 @@ export function usePoemverseDirector({
       state.lastTime = time;
 
       if (phase === "rising" && store.flightId !== state.flightId) beginFlight(time);
+      releaseInk(time);
+      if (!state.hasInkArrived && time >= ink.arrivalTime) {
+        state.hasInkArrived = true;
+        skyStage.pulse(state.inkStarIndex, time);
+        stardust.emitBurst(state.inkTarget, time, 48, true);
+      }
 
       const plan = state.plan;
       const responsiveness = reducedMotion ? 3 : 1;
@@ -303,6 +342,7 @@ export function usePoemverseDirector({
       const fov = camera instanceof THREE.PerspectiveCamera ? camera.fov : 42;
       const pointScale = drawingBuffer.y / (2 * Math.tan(THREE.MathUtils.degToRad(fov) / 2));
       stardust.update(time, pointScale);
+      ink.update(time, pointScale);
       skyStage.tick(time, pointScale);
 
       syncLease(store.phase, time);
@@ -313,7 +353,9 @@ export function usePoemverseDirector({
       ceiling,
       gaze,
       gl,
+      ink,
       reducedMotion,
+      releaseInk,
       skyStage,
       star,
       stardust,
@@ -331,9 +373,10 @@ function resolveLease(
   time: number,
   stardust: StardustEmitter,
   skyStage: SkyStage,
+  ink: InkStardust,
 ): LeaseKind {
   if (phase === "launching" || phase === "rising" || phase === "returning") return "continuous";
-  if (stardust.isAlive(time)) return "continuous";
+  if (stardust.isAlive(time) || ink.isAlive(time)) return "continuous";
   if (state.landedAt >= 0 && time - state.landedAt < LANDING_SETTLE_SECONDS) return "continuous";
   if (phase === "landed" && (!skyStage.isSettled || state.skyFraming < 0.99)) return "continuous";
   if (phase === "landed") return "periodic";

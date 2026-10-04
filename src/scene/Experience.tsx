@@ -77,6 +77,7 @@ import { useMediaQuery } from "./useMediaQuery";
 import type { RuntimeNodeRegistration } from "@denk/cinematic-navigation";
 import type { NavigationLocation, SceneId } from "./camera/navigationTypes";
 import type { CinematicNavigationSystem } from "./camera/useCinematicCamera";
+import type { PoemGlyphSample } from "./components/poemGlyphSampler";
 import type { PoemverseScreenPoint } from "./poemverse/poemverseStore";
 import type { SceneSettings } from "./Scene";
 
@@ -652,16 +653,20 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
     [replaceWithinScene, routeScene],
   );
 
-  const closePoemReader = useCallback(() => {
-    setPoemReaderOpen(false);
-    if (
-      cameraSystem.selectedScene === "poems" &&
-      cameraSystem.selectedFocusCollection === "poems"
-    ) {
-      cameraSystem.syncRoute(locationForScene("poems"));
-      replaceWithinScene(requireScenePath("poems"));
-    }
-  }, [cameraSystem, replaceWithinScene]);
+  const closePoemReader = useCallback(
+    (slug: string | null, glyphs: PoemGlyphSample | null) => {
+      if (slug && glyphs) poemverse.requestInk({ slug, ...glyphs });
+      setPoemReaderOpen(false);
+      if (
+        cameraSystem.selectedScene === "poems" &&
+        cameraSystem.selectedFocusCollection === "poems"
+      ) {
+        cameraSystem.syncRoute(locationForScene("poems"));
+        replaceWithinScene(requireScenePath("poems"));
+      }
+    },
+    [cameraSystem, poemverse, replaceWithinScene],
+  );
 
   const openLatestPoemFromPhone = useCallback(() => {
     const slug = phonePoemsContent.poems[0]?.slug;
@@ -913,6 +918,7 @@ function ExperienceContent({ initialPath = "/" }: { initialPath?: string }) {
                 open
                 poems={poemsContent.poems}
                 slug={readerPoemSlug}
+                captureGlyphsOnClose={poemversePhase === "landed" && !cameraSystem.reducedMotion}
                 onSlugChange={changeReaderPoem}
                 onClose={closePoemReader}
               />
