@@ -134,6 +134,7 @@ function createGlowMaterial(map: THREE.Texture) {
     map,
     transparent: true,
     depthWrite: false,
+    depthTest: false,
     blending: THREE.AdditiveBlending,
     toneMapped: false,
   });
