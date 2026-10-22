@@ -34,8 +34,8 @@ test("desktop and mobile preserve the intended renderer and post-processing limi
   assert.deepEqual(RENDERING_INTENT.lighting.essentialLights, ["sun-key", "hemisphere-fill"]);
 });
 
-test("responsive fill preserves desktop and lifts mobile dark-surface separation", () => {
-  assert.equal(resolveHemisphereIntensity(0.62, 16 / 9), 0.31);
+test("responsive fill opens desktop shadows while preserving stronger mobile separation", () => {
+  assert.equal(resolveHemisphereIntensity(0.62, 16 / 9), 0.775);
   assert.equal(resolveHemisphereIntensity(0.62, 390 / 720), 1.085);
   assert.ok(resolveHemisphereIntensity(0.62, 390 / 720) > resolveHemisphereIntensity(0.62, 16 / 9));
 });

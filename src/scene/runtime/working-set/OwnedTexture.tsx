@@ -12,7 +12,12 @@ import { loadOwnedTextureBatch } from "./ownedTextureBatch";
 
 import type { ReleaseEvidence } from "./types";
 
-export function useOwnedTexture(url: string, resourceId: string, enabled = true) {
+export function useOwnedTexture(
+  url: string,
+  resourceId: string,
+  enabled = true,
+  configure?: (texture: THREE.Texture) => void,
+) {
   const store = useWorkingSetStore();
   const gl = useThree((state) => state.gl);
   const renderDemand = useRenderDemand(`texture:${resourceId}`);
@@ -48,6 +53,7 @@ export function useOwnedTexture(url: string, resourceId: string, enabled = true)
         }
         owned = loaded;
         loaded.colorSpace = THREE.SRGBColorSpace;
+        configure?.(loaded);
         loaded.needsUpdate = true;
         try {
           gl.initTexture(loaded);
@@ -99,7 +105,7 @@ export function useOwnedTexture(url: string, resourceId: string, enabled = true)
       });
       owned = null;
     };
-  }, [enabled, gl, renderDemand, resourceId, store, url]);
+  }, [configure, enabled, gl, renderDemand, resourceId, store, url]);
   return texture;
 }
 

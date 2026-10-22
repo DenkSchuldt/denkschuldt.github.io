@@ -6,27 +6,28 @@ import * as THREE from "three";
 
 import { roundedRectangleHole, roundedRectangleShape } from "./geometry";
 
+// Distinct molded plastic, matte fabric, and satin metal responses at the same shader cost.
 const CHAIR_FRAME_MATERIAL = new THREE.MeshStandardMaterial({
-  color: "#1d2021",
-  roughness: 0.68,
-  metalness: 0.08,
+  color: "#202526",
+  roughness: 0.38,
+  metalness: 0,
 });
 const CHAIR_FABRIC_MATERIAL = new THREE.MeshStandardMaterial({
-  color: "#292827",
+  color: "#454948",
   roughness: 0.94,
   metalness: 0,
   side: THREE.DoubleSide,
 });
 const CHAIR_BACKING_MATERIAL = new THREE.MeshStandardMaterial({
-  color: "#343638",
-  roughness: 0.86,
+  color: "#2b3032",
+  roughness: 0.56,
   metalness: 0,
   side: THREE.DoubleSide,
 });
 const CHAIR_METAL_MATERIAL = new THREE.MeshStandardMaterial({
-  color: "#4a4c4c",
-  roughness: 0.42,
-  metalness: 0.58,
+  color: "#727678",
+  roughness: 0.28,
+  metalness: 0.65,
 });
 const CHAIR_BACK_FRAME_SHAPE = roundedRectangleShape(1.12, 1.52, 0.18);
 CHAIR_BACK_FRAME_SHAPE.holes.push(roundedRectangleHole(0.91, 1.29, 0.12));

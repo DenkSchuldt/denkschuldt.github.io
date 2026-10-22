@@ -7,6 +7,8 @@ import * as THREE from "three";
 import { PALETTE as C } from "../constants";
 import { RENDERING_INTENT } from "../rendering/renderingIntent";
 
+import { useSurfaceTextures } from "./surfaceTextures";
+
 const mat = { roughness: 0.82, metalness: 0 };
 
 const ARCHITECTURAL_WOOD_MATERIAL = new THREE.MeshStandardMaterial({
@@ -14,6 +16,13 @@ const ARCHITECTURAL_WOOD_MATERIAL = new THREE.MeshStandardMaterial({
   roughness: 0.78,
   metalness: 0,
   vertexColors: true,
+});
+// Instance colors are already wood tones. Multiplying them by another dark
+// wood color crushed the panel detail instead of describing a lit material.
+const ARCHITECTURAL_PANEL_MATERIAL = new THREE.MeshStandardMaterial({
+  color: "#ffffff",
+  roughness: 0.78,
+  metalness: 0,
 });
 const ARCHITECTURAL_PANEL_GEOMETRY = new THREE.BoxGeometry(1, 1, 1);
 const ARCHITECTURAL_BASEBOARD_GEOMETRY = (() => {
@@ -96,13 +105,23 @@ function useWallGrainTexture(width: number, height: number) {
 }
 
 export function Room({ mobile = false }: { mobile?: boolean }) {
+  const { map: floorMap, surface: floorSurface } = useSurfaceTextures("floor");
   const backWallGrain = useWallGrainTexture(18, 8);
   const accentWallGrain = useWallGrainTexture(8, 8);
   return (
     <group>
       <mesh rotation-x={-Math.PI / 2} receiveShadow>
         <planeGeometry args={[18, 15]} />
-        <meshStandardMaterial color={C.floor} {...mat} />
+        <meshStandardMaterial
+          key={`floor:${Boolean(floorMap)}:${Boolean(floorSurface)}`}
+          color={floorMap ? "#b6afa2" : C.floor}
+          map={floorMap}
+          roughness={floorSurface ? 1 : 0.82}
+          roughnessMap={floorSurface}
+          bumpMap={floorSurface}
+          bumpScale={0.006}
+          metalness={0}
+        />
       </mesh>
       <mesh position={[0, 4, -4]} receiveShadow>
         <planeGeometry args={[18, 8]} />
@@ -215,7 +234,7 @@ function ArchitecturalWoodwork({ mobile = false }: { mobile?: boolean }) {
           ref={panelsRef}
           args={[
             ARCHITECTURAL_PANEL_GEOMETRY,
-            ARCHITECTURAL_WOOD_MATERIAL,
+            ARCHITECTURAL_PANEL_MATERIAL,
             WAINSCOT_PANEL_COLORS.length,
           ]}
           castShadow

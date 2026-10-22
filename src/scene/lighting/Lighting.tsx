@@ -3,7 +3,11 @@
 import { useThree } from "@react-three/fiber";
 
 import { useActiveReality } from "../reality";
-import { RENDERING_INTENT, resolveHemisphereIntensity } from "../rendering/renderingIntent";
+import {
+  RENDERING_INTENT,
+  resolveHemisphereIntensity,
+  resolveSunShadowRadius,
+} from "../rendering/renderingIntent";
 
 import { CachedContactShadows } from "./CachedContactShadows";
 
@@ -52,12 +56,15 @@ export function Lighting({
         intensity={blueprint ? sun * 0.2 : sun}
         castShadow={directionalShadows}
         shadow-mapSize={[profile.shadows.directionalMapSize, profile.shadows.directionalMapSize]}
+        // Keep depth precision local to this room instead of the 500-unit default.
+        shadow-camera-near={0.5}
+        shadow-camera-far={30}
         shadow-camera-left={-6}
         shadow-camera-right={6}
         shadow-camera-top={6}
         shadow-camera-bottom={-3}
         shadow-bias={-0.00018}
-        shadow-radius={RENDERING_INTENT.lighting.sunShadowRadius}
+        shadow-radius={resolveSunShadowRadius(profile.shadows.directionalMapSize)}
       />
       {fillEnabled && !blueprint && (
         <pointLight

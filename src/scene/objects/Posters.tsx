@@ -63,7 +63,13 @@ export function Posters({ mobile = false }: { mobile?: boolean }) {
   return (
     <group position={[1.7, 3, -3.84]}>
       <group position={PICTURE_LIGHT_POSITION[layout]}>
-        <RoundedBox args={[0.92, 0.075, 0.12]} radius={0.035} castShadow>
+        <RoundedBox
+          args={[0.92, 0.075, 0.12]}
+          radius={0.035}
+          smoothness={2}
+          bevelSegments={2}
+          castShadow
+        >
           <meshStandardMaterial color="#343231" metalness={0.28} roughness={0.55} />
         </RoundedBox>
         <mesh position={[0, -0.03, -0.12]}>

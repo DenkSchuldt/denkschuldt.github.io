@@ -6,6 +6,7 @@ import { Capsule, RoundedBox, useCursor, useTexture } from "@react-three/drei";
 import * as THREE from "three";
 
 import { withSceneBasePath } from "../camera/sceneRoutes";
+import { useReflectedMaterial } from "../lighting/MaterialReflections";
 import { RENDERING_INTENT } from "../rendering/renderingIntent";
 import { useRenderDemand } from "../runtime/render-scheduler";
 import {
@@ -34,6 +35,8 @@ const DESK_LAMP_BRASS_MATERIAL = new THREE.MeshStandardMaterial({
 });
 const DESK_LAMP_DIFFUSER_MATERIAL = new THREE.MeshStandardMaterial({
   color: "#d9b483",
+  emissive: "#ffbd78",
+  emissiveIntensity: 0.85,
   roughness: 0.72,
   metalness: 0,
 });
@@ -54,6 +57,8 @@ const IPHONE_BACK_MATERIAL = new THREE.MeshStandardMaterial({
   roughness: 0.34,
   metalness: 0.12,
 });
+// Keep the idle screen template independent of the shared back during reality transitions.
+const IPHONE_IDLE_SCREEN_MATERIAL = IPHONE_BACK_MATERIAL.clone();
 const IPHONE_GLASS_MATERIAL = new THREE.MeshStandardMaterial({
   color: "#010203",
   roughness: 0.16,
@@ -284,7 +289,13 @@ export function DeskObjects({
   );
 }
 
-function PhoneScreen({ screenRef }: { screenRef?: MutableRefObject<THREE.Mesh | null> }) {
+function PhoneScreen({
+  screenRef,
+  material,
+}: {
+  screenRef?: MutableRefObject<THREE.Mesh | null>;
+  material: THREE.MeshStandardMaterial;
+}) {
   return (
     <mesh
       ref={screenRef}
@@ -292,7 +303,7 @@ function PhoneScreen({ screenRef }: { screenRef?: MutableRefObject<THREE.Mesh | 
       position={[0, 0.0182, 0]}
       rotation-x={-Math.PI / 2}
     >
-      <primitive object={IPHONE_GLASS_MATERIAL} attach="material" />
+      <primitive object={material} attach="material" />
     </mesh>
   );
 }
@@ -304,6 +315,9 @@ function Phone({
   active: boolean;
   screenRef?: MutableRefObject<THREE.Mesh | null>;
 }) {
+  const frameMaterial = useReflectedMaterial(IPHONE_FRAME_MATERIAL);
+  const glassMaterial = useReflectedMaterial(IPHONE_GLASS_MATERIAL);
+  const idleScreenMaterial = useReflectedMaterial(IPHONE_IDLE_SCREEN_MATERIAL);
   useFeatureSettleLease("phone-feature", active, "phone-screen");
   const workingSet = useDestinationWorkingSet("phone");
   const screenResident = isResourceResidentState(workingSet.state);
@@ -314,15 +328,15 @@ function Phone({
       dispose={null}
     >
       <mesh geometry={IPHONE_BODY_GEOMETRY} castShadow receiveShadow>
-        <primitive object={IPHONE_FRAME_MATERIAL} attach="material" />
+        <primitive object={frameMaterial} attach="material" />
       </mesh>
       <mesh geometry={IPHONE_SCREEN_GEOMETRY} position={[0, 0.0175, 0]}>
-        <primitive object={IPHONE_BACK_MATERIAL} attach="material" />
+        <primitive object={idleScreenMaterial} attach="material" />
       </mesh>
       <mesh geometry={IPHONE_DYNAMIC_ISLAND_GEOMETRY} position={[0, 0.0185, -0.255]}>
-        <primitive object={IPHONE_GLASS_MATERIAL} attach="material" />
+        <primitive object={glassMaterial} attach="material" />
       </mesh>
-      {screenResident && <PhoneScreen screenRef={screenRef} />}
+      {screenResident && <PhoneScreen screenRef={screenRef} material={glassMaterial} />}
       <mesh geometry={IPHONE_BACK_GEOMETRY} position={[0, -0.0172, 0]}>
         <primitive object={IPHONE_BACK_MATERIAL} attach="material" />
       </mesh>
@@ -340,7 +354,7 @@ function Phone({
           position={[x, -0.021, z]}
           castShadow
         >
-          <primitive object={IPHONE_GLASS_MATERIAL} attach="material" />
+          <primitive object={glassMaterial} attach="material" />
         </mesh>
       ))}
       <mesh
@@ -570,13 +584,15 @@ function Pen({ position, rotation }: { position: [number, number]; rotation: num
 }
 
 function DeskLamp({ position }: { position: [number, number, number] }) {
+  const metalMaterial = useReflectedMaterial(DESK_LAMP_METAL_MATERIAL);
+  const brassMaterial = useReflectedMaterial(DESK_LAMP_BRASS_MATERIAL);
   return (
     <group position={position} rotation-y={THREE.MathUtils.degToRad(6)} dispose={null}>
       <mesh geometry={DESK_LAMP_BASE_GEOMETRY} position={[0, 0.0325, 0]} castShadow receiveShadow>
-        <primitive object={DESK_LAMP_METAL_MATERIAL} attach="material" />
+        <primitive object={metalMaterial} attach="material" />
       </mesh>
       <mesh geometry={DESK_LAMP_BASE_INSET_GEOMETRY} position={[0, 0.068, 0]} castShadow>
-        <primitive object={DESK_LAMP_METAL_MATERIAL} attach="material" />
+        <primitive object={metalMaterial} attach="material" />
       </mesh>
       <mesh
         geometry={DESK_LAMP_JOINT_GEOMETRY}
@@ -584,7 +600,7 @@ function DeskLamp({ position }: { position: [number, number, number] }) {
         rotation-x={Math.PI / 2}
         castShadow
       >
-        <primitive object={DESK_LAMP_BRASS_MATERIAL} attach="material" />
+        <primitive object={brassMaterial} attach="material" />
       </mesh>
       <mesh
         geometry={DESK_LAMP_ARM_GEOMETRY}
@@ -593,7 +609,7 @@ function DeskLamp({ position }: { position: [number, number, number] }) {
         scale={[1, 0.64, 1]}
         castShadow
       >
-        <primitive object={DESK_LAMP_METAL_MATERIAL} attach="material" />
+        <primitive object={metalMaterial} attach="material" />
       </mesh>
       <mesh
         geometry={DESK_LAMP_JOINT_GEOMETRY}
@@ -601,7 +617,7 @@ function DeskLamp({ position }: { position: [number, number, number] }) {
         rotation-x={Math.PI / 2}
         castShadow
       >
-        <primitive object={DESK_LAMP_BRASS_MATERIAL} attach="material" />
+        <primitive object={brassMaterial} attach="material" />
       </mesh>
       <mesh
         geometry={DESK_LAMP_ARM_GEOMETRY}
@@ -610,14 +626,14 @@ function DeskLamp({ position }: { position: [number, number, number] }) {
         scale={[1, 0.5, 1]}
         castShadow
       >
-        <primitive object={DESK_LAMP_METAL_MATERIAL} attach="material" />
+        <primitive object={metalMaterial} attach="material" />
       </mesh>
       <group position={[0.28, 1.18, 0]} rotation-z={0.28}>
         <mesh geometry={DESK_LAMP_COLLAR_GEOMETRY} position={[0, 0.13, 0]} castShadow>
-          <primitive object={DESK_LAMP_BRASS_MATERIAL} attach="material" />
+          <primitive object={brassMaterial} attach="material" />
         </mesh>
         <mesh geometry={DESK_LAMP_HEAD_GEOMETRY} castShadow>
-          <primitive object={DESK_LAMP_METAL_MATERIAL} attach="material" />
+          <primitive object={metalMaterial} attach="material" />
         </mesh>
         <mesh
           geometry={DESK_LAMP_DIFFUSER_GEOMETRY}
