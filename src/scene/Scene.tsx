@@ -7,6 +7,7 @@ import * as THREE from "three";
 
 import { CameraController } from "./camera/CameraController";
 import { Lighting } from "./lighting/Lighting";
+import { MaterialReflectionsProvider } from "./lighting/MaterialReflections";
 import { DebugHelpers } from "./components/DebugHelpers";
 import { Chair } from "./objects/Chair";
 import { Desk } from "./objects/Desk";
@@ -200,7 +201,7 @@ export function Scene({
   }, [onReady, renderDemand]);
 
   return (
-    <>
+    <MaterialReflectionsProvider enabled={renderIsolation.environmentLighting && !isMobileViewport}>
       <color attach="background" args={["#2c3238"]} />
       <fog attach="fog" args={["#31373d", 7, s.fog]} />
       <Lighting
@@ -220,7 +221,11 @@ export function Scene({
         gaze={cameraGaze}
       />
       <Room mobile={isMobileViewport} />
-      <Desk />
+      <Desk
+        paperPosition={s.paperPosition}
+        paperRotation={s.paperRotation}
+        contactEnabled={renderIsolation.ambientOcclusion}
+      />
       {isMobileViewport ? (
         <>
           <MiniProjector
@@ -358,7 +363,7 @@ export function Scene({
           />
         </Suspense>
       )}
-    </>
+    </MaterialReflectionsProvider>
   );
 }
 

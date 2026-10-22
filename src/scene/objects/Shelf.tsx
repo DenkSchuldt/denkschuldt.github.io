@@ -479,6 +479,8 @@ function ShelfDecor() {
             key={x}
             args={[width, height, 0.205]}
             radius={0.009}
+            smoothness={2}
+            bevelSegments={2}
             position={[x, (height - 0.58) / 2, 0]}
             rotation-z={tilt}
             castShadow
@@ -502,6 +504,8 @@ function ShelfDecor() {
               ][index] as [number, number, number]
             }
             radius={0.008}
+            smoothness={2}
+            bevelSegments={2}
             position={[0, y, 0]}
             rotation-y={index === 1 ? 0.08 : -0.035}
             castShadow
@@ -514,7 +518,13 @@ function ShelfDecor() {
         ))}
       </group>
       <group position={[0.98, -1.651, 0.43]} rotation-y={0.055}>
-        <RoundedBox args={[0.46, 0.15, 0.28]} radius={0.02} castShadow>
+        <RoundedBox
+          args={[0.46, 0.15, 0.28]}
+          radius={0.02}
+          smoothness={2}
+          bevelSegments={2}
+          castShadow
+        >
           <meshStandardMaterial color="#4b3020" roughness={0.74} />
         </RoundedBox>
         <mesh position={[0, 0.08, 0.02]}>
@@ -574,6 +584,8 @@ export function Shelf({
             key={y}
             args={[2.36, 0.69, 0.075]}
             radius={0.018}
+            smoothness={2}
+            bevelSegments={2}
             position={[0, y, -0.315]}
             receiveShadow
           >
@@ -588,6 +600,8 @@ export function Shelf({
             key={y}
             args={[2.62, 0.12, 0.74]}
             radius={0.025}
+            smoothness={2}
+            bevelSegments={2}
             position={[0, y, 0]}
             castShadow
             receiveShadow
@@ -603,6 +617,8 @@ export function Shelf({
             key={x}
             args={[0.085, 3.62, 0.72]}
             radius={0.025}
+            smoothness={2}
+            bevelSegments={2}
             position={[x, 0, 0]}
             castShadow
           >

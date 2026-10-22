@@ -34,6 +34,25 @@ export const WORKING_SET_DEFINITIONS: Readonly<Record<SceneId, DestinationWorkin
     speculative: false,
     resources: [
       resource("opening", "room-structure", "persistent-essential", "Scene", { shared: true }),
+      resource("opening", "room-material-reflections", "ambient", "MaterialReflectionsProvider", {
+        shared: true,
+        estimatedDecodedBytes: 336 * 256 * 8,
+        failureFallback: "existing direct-light material response",
+      }),
+      resource("opening", "surface:desk:contact", "ambient", "Desk", {
+        shared: true,
+        estimatedDecodedBytes: 256 * 128,
+        failureFallback: "existing direct shadows",
+      }),
+      ...["walnut", "floor"].flatMap((surface) =>
+        ["color", "detail"].map((channel) =>
+          resource("opening", `surface:${surface}:${channel}`, "ambient", "Scene", {
+            shared: true,
+            estimatedDecodedBytes: Math.round((512 * 512 * 4 * 4) / 3),
+            failureFallback: "untextured material",
+          }),
+        ),
+      ),
     ],
   },
   about: {

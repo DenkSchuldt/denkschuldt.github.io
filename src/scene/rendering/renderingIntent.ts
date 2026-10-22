@@ -20,9 +20,11 @@ export const RENDERING_INTENT = {
   lighting: {
     essentialLights: ["sun-key", "hemisphere-fill"] as const,
     sunPosition: [-5.7, 6.4, 1.6] as [number, number, number],
-    hemisphereDesktopFactor: 0.5,
+    // Lift indirect daylight without adding lights or raising mobile shader cost.
+    hemisphereDesktopFactor: 1.25,
     hemisphereMobileFactor: 1.75,
-    sunShadowRadius: 6,
+    // A compact fixed-tap PCF footprint avoids separated-sample stripes.
+    sunShadowRadius: 4,
   },
   architecture: {
     lightWallColor: "#ebeced",
@@ -48,3 +50,6 @@ export const DARK_REGION_LUMINANCE_FLOOR = { mean: 3.6, maxCrushedRatio: 0.97 } 
 export const preservesDarkRegionSeparation = (metrics: DarkRegionLuminanceMetrics) =>
   metrics.mean >= DARK_REGION_LUMINANCE_FLOOR.mean &&
   metrics.crushedRatio <= DARK_REGION_LUMINANCE_FLOOR.maxCrushedRatio;
+
+export const resolveSunShadowRadius = (mapSize: number) =>
+  RENDERING_INTENT.lighting.sunShadowRadius * (mapSize / 2048);

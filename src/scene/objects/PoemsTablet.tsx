@@ -2,6 +2,8 @@
 
 import * as THREE from "three";
 
+import { useReflectedMaterial } from "../lighting/MaterialReflections";
+
 import { roundedRectangleShape, useMacBookShellGeometry } from "./geometry";
 import { useFeatureSettleLease } from "./runtimeHooks";
 
@@ -32,6 +34,11 @@ const PORTRAIT_GLASS_GEOMETRY = new THREE.ShapeGeometry(
   roundedRectangleShape(GLASS_HEIGHT, GLASS_WIDTH, 0.075),
   16,
 );
+const CHASSIS_MATERIAL = new THREE.MeshStandardMaterial({
+  color: "#d2d5d9",
+  roughness: 0.3,
+  metalness: 0.72,
+});
 const SCREEN_MATERIAL = new THREE.MeshStandardMaterial({
   color: "#010203",
   roughness: 0.16,
@@ -58,6 +65,9 @@ export function poemsTabletScreenSize(portrait: boolean) {
 }
 
 export function PoemsTablet({ position, rotation, active, portrait, screenRef }: PoemsTabletProps) {
+  const chassisMaterial = useReflectedMaterial(CHASSIS_MATERIAL);
+  const glassMaterial = useReflectedMaterial(GLASS_MATERIAL);
+  const screenMaterial = useReflectedMaterial(SCREEN_MATERIAL);
   const bodyGeometry = useMacBookShellGeometry(
     portrait ? BODY_HEIGHT : BODY_WIDTH,
     portrait ? BODY_WIDTH : BODY_HEIGHT,
@@ -74,7 +84,7 @@ export function PoemsTablet({ position, rotation, active, portrait, screenRef }:
       rotation-y={THREE.MathUtils.degToRad(rotation)}
     >
       <mesh geometry={bodyGeometry} rotation-x={-Math.PI / 2} castShadow receiveShadow>
-        <meshStandardMaterial color="#d2d5d9" roughness={0.3} metalness={0.72} />
+        <primitive object={chassisMaterial} attach="material" />
       </mesh>
       <mesh
         geometry={portrait ? PORTRAIT_GLASS_GEOMETRY : LANDSCAPE_GLASS_GEOMETRY}
@@ -82,7 +92,7 @@ export function PoemsTablet({ position, rotation, active, portrait, screenRef }:
         rotation-x={-Math.PI / 2}
         dispose={null}
       >
-        <primitive object={GLASS_MATERIAL} attach="material" />
+        <primitive object={glassMaterial} attach="material" />
       </mesh>
       <mesh
         ref={screenRef}
@@ -91,7 +101,7 @@ export function PoemsTablet({ position, rotation, active, portrait, screenRef }:
         rotation-x={-Math.PI / 2}
         dispose={null}
       >
-        <primitive object={SCREEN_MATERIAL} attach="material" />
+        <primitive object={screenMaterial} attach="material" />
       </mesh>
       <mesh position={[0, 0.0205, -cameraOffset]} rotation-x={-Math.PI / 2}>
         <circleGeometry args={[0.006, 12]} />

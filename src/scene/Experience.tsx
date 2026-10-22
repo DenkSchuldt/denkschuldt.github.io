@@ -160,8 +160,8 @@ function PortfolioRuntimeDeclaration({
 }
 const SETTINGS: SceneSettings = {
   desk: 19,
-  sun: 2.6,
-  sunColor: "#e9eef0",
+  sun: 2.35,
+  sunColor: "#fff1df",
   bounce: 0.62,
   bloom: 0.08,
   fog: 16.5,
